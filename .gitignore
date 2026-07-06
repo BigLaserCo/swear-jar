@@ -1,0 +1,7 @@
+# generated locally — never commit a user's report or their swear database
+index.html
+swearjar-report.html
+*.db
+__pycache__/
+*.pyc
+.DS_Store
