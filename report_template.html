@@ -27,6 +27,14 @@
   .stamp b{color:var(--ink-dim);font-weight:600}
   .local{display:inline-flex;align-items:center;gap:6px;color:var(--sev1)}
   .local::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sev1);box-shadow:0 0 0 3px rgba(91,138,114,.18)}
+  /* censor toggle */
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);user-select:none;margin-left:auto;align-self:center}
+  .toggle input{position:absolute;opacity:0;width:0;height:0}
+  .toggle .tg{width:34px;height:19px;border-radius:19px;background:#2a313c;position:relative;transition:background .2s;flex:none}
+  .toggle .tg::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+  .toggle input:checked + .tg{background:var(--sev1)}
+  .toggle input:checked + .tg::after{transform:translateX(15px);background:#dfeee6}
+  .toggle input:focus-visible + .tg{outline:2px solid var(--ember);outline-offset:2px}
 
   .hero{display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:center;
     background:linear-gradient(180deg,var(--panel),#13171d);border:1px solid var(--line);border-left:3px solid var(--gold);
@@ -142,6 +150,10 @@
   <header class="topbar">
     <p class="eyebrow">Swear Jar · a confession in data</p>
     <h1 class="brand">🫙 The damage report</h1>
+    <label class="toggle" title="Censor swears for sharing (f***). What you post is censored by default.">
+      <input type="checkbox" id="censorTog" checked><span class="tg"></span>
+      <span id="censorLbl">Censored 🙈</span>
+    </label>
     <div class="stamp" id="stamp"></div>
   </header>
 
@@ -235,6 +247,9 @@ const FOUNDER = 4338;  // the founder's real Swear Jar count — the bar to beat
 const $=(id)=>document.getElementById(id);
 const fmt=(n)=>n.toLocaleString('en-US');
 const money=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+let CENSOR=true;                                   // default ON — sharing is censored
+const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));   // "fuck" -> "f***"
+const sww=w=>`<span class="sww" data-w="${w}">${w}</span>`; // a censorable swear span
 
 // ---- stamp ----
 function fdate(s){const m=/(\d{4})-(\d{2})-(\d{2})/.exec(s||'');if(!m)return'—';
@@ -258,7 +273,7 @@ const fav=S.top[0];
 const kpis=[
   ['🤬 '+fmt(S.total_swears),'total swears'],
   [S.swears_per_1k,'swears / 1k words'],
-  [fav?('"'+fav.word+'"'):'—','favourite word'],
+  [fav?('"'+sww(fav.word)+'"'):'—','favourite word'],
   [S.longest_streak+'d','longest streak'],
   [S.spicy_pct+'%','were f-bombs'],
 ];
@@ -324,7 +339,7 @@ $('vscap').innerHTML=diff>=0
 // ---- leaderboard ----
 (function(){
   const t=S.top,mx=t.length?t[0].count:1,tc={strong:'t3',medium:'t2',mild:'t1'};
-  $('board').innerHTML=t.map(w=>`<div class="lw"><div class="word">${w.word}<small>${w.tier}</small></div>`+
+  $('board').innerHTML=t.map(w=>`<div class="lw"><div class="word">${sww(w.word)}<small>${w.tier}</small></div>`+
     `<div class="bar ${tc[w.tier]}"><i style="--w:${(w.count/mx*100).toFixed(1)}%"></i></div>`+
     `<div class="ct tnum">${fmt(w.count)}</div></div>`).join('');
 })();
@@ -349,8 +364,8 @@ $('callouts').innerHTML=calls.join('');
   const facts=[];
   if(S.first_swear) facts.push(['⏰', S.first_swear,
     `Your first swear of the day lands, on average, at <b>${S.first_swear}</b>. Good morning to the machine.`]);
-  if(S.signature_combo) facts.push(['💥', S.signature_combo.pair,
-    `Your signature combo — <b>${S.signature_combo.pair}</b> — showed up together in <b>${fmt(S.signature_combo.count)}</b> recordings.`]);
+  if(S.signature_combo){const cp=S.signature_combo.pair.split(' + ').map(sww).join(' + ');
+    facts.push(['💥', cp, `Your signature combo — <b>${cp}</b> — showed up together in <b>${fmt(S.signature_combo.count)}</b> recordings.`]);}
   facts.push(
     ['🎬', fbombs>=wolf?`${(fbombs/wolf).toFixed(1)}× the Wolf`:`${fmt(fbombs)} f-bombs`,
       `You dropped <b>${fmt(fbombs)}</b> f-bombs. <em>The Wolf of Wall Street</em> had 569.`],
@@ -373,7 +388,7 @@ $('callouts').innerHTML=calls.join('');
 // ---- share card + actions ----
 $('cardamt').textContent='$'+fmt(Math.round(S.jar_total));
 $('cardperiod').textContent=`${fdate(S.first_dt)} – ${fdate(S.last_dt)}`;
-$('cardlines').innerHTML=S.top.slice(0,4).map(w=>`<div class="li"><span>"${w.word}" ×${fmt(w.count)}</span><span>${money(w.count*S.jar_rate)}</span></div>`).join('');
+$('cardlines').innerHTML=S.top.slice(0,4).map(w=>`<div class="li"><span>"${sww(w.word)}" ×${fmt(w.count)}</span><span>${money(w.count*S.jar_rate)}</span></div>`).join('');
 
 const caption=`I owe the Swear Jar 🫙 ${money(S.jar_total)} for cursing at my AI ${fmt(S.total_swears)} times. `+
   `It reads my own voice notes — 100% on my machine. What's your number? #SwearJar`;
@@ -384,6 +399,14 @@ function copy(txt){navigator.clipboard?.writeText(txt).then(()=>toast('Caption c
 $('cp').onclick=()=>copy(caption);
 $('sh').onclick=()=>{if(navigator.share){navigator.share({title:'My Swear Jar',text:caption}).catch(()=>{});}else{copy(caption);}};
 $('dbnote').textContent='~/.swearjar';
+
+// ---- censor toggle: flips every .sww swear span between raw and f*** ----
+function paintCensor(){
+  document.querySelectorAll('.sww').forEach(el=>{el.textContent=CENSOR?censor(el.dataset.w):el.dataset.w;});
+  $('censorLbl').textContent=CENSOR?'Censored 🙈':'Uncensored 😈';
+}
+$('censorTog').addEventListener('change',e=>{CENSOR=e.target.checked;paintCensor();});
+paintCensor();   // sharing is censored by default
 </script>
 </body>
 </html>
