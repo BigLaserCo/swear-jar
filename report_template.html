@@ -22,7 +22,8 @@
   .topbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;border-bottom:1px solid var(--line);
     padding-bottom:16px;margin-bottom:26px}
   .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ember);margin:0;flex-basis:100%}
-  .brand{font-size:clamp(26px,4.6vw,40px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0}
+  .brand{font-size:clamp(26px,4.6vw,40px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0;display:flex;align-items:center;gap:10px}
+  .brand .blogo{height:1.15em;width:1.15em;flex:none}
   .stamp{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;flex-basis:100%;margin-top:2px}
   .stamp b{color:var(--ink-dim);font-weight:600}
   .local{display:inline-flex;align-items:center;gap:6px;color:var(--sev1)}
@@ -160,7 +161,7 @@
 <div class="wrap">
   <header class="topbar">
     <p class="eyebrow">Swear Jar · a confession in data</p>
-    <h1 class="brand">🫙 The damage report</h1>
+    <h1 class="brand" id="brand">🫙 The damage report</h1>
     <label class="toggle" title="Censor swears for sharing (f***). What you post is censored by default.">
       <input type="checkbox" id="censorTog" checked><span class="tg"></span>
       <span id="censorLbl">Censored 🙈</span>
@@ -281,6 +282,7 @@ $('stamp').innerHTML=`<span><b>${fmt(S.total_recordings)}</b> recordings</span>`
   `<span><b>${fdate(S.first_dt)} – ${fdate(S.last_dt)}</b></span>`+
   `<span><b>${S.active_days}</b> active days</span>`+
   `<span class="local">processed locally · nothing uploaded</span>`;
+if(S.logo) $('brand').innerHTML=`<img class="blogo" src="${S.logo}" alt="Swear Jar"> The damage report`;
 
 // ---- hero ----
 $('jartotal').textContent=fmt(Math.round(S.jar_total));

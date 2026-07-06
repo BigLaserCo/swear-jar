@@ -1,3 +1,4 @@
+<p align="center"><img src="docs/logo.png" alt="Swear Jar" width="128"></p>
 <h1 align="center">🫙 Swear Jar</h1>
 <p align="center"><em>How much do you swear at your AI?</em></p>
 
