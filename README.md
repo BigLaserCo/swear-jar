@@ -5,8 +5,9 @@ Swear Jar reads your [Superwhisper](https://superwhisper.com) voice-dictation
 history — the stuff you mutter at your AI all day — tallies every swear into a
 little local database, and hands you a shareable "damage report."
 
-The founder swore at his AI **4,338 times in two months** — 6× more f-bombs than
-*The Wolf of Wall Street*. That's **$4,338** in the jar. What's your number?
+The founder swore at his AI **4,392 times in two months** — 6× more f-bombs than
+*The Wolf of Wall Street*, about **65 a day**. That's **$4,392** in the jar.
+What's your number?
 
 > Run it to see your own report. Design notes and the launch plan live in
 > [`docs/`](docs/).
@@ -17,10 +18,11 @@ Your voice notes are the most personal data you own. So Swear Jar:
 
 - **Never uploads anything.** It reads files on your machine, writes a database
   on your machine (`~/.swearjar/`), and renders an HTML page on your machine.
-- **Has zero dependencies.** Pure Python standard library — ~350 readable lines.
-  Read every one before you run it. That's the trust model.
+- **Has zero dependencies.** Pure Python standard library. Read every line before
+  you run it — that's the trust model.
 - **Shares only numbers, never words.** The share buttons carry your *balance*
-  and *counts* — not a single word of what you actually said.
+  and *counts* — not a single word of what you actually said. There's a **🙈
+  censor toggle** (on by default) so shared cards read `f***`.
 
 ## Run it
 
@@ -39,16 +41,46 @@ Options:
 | `--open` | open the report when it's built |
 | `--demo` | run on fake data — nothing saved, real tally untouched |
 | `--reset` | wipe the local tally and rescan from scratch |
+| `--insults` | also count put-downs (stupid / idiot / …) as swears |
 
-Requires Python 3.8+ (already on every Mac). Superwhisper is Mac-first; that's
-who this is for today.
+Requires Python 3.8+ (already on every Mac). If it can't find your recordings it
+tells you where they usually live and lets you paste the path. Superwhisper is
+Mac-first; that's who this is for today.
+
+## What's in your report
+
+Your balance, a rage-o-clock (volume **and** a swears-per-word rate line), your
+top swears, **you vs. the founder** (compared per day, so history length doesn't
+matter), and a "fine print" of derived facts — first-swear-of-the-day, signature
+combo, movie-f-bomb multiple, manners ratio, and **rage triggers**: the topics
+you swear about far more than your baseline.
 
 ## What it counts
 
 General profanity only, grouped into families (fuck / shit / damn / …) with a
 mild-medium-strong "spice" rating. **No slurs, ever** — it's a swear jar, not a
-hate-speech detector. The word list lives at the top of `swearjar.py`; edit it
-to taste.
+hate-speech detector. Put-downs (stupid / idiot) are tracked separately and only
+count as swears with `--insults`. Every word lives in
+[`swearjar/lexicon.py`](swearjar/lexicon.py); edit it to taste.
+
+## How it's built
+
+Small, layered, and readable on purpose — the engine and the rendering are
+separate so you can trust (or replace) either half:
+
+```
+swearjar/
+  lexicon.py   the word lists + counting logic (pure, no I/O — start here)
+  engine.py    scan Superwhisper → local SQLite tally → stats
+  render.py    a stats dict → a self-contained HTML report
+  cli.py       the command line
+swearjar.py    the entry point (python3 swearjar.py)
+report_template.html   the report's HTML/CSS/JS
+test_swearjar.py       unit tests (python3 -m unittest)
+```
+
+`scripts/ci/verify.sh` is the gate: syntax + package import + tests + a demo
+smoke that must render a real report. Green before every commit.
 
 ## Status & license
 

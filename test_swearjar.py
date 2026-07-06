@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for the swear-counting core. Run: python3 -m unittest -v test_swearjar"""
 import unittest
-from swearjar import count_swears, count_insults, count_polite
+from swearjar import count_swears, count_insults, count_polite, trigger_words
 
 
 class TestCounting(unittest.TestCase):
@@ -43,6 +43,20 @@ class TestCounting(unittest.TestCase):
         # the -n regex missed the colloquial double-m spelling before
         self.assertEqual(self.counts("dammit and goddammit")["damn"], 2)
 
+    def test_cunt(self):
+        c = self.counts("what a cunt, absolute cunts")
+        self.assertEqual(c["cunt"], 2)
+
+    # --- rage triggers: meaningful topic words, stopwords/swears removed ---
+    def test_trigger_words(self):
+        tw = trigger_words("okay why the fuck did the merge break the deploy again")
+        self.assertIn("merge", tw)
+        self.assertIn("deploy", tw)
+        self.assertIn("break", tw)
+        self.assertNotIn("fuck", tw)   # swears excluded
+        self.assertNotIn("okay", tw)   # stopwords excluded
+        self.assertNotIn("the", tw)    # too short / stopword
+
     # --- insults are counted SEPARATELY, never as swears ---
     def test_insults_separate(self):
         self.assertEqual(count_insults("you stupid idiot moron")[0], 3)
@@ -81,6 +95,21 @@ class TestCounting(unittest.TestCase):
         # sanity: it's general profanity only; keep the list small & known
         self.assertIn("fuck", bases)
         self.assertLess(len(bases), 25)
+
+
+class TestEngine(unittest.TestCase):
+    def test_compute_stats_smoke(self):
+        from swearjar import open_db, seed_demo, compute_stats
+        from swearjar.engine import _record
+        con = open_db(":memory:")
+        # a CLEAN (0-swear) recording FIRST — guards the by-day date-key regression
+        _record(con, "clean1", "2026-05-01T09:00:00", 1777000000, "looks great thank you")
+        seed_demo(con)
+        s = compute_stats(con, 1.0)
+        for k in ("swears_per_day", "rage_triggers", "first_swear", "signature_combo", "total_swears"):
+            self.assertIn(k, s)
+        self.assertGreater(s["total_swears"], 0)
+        self.assertIsInstance(s["rage_triggers"], list)
 
 
 if __name__ == "__main__":

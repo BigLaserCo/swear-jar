@@ -178,7 +178,7 @@
   <div class="kpis" id="kpis"></div>
 
   <section class="sec">
-    <div class="sec-head"><h3>You vs. the founder</h3><span class="note">total swears · he set the bar at 3,965</span></div>
+    <div class="sec-head"><h3>You vs. the founder</h3><span class="note">swears per day — fair across any history length</span></div>
     <div class="panel vs" id="vs"></div>
     <p class="cap" id="vscap"></p>
   </section>
@@ -203,6 +203,14 @@
   <section class="sec">
     <div class="sec-head"><h3>Your greatest hits</h3><span class="note">most-used swears</span></div>
     <div class="panel board" id="board"></div>
+  </section>
+
+  <section class="sec" id="triggers-sec">
+    <div class="sec-head"><h3>Rage triggers</h3><span class="note">topics that make you snap</span></div>
+    <div class="panel">
+      <div class="board" id="triggers"></div>
+      <p class="cap" id="triggers-cap"></p>
+    </div>
   </section>
 
   <section class="sec">
@@ -243,7 +251,9 @@
 
 <script>
 const S = /*__DATA__*/{};
-const FOUNDER = 4338;  // the founder's real Swear Jar count — the bar to beat
+// The founder ran Swear Jar for ~2 months. Comparing raw totals across different
+// history lengths is unfair, so the benchmark is a RATE: swears per day.
+const FOUNDER = {perDay: 65};
 const $=(id)=>document.getElementById(id);
 const fmt=(n)=>n.toLocaleString('en-US');
 const money=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -263,8 +273,8 @@ $('stamp').innerHTML=`<span><b>${fmt(S.total_recordings)}</b> recordings</span>`
 $('jartotal').textContent=fmt(Math.round(S.jar_total));
 $('herosub').innerHTML=`You swore <span class="accent">${fmt(S.total_swears)}</span> times across ${fmt(S.total_recordings)} recordings — `+
   `losing it in <span class="accent">${S.pct_recordings_sworn}%</span> of them. At ${money(S.jar_rate)} a word, that's a tidy sum for the jar.`;
-// jar fill relative to founder (capped)
-const fillPct=Math.max(4,Math.min(100,Math.round(S.total_swears/FOUNDER*100)));
+// jar fill relative to the founder's daily rate (capped)
+const fillPct=Math.max(4,Math.min(100,Math.round(S.swears_per_day/FOUNDER.perDay*100)));
 $('jarpct').textContent=fillPct+'%';
 requestAnimationFrame(()=>{const f=$('fill');const h=86*fillPct/100;f.setAttribute('y',112-h);f.setAttribute('height',h);f.style.transition='all 1s cubic-bezier(.2,.7,.2,1)';});
 
@@ -279,15 +289,15 @@ const kpis=[
 ];
 $('kpis').innerHTML=kpis.map(k=>`<div class="kpi"><div class="v tnum">${k[0]}</div><div class="l">${k[1]}</div></div>`).join('');
 
-// ---- founder compare ----
-const mx=Math.max(S.total_swears,FOUNDER);
+// ---- founder compare (per DAY, so history length doesn't matter) ----
+const you=S.swears_per_day, mx=Math.max(you,FOUNDER.perDay);
 $('vs').innerHTML=
- `<div class="row me"><span class="who">You</span><div class="track"><i style="--w:${(S.total_swears/mx*100).toFixed(1)}%"></i></div><span class="n tnum">${fmt(S.total_swears)}</span></div>`+
- `<div class="row founder"><span class="who">The founder</span><div class="track"><i style="--w:${(FOUNDER/mx*100).toFixed(1)}%"></i></div><span class="n tnum">${fmt(FOUNDER)}</span></div>`;
-const diff=S.total_swears-FOUNDER;
+ `<div class="row me"><span class="who">You</span><div class="track"><i style="--w:${(you/mx*100).toFixed(1)}%"></i></div><span class="n tnum">${you}/day</span></div>`+
+ `<div class="row founder"><span class="who">The founder</span><div class="track"><i style="--w:${(FOUNDER.perDay/mx*100).toFixed(1)}%"></i></div><span class="n tnum">${FOUNDER.perDay}/day</span></div>`;
+const diff=+(you-FOUNDER.perDay).toFixed(1);
 $('vscap').innerHTML=diff>=0
-  ? `You out-swear the founder by <b>${fmt(diff)}</b>. He'd be proud. Concerned, but proud.`
-  : `You're <b>${fmt(-diff)}</b> swears calmer than the founder. Rookie numbers — or genuine serenity.`;
+  ? `You out-swear the founder by <b>${diff}/day</b>. He'd be proud. Concerned, but proud.`
+  : `You're <b>${(-diff).toFixed(1)}/day</b> calmer than the founder. Rookie numbers — or genuine serenity.`;
 
 // ---- trend chart ----
 (function(){
@@ -342,6 +352,17 @@ $('vscap').innerHTML=diff>=0
   $('board').innerHTML=t.map(w=>`<div class="lw"><div class="word">${sww(w.word)}<small>${w.tier}</small></div>`+
     `<div class="bar ${tc[w.tier]}"><i style="--w:${(w.count/mx*100).toFixed(1)}%"></i></div>`+
     `<div class="ct tnum">${fmt(w.count)}</div></div>`).join('');
+})();
+
+// ---- rage triggers: topics you swear about far above your baseline ----
+(function(){
+  const tr=S.rage_triggers||[];
+  if(!tr.length){$('triggers-sec').style.display='none';return;}
+  $('triggers').innerHTML=tr.map(t=>`<div class="lw"><div class="word">${t.word}</div>`+
+    `<div class="bar t3"><i style="--w:${t.share}%"></i></div>`+
+    `<div class="ct tnum">${t.share}%</div></div>`).join('');
+  $('triggers-cap').innerHTML=`When you mention these, you swear <b>far</b> more than your ${S.pct_recordings_sworn}% baseline. `+
+    `The machine knows exactly which words start the fight.`;
 })();
 
 // ---- callouts ----

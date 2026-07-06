@@ -6,7 +6,10 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 echo "==> python syntax"
-python3 -c "import ast; ast.parse(open('swearjar.py').read()); ast.parse(open('test_swearjar.py').read())"
+python3 -c "import ast,glob; [ast.parse(open(f).read(),f) for f in ['swearjar.py','test_swearjar.py',*glob.glob('swearjar/*.py')]]"
+
+echo "==> import the package"
+python3 -c "import swearjar; print('  swearjar', swearjar.__version__)"
 
 echo "==> unit tests"
 python3 -m unittest -q test_swearjar
