@@ -8,9 +8,9 @@ from .lexicon import LEXICON
 from .render import render_html
 
 # The creator's donation link, baked into every report's "empty your jar" button.
-# Set it to your Ko-fi / Buy Me a Coffee / Stripe Payment Link / PayPal.me URL,
-# or override per-run with --donate-url. Empty = the button is hidden.
-DONATE_URL = ""
+# A Stripe "customers choose what to pay" donation link (pay-what-you-want).
+# Override per-run with --donate-url; empty = the button is hidden.
+DONATE_URL = "https://donate.stripe.com/eVq00jb7zeEQ8zlbecg7e03"
 
 # Superwhisper writes recordings here by default; we try a few spellings/locations.
 CANDIDATES = [
