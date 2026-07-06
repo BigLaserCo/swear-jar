@@ -64,11 +64,14 @@ tracked separately and only count with `--insults`. Every pattern lives in
 [`swearjar/lexicon.py`](swearjar/lexicon.py) — and `--audit` prints the exact
 word behind every tally so you can check it yourself.
 
-> **One honest caveat:** speech-to-text is prudish. Superwhisper sometimes fails
-> to transcribe your *strongest* words (it wrote "cunt" only 17 times for a
-> founder who says it daily). Swear Jar counts what's in the transcript exactly;
-> it can't count a word the transcription never wrote down. Your real number is a
-> floor, not a ceiling.
+> **One honest caveat — it counts what you DICTATE, not everything you say.**
+> Superwhisper only records while you're actively dictating. Swears you mutter
+> off-mic — between dictations, on a call, under your breath — are never recorded,
+> so Swear Jar can't count them. (We checked this the hard way: re-transcribing the
+> raw audio with a second, independent speech model that catches ~88% of known
+> swears found the *same* count — the words genuinely aren't in the recordings.)
+> So your number is **swears-per-dictation**: a floor on your true rate, counted
+> exactly.
 
 ## How it's built
 
