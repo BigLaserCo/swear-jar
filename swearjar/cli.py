@@ -7,6 +7,11 @@ from . import engine
 from .lexicon import LEXICON
 from .render import render_html
 
+# The creator's donation link, baked into every report's "empty your jar" button.
+# Set it to your Ko-fi / Buy Me a Coffee / Stripe Payment Link / PayPal.me URL,
+# or override per-run with --donate-url. Empty = the button is hidden.
+DONATE_URL = ""
+
 # Superwhisper writes recordings here by default; we try a few spellings/locations.
 CANDIDATES = [
     "~/Documents/superwhisper/recordings",
@@ -57,6 +62,8 @@ def build_parser():
     ap.add_argument("--insults", action="store_true", help="also count put-downs (stupid/idiot/…)")
     ap.add_argument("--audit", action="store_true",
                     help="print exactly which words were counted (accuracy check), then exit")
+    ap.add_argument("--donate-url", default=DONATE_URL,
+                    help="the creator's donation page for the 'empty your jar' button")
     return ap
 
 
@@ -110,6 +117,7 @@ def main(argv=None):
     if stats["total_recordings"] == 0:
         print("No recordings with text found yet. Talk to your AI a bit and run me again.", file=sys.stderr)
         return 1
+    stats["donate_url"] = args.donate_url
 
     out = os.path.abspath(args.out)
     with open(out, "w", encoding="utf-8") as f:

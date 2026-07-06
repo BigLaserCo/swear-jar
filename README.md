@@ -43,6 +43,7 @@ Options:
 | `--reset` | wipe the local tally and rescan from scratch |
 | `--insults` | also count put-downs (stupid / idiot / …) as swears |
 | `--audit` | print every word that got counted, so you can verify the number |
+| `--donate-url URL` | show an "empty your jar" donate button pointing at your tip page |
 
 Requires Python 3.8+ (already on every Mac). If it can't find your recordings it
 tells you where they usually live and lets you paste the path. Superwhisper is
@@ -91,6 +92,14 @@ test_swearjar.py       unit tests (python3 -m unittest)
 
 `scripts/ci/verify.sh` is the gate: syntax + package import + tests + a demo
 smoke that must render a real report. Green before every commit.
+
+## Empty your jar (donations)
+
+The report can show a playful **"empty your jar"** button — feeling guilty about a
+$4,000 balance, a tenner buys back your conscience. It's a plain outbound link to
+your own tip page (Ko-fi / Buy Me a Coffee / Stripe Payment Link / PayPal.me) — no
+payments touch this tool. Set `DONATE_URL` in
+[`swearjar/cli.py`](swearjar/cli.py) or pass `--donate-url`. Empty = no button.
 
 ## Status & license
 
