@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for the swear-counting core. Run: python3 -m unittest -v test_swearjar"""
 import unittest
-from swearjar import count_swears, count_insults
+from swearjar import count_swears, count_insults, count_polite
 
 
 class TestCounting(unittest.TestCase):
@@ -47,6 +47,10 @@ class TestCounting(unittest.TestCase):
     def test_insults_separate(self):
         self.assertEqual(count_insults("you stupid idiot moron")[0], 3)
         self.assertEqual(self.total("you stupid idiot moron"), 0)  # not swears
+
+    def test_polite(self):
+        self.assertEqual(count_polite("please and thank you and sorry")[0], 3)
+        self.assertEqual(self.total("please and thank you"), 0)  # manners aren't swears
 
     # --- it must NOT count innocent words (the embarrassing failures) ---
     def test_no_false_positives(self):

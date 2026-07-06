@@ -82,6 +82,24 @@ def count_insults(text):
     return sum(counts.values()), counts
 
 
+# Politeness — the other side of the ledger, for the "manners vs. rage" stat.
+POLITE = [
+    ("please", r"\bplease\b"), ("thanks", r"\bthank(?:s| you)\b"),
+    ("sorry", r"\bsorry\b"), ("appreciate", r"\bappreciate\b"),
+]
+COMPILED_POL = [(base, re.compile(rx, re.I)) for base, rx in POLITE]
+
+
+def count_polite(text):
+    """Return (total, {base: count}) for polite words."""
+    counts = {}
+    for base, rx in COMPILED_POL:
+        n = len(rx.findall(text))
+        if n:
+            counts[base] = n
+    return sum(counts.values()), counts
+
+
 # ---- database -----------------------------------------------------------------
 def open_db(path=DB_PATH):
     if path != ":memory:":
@@ -92,6 +110,7 @@ def open_db(path=DB_PATH):
     con.execute("""CREATE TABLE IF NOT EXISTS swear_counts(
         word TEXT PRIMARY KEY, count INTEGER, tier INTEGER)""")
     con.execute("CREATE TABLE IF NOT EXISTS insult_counts(word TEXT PRIMARY KEY, count INTEGER)")
+    con.execute("CREATE TABLE IF NOT EXISTS polite_counts(word TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS scan_meta(key TEXT PRIMARY KEY, value TEXT)")
     # migrate older DBs that predate the insults column
     cols = [r[1] for r in con.execute("PRAGMA table_info(recordings)").fetchall()]
@@ -120,6 +139,7 @@ def ingest(con, recordings_dir):
             continue
         total, counts, tiers = count_swears(text)
         ins_total, ins_counts = count_insults(text)
+        _, pol_counts = count_polite(text)
         try:
             epoch = int(rid)
         except ValueError:
@@ -132,6 +152,9 @@ def ingest(con, recordings_dir):
                         (base, n, tiers[base]))
         for base, n in ins_counts.items():
             con.execute("""INSERT INTO insult_counts(word,count) VALUES(?,?)
+                ON CONFLICT(word) DO UPDATE SET count=count+excluded.count""", (base, n))
+        for base, n in pol_counts.items():
+            con.execute("""INSERT INTO polite_counts(word,count) VALUES(?,?)
                 ON CONFLICT(word) DO UPDATE SET count=count+excluded.count""", (base, n))
         added += 1
     con.execute("INSERT OR REPLACE INTO scan_meta(key,value) VALUES('source',?)", (recordings_dir,))
@@ -180,6 +203,7 @@ def compute_stats(con, rate, include_insults=False):
     by_hour = [0] * 24          # swears per hour (volume)
     by_hour_words = [0] * 24    # words per hour (to normalise into a rate)
     by_dow = [0] * 7            # Mon=0
+    by_dow_words = [0] * 7
     by_week = {}               # 'YYYY-Www' -> swears
     by_day = {}                # 'YYYY-MM-DD' -> swears
     for r in rows:
@@ -195,6 +219,7 @@ def compute_stats(con, rate, include_insults=False):
         except ValueError:
             continue
         by_dow[dobj.weekday()] += sw
+        by_dow_words[dobj.weekday()] += words
         iso = dobj.isocalendar()
         by_week[f"{iso[0]}-W{iso[1]:02d}"] = by_week.get(f"{iso[0]}-W{iso[1]:02d}", 0) + sw
         key = f"{y:04d}-{mo:02d}-{da:02d}"
@@ -202,7 +227,25 @@ def compute_stats(con, rate, include_insults=False):
 
     top = con.execute("SELECT word,count,tier FROM swear_counts ORDER BY count DESC").fetchall()
     top_insults = con.execute("SELECT word,count FROM insult_counts ORDER BY count DESC").fetchall()
+    top_polite = con.execute("SELECT word,count FROM polite_counts ORDER BY count DESC").fetchall()
     strong = sum(c for _, c, t in top if t == 3)
+    polite_total = sum(c for _, c in top_polite)
+    swear_vocab = con.execute("SELECT COUNT(*) FROM swear_counts").fetchone()[0]
+    fuck_count = next((c for w, c, _ in top if w == "fuck"), 0)
+
+    # worst weekday by RATE (not volume), so it isn't just "the day you talk most"
+    DOW = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    dow_rate = [1000 * by_dow[i] / by_dow_words[i] if by_dow_words[i] else 0 for i in range(7)]
+    worst_dow_i = max(range(7), key=lambda i: dow_rate[i]) if any(by_dow_words) else 0
+
+    # extrapolate the observed daily rate out to a year
+    days_sorted = sorted(by_day)
+    span_days = 1
+    if days_sorted:
+        d0 = datetime.date.fromisoformat(days_sorted[0])
+        d1 = datetime.date.fromisoformat(days_sorted[-1])
+        span_days = max(1, (d1 - d0).days + 1)
+    per_day = total_swears / span_days
 
     worst_day = max(by_day.items(), key=lambda kv: kv[1]) if by_day else ("—", 0)
     week_series = [{"w": k, "v": v} for k, v in sorted(by_week.items())]
@@ -233,6 +276,14 @@ def compute_stats(con, rate, include_insults=False):
         "insults_total": insults_total,
         "top_insults": [{"word": w, "count": c} for w, c in top_insults[:5]],
         "insults_counted": include_insults,
+        "polite_total": polite_total,
+        "top_polite": [{"word": w, "count": c} for w, c in top_polite],
+        "swear_vocab": swear_vocab,
+        "fuck_count": fuck_count,
+        "worst_dow": DOW[worst_dow_i],
+        "worst_dow_rate": round(dow_rate[worst_dow_i], 1),
+        "swears_per_year": round(per_day * 365),
+        "jar_per_year": round(per_day * 365 * rate, 2),
         "by_hour": by_hour,
         "by_hour_words": by_hour_words,
         "by_dow": by_dow,

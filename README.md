@@ -5,8 +5,8 @@ Swear Jar reads your [Superwhisper](https://superwhisper.com) voice-dictation
 history — the stuff you mutter at your AI all day — tallies every swear into a
 little local database, and hands you a shareable "damage report."
 
-The founder swore at his AI **4,215 times in two months.** That's **$4,215** in
-the jar. What's your number?
+The founder swore at his AI **4,338 times in two months** — 6× more f-bombs than
+*The Wolf of Wall Street*. That's **$4,338** in the jar. What's your number?
 
 > Run it to see your own report. Design notes and the launch plan live in
 > [`docs/`](docs/).

@@ -84,6 +84,20 @@
   .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px}
   .legend .sw{display:inline-block;width:10px;height:10px;background:#8a5228;border-radius:2px;vertical-align:middle;margin-right:4px}
   .legend .rt{display:inline-block;width:15px;height:3px;background:var(--gold);vertical-align:middle;margin-right:4px}
+
+  /* fun facts */
+  .funfacts{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+  .ff{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;transition:transform .15s,border-color .15s}
+  .ff:hover{transform:translateY(-2px);border-color:var(--ember)}
+  .ff .e{font-size:19px}
+  .ff .v{font-family:var(--mono);font-size:21px;font-weight:700;margin:5px 0 3px;letter-spacing:-.01em;color:var(--ink)}
+  .ff .l{font-size:12.5px;color:var(--muted);line-height:1.42}
+  .ff .l b{color:var(--ink-dim);font-weight:600}
+  /* hover affordances — the charts now respond */
+  #trend circle:hover,#clock rect:hover,#clock circle:hover{opacity:.65;cursor:pointer}
+  .vs .track:hover i{filter:brightness(1.15)}
+  .board .lw:hover .bar i{filter:brightness(1.3)}
+  .kpi{transition:border-color .15s,transform .15s}.kpi:hover{border-color:var(--ember);transform:translateY(-2px)}
   .call{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;border-top:2px solid var(--ember)}
   .call .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .call .big{font-family:var(--mono);font-size:26px;font-weight:700;margin:5px 0 2px}
@@ -184,6 +198,11 @@
   </section>
 
   <section class="sec">
+    <div class="sec-head"><h3>The fine print</h3><span class="note">what else your mouth gave away</span></div>
+    <div class="funfacts" id="funfacts"></div>
+  </section>
+
+  <section class="sec">
     <div class="sec-head"><h3>Share the shame</h3><span class="note">only the number leaves — never your words</span></div>
     <div class="share">
       <div class="card" id="card">
@@ -212,7 +231,7 @@
 
 <script>
 const S = /*__DATA__*/{};
-const FOUNDER = 3965;
+const FOUNDER = 4338;  // the founder's real Swear Jar count — the bar to beat
 const $=(id)=>document.getElementById(id);
 const fmt=(n)=>n.toLocaleString('en-US');
 const money=(n)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -268,7 +287,7 @@ $('vscap').innerHTML=diff>=0
   const pts=d.map((p,i)=>`${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
   g+=`<polygon points="${pl},${y(0)} ${pts} ${W-pr},${y(0)}" fill="url(#eg)" opacity="0"><animate attributeName="opacity" to="1" dur=".9s" fill="freeze"/></polygon>`;
   g+=`<polyline points="${pts}" fill="none" stroke="#e8853a" stroke-width="2.5" stroke-linejoin="round"/>`;
-  d.forEach((p,i)=>{g+=`<circle cx="${x(i)}" cy="${y(p.v)}" r="3.2" fill="#0f1216" stroke="#e8853a" stroke-width="2"/>`;
+  d.forEach((p,i)=>{g+=`<circle cx="${x(i)}" cy="${y(p.v)}" r="3.2" fill="#0f1216" stroke="#e8853a" stroke-width="2"><title>${p.w}: ${p.v} swears</title></circle>`;
     if(d.length<=14)g+=`<text class="axis" x="${x(i)}" y="${H-12}" text-anchor="middle">${p.w.slice(5)}</text>`;});
   svg.innerHTML=`<defs><linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8853a" stop-opacity=".32"/><stop offset="1" stop-color="#e8853a" stop-opacity="0"/></linearGradient></defs>`+g;
 })();
@@ -285,11 +304,12 @@ $('vscap').innerHTML=diff>=0
   // only trust the rate where the hour has a meaningful sample of words
   const minW=Math.max(...wd,1)*0.05;
   let g=`<line x1="${pl}" y1="${base}" x2="${W-pr}" y2="${base}" stroke="#2a313c"/>`;
-  sw.forEach((v,i)=>{if(v>0){const h=ih*v/swmax;g+=`<rect x="${(x(i)-bw*0.34).toFixed(1)}" y="${(base-h).toFixed(1)}" width="${(bw*0.68).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#8a5228"/>`;}});
+  const hlab=i=>((i%12)||12)+(i<12?'am':'pm');
+  sw.forEach((v,i)=>{if(v>0){const h=ih*v/swmax;g+=`<rect x="${(x(i)-bw*0.34).toFixed(1)}" y="${(base-h).toFixed(1)}" width="${(bw*0.68).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#8a5228"><title>${hlab(i)} — ${v} swears</title></rect>`;}});
   const ok=rate.map((v,i)=>({i,v,ok:wd[i]>=minW}));
   const lp=ok.filter(p=>p.ok).map(p=>`${x(p.i).toFixed(1)},${yr(p.v).toFixed(1)}`).join(' ');
   g+=`<polyline points="${lp}" fill="none" stroke="#e8b23a" stroke-width="2.5" stroke-linejoin="round"/>`;
-  ok.forEach(p=>{if(p.ok)g+=`<circle cx="${x(p.i)}" cy="${yr(p.v)}" r="2.6" fill="#e8b23a"/>`;});
+  ok.forEach(p=>{if(p.ok)g+=`<circle cx="${x(p.i)}" cy="${yr(p.v)}" r="2.6" fill="#e8b23a"><title>${hlab(p.i)} — ${p.v.toFixed(1)} swears / 1k words</title></circle>`;});
   [0,4,8,12,16,20,23].forEach(hh=>g+=`<text class="axis" x="${x(hh)}" y="${H-9}" text-anchor="middle">${(hh%12||12)+(hh<12?'a':'p')}</text>`);
   g+=`<text class="axis" x="${W-pr+6}" y="${yr(rmax)+3}">${rmax.toFixed(0)}</text><text class="axis" x="${W-pr+6}" y="${base+3}">0</text>`;
   svg.innerHTML=g;
@@ -319,6 +339,31 @@ if((S.insults_total||0)>0){
     `<div class="sub">${ti||'—'}. ${S.insults_counted?'Counted in your total above.':'Run <code>--insults</code> to add these to the jar.'}</div></div>`);
 }
 $('callouts').innerHTML=calls.join('');
+
+// ---- fun facts ----
+(function(){
+  const fbombs=S.fuck_count||0, wolf=569;
+  const ratio=S.total_swears/Math.max(S.polite_total||0,1);
+  const clean=Math.max(0,100-S.pct_recordings_sworn).toFixed(0);
+  const weather=(r=>r>=20?['🌀','Category 5']:r>=15?['⛈️','Severe']:r>=10?['🌧️','Stormy']:r>=5?['🌦️','Cloudy']:['🌤️','Mostly calm'])(S.swears_per_1k);
+  const facts=[
+    ['🎬', fbombs>=wolf?`${(fbombs/wolf).toFixed(1)}× the Wolf`:`${fmt(fbombs)} f-bombs`,
+      `You dropped <b>${fmt(fbombs)}</b> f-bombs. <em>The Wolf of Wall Street</em> had 569.`],
+    ['🙏', `${ratio.toFixed(0)} : 1`,
+      `Swears to manners. You said please/thanks/sorry <b>${fmt(S.polite_total||0)}</b> times, swore <b>${fmt(S.total_swears)}</b>.`],
+    ['📈', money(S.jar_per_year),
+      `Keep this pace and you'll owe the jar <b>${money(S.jar_per_year)}</b> a year.`],
+    ['🎨', `${S.swear_vocab} curses`,
+      `A working vocabulary of <b>${S.swear_vocab}</b> distinct swears. Range.`],
+    ['😇', `${clean}% clean`,
+      `You kept it civil in <b>${clean}%</b> of recordings. So it <em>is</em> possible.`],
+    ['📅', `${S.worst_dow}s`,
+      `Your rage <em>rate</em> peaks on <b>${S.worst_dow}s</b> — ${S.worst_dow_rate}/1k words.`],
+    [weather[0], weather[1],
+      `Rage weather: <b>${weather[1].toLowerCase()}</b>, ${S.swears_per_1k} swears per 1k words.`],
+  ];
+  $('funfacts').innerHTML=facts.map(f=>`<div class="ff"><div class="e">${f[0]}</div><div class="v">${f[1]}</div><div class="l">${f[2]}</div></div>`).join('');
+})();
 
 // ---- share card + actions ----
 $('cardamt').textContent='$'+fmt(Math.round(S.jar_total));
