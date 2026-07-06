@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for the swear-counting core. Run: python3 -m unittest -v test_swearjar"""
 import unittest
-from swearjar import count_swears
+from swearjar import count_swears, count_insults
 
 
 class TestCounting(unittest.TestCase):
@@ -33,11 +33,27 @@ class TestCounting(unittest.TestCase):
     def test_case_insensitive(self):
         self.assertEqual(self.total("FUCK Shit DaMn"), 3)
 
+    def test_expanded_words(self):
+        self.assertEqual(self.counts("this sucks and it sucked")["suck"], 2)
+        self.assertEqual(self.counts("oh my god why")["god"], 1)
+        self.assertEqual(self.counts("jesus christ")["jesus"], 1)
+        self.assertEqual(self.counts("that's horseshit")["shit"], 1)
+
+    def test_dammit_double_m(self):
+        # the -n regex missed the colloquial double-m spelling before
+        self.assertEqual(self.counts("dammit and goddammit")["damn"], 2)
+
+    # --- insults are counted SEPARATELY, never as swears ---
+    def test_insults_separate(self):
+        self.assertEqual(count_insults("you stupid idiot moron")[0], 3)
+        self.assertEqual(self.total("you stupid idiot moron"), 0)  # not swears
+
     # --- it must NOT count innocent words (the embarrassing failures) ---
     def test_no_false_positives(self):
         clean = ("this is a class assignment, please pass. hello assistant, "
                  "let's assess the grass, order a cocktail, watch the peacock, "
-                 "he harassed nobody, shell script, scrape the data")
+                 "he harassed nobody, shell script, scrape the data, "
+                 "success in december at christmas, minor damage, an assessment")
         self.assertEqual(self.total(clean), 0, f"false positive in: {self.counts(clean)}")
 
     def test_hell_not_hello(self):

@@ -27,7 +27,7 @@ DB_PATH = os.path.join(DB_DIR, "swearjar.db")
 # Tiers: 3=strong, 2=medium, 1=mild. General profanity only — no slurs.
 LEXICON = [
     ("fuck",    r"\b(?:mother ?)?f+u+c+k+\w*\b", 3),
-    ("shit",    r"\b(?:bull ?)?s+h+i+t+\w*\b",   2),
+    ("shit",    r"\b(?:bull|horse|dog|dip|ape|bat)? ?s+h+i+t+\w*\b", 2),
     ("ass",     r"\b(?:dumb|jack|smart|fat)?ass(?:hole|holes|hat|es)?\b", 2),
     ("bitch",   r"\bb+i+t+c+h+\w*\b",            2),
     ("bastard", r"\bbastard\w*\b",               2),
@@ -38,17 +38,31 @@ LEXICON = [
     ("twat",    r"\btwat\w*\b",                  2),
     ("wanker",  r"\bwank\w*\b",                  2),
     ("bollocks",r"\bbollock\w*\b",               2),
-    ("damn",    r"\b(?:god ?)?damn\w*\b",        1),
+    ("arse",    r"\barse\w*\b",                  2),
+    ("damn",    r"\b(?:god ?)?damn\w*\b|\b(?:god ?)?dammit\b", 1),
     ("hell",    r"\bhell\b",                     1),
     ("crap",    r"\bcrap\w*\b",                  1),
     ("bloody",  r"\bbloody\b",                   1),
+    ("bugger",  r"\bbugger\w*\b",                1),
+    ("suck",    r"\bsuck(?:ed|ing|s|er|ers)?\b", 1),
+    ("jesus",   r"\bjesus(?: christ)?\b|\bchrist\b", 1),
+    ("god",     r"\boh my god\b",                1),
 ]
 COMPILED = [(base, re.compile(rx, re.I), tier) for base, rx, tier in LEXICON]
 TIER_NAME = {3: "strong", 2: "medium", 1: "mild"}
 
+# Put-downs, NOT profanity — counted separately, only folded into the swear
+# total when the user passes --insults. Keeps the headline "swear" number honest.
+INSULTS = [
+    ("stupid", r"\bstupid\w*\b"), ("idiot", r"\bidiot\w*\b"), ("moron", r"\bmoron\w*\b"),
+    ("dumb", r"\bdumb\b"), ("lame", r"\blame\b"), ("useless", r"\buseless\b"),
+    ("pathetic", r"\bpathetic\b"), ("garbage", r"\bgarbage\b"),
+]
+COMPILED_INS = [(base, re.compile(rx, re.I)) for base, rx in INSULTS]
+
 
 def count_swears(text):
-    """Return (total, {base: count}, {base: tier})."""
+    """Return (total, {base: count}, {base: tier}) for profanity."""
     counts, tiers = {}, {}
     for base, rx, tier in COMPILED:
         n = len(rx.findall(text))
@@ -58,16 +72,31 @@ def count_swears(text):
     return sum(counts.values()), counts, tiers
 
 
+def count_insults(text):
+    """Return (total, {base: count}) for put-downs (stupid/idiot/…)."""
+    counts = {}
+    for base, rx in COMPILED_INS:
+        n = len(rx.findall(text))
+        if n:
+            counts[base] = n
+    return sum(counts.values()), counts
+
+
 # ---- database -----------------------------------------------------------------
 def open_db(path=DB_PATH):
     if path != ":memory:":
         os.makedirs(os.path.dirname(path), exist_ok=True)
     con = sqlite3.connect(path)
     con.execute("""CREATE TABLE IF NOT EXISTS recordings(
-        id TEXT PRIMARY KEY, dt TEXT, epoch INTEGER, words INTEGER, swears INTEGER)""")
+        id TEXT PRIMARY KEY, dt TEXT, epoch INTEGER, words INTEGER, swears INTEGER, insults INTEGER DEFAULT 0)""")
     con.execute("""CREATE TABLE IF NOT EXISTS swear_counts(
         word TEXT PRIMARY KEY, count INTEGER, tier INTEGER)""")
+    con.execute("CREATE TABLE IF NOT EXISTS insult_counts(word TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS scan_meta(key TEXT PRIMARY KEY, value TEXT)")
+    # migrate older DBs that predate the insults column
+    cols = [r[1] for r in con.execute("PRAGMA table_info(recordings)").fetchall()]
+    if "insults" not in cols:
+        con.execute("ALTER TABLE recordings ADD COLUMN insults INTEGER DEFAULT 0")
     con.commit()
     return con
 
@@ -90,16 +119,20 @@ def ingest(con, recordings_dir):
         if not text:
             continue
         total, counts, tiers = count_swears(text)
+        ins_total, ins_counts = count_insults(text)
         try:
             epoch = int(rid)
         except ValueError:
             epoch = 0
-        con.execute("INSERT OR IGNORE INTO recordings(id,dt,epoch,words,swears) VALUES(?,?,?,?,?)",
-                    (rid, d.get("datetime", ""), epoch, len(text.split()), total))
+        con.execute("INSERT OR IGNORE INTO recordings(id,dt,epoch,words,swears,insults) VALUES(?,?,?,?,?,?)",
+                    (rid, d.get("datetime", ""), epoch, len(text.split()), total, ins_total))
         for base, n in counts.items():
             con.execute("""INSERT INTO swear_counts(word,count,tier) VALUES(?,?,?)
                 ON CONFLICT(word) DO UPDATE SET count=count+excluded.count""",
                         (base, n, tiers[base]))
+        for base, n in ins_counts.items():
+            con.execute("""INSERT INTO insult_counts(word,count) VALUES(?,?)
+                ON CONFLICT(word) DO UPDATE SET count=count+excluded.count""", (base, n))
         added += 1
     con.execute("INSERT OR REPLACE INTO scan_meta(key,value) VALUES('source',?)", (recordings_dir,))
     con.commit()
@@ -134,23 +167,29 @@ def seed_demo(con):
 
 
 # ---- stats --------------------------------------------------------------------
-def compute_stats(con, rate):
-    rows = con.execute("SELECT dt, words, swears FROM recordings").fetchall()
+def compute_stats(con, rate, include_insults=False):
+    rows = con.execute("SELECT dt, words, swears, insults FROM recordings").fetchall()
     total_recs = len(rows)
     total_words = sum(r[1] for r in rows)
-    total_swears = sum(r[2] for r in rows)
-    swore_recs = sum(1 for r in rows if r[2] > 0)
+    insults_total = sum(r[3] for r in rows)
+    # a "swear" is profanity; --insults folds put-downs into the count
+    swear_of = (lambda r: r[2] + r[3]) if include_insults else (lambda r: r[2])
+    total_swears = sum(swear_of(r) for r in rows)
+    swore_recs = sum(1 for r in rows if swear_of(r) > 0)
 
-    by_hour = [0] * 24
+    by_hour = [0] * 24          # swears per hour (volume)
+    by_hour_words = [0] * 24    # words per hour (to normalise into a rate)
     by_dow = [0] * 7            # Mon=0
     by_week = {}               # 'YYYY-Www' -> swears
     by_day = {}                # 'YYYY-MM-DD' -> swears
-    for dt, words, sw in rows:
+    for r in rows:
+        dt, words, sw = r[0], r[1], swear_of(r)
         m = re.match(r"(\d{4})-(\d{2})-(\d{2})T(\d{2})", dt or "")
         if not m:
             continue
         y, mo, da, hh = int(m[1]), int(m[2]), int(m[3]), int(m[4])
         by_hour[hh] += sw
+        by_hour_words[hh] += words
         try:
             dobj = datetime.date(y, mo, da)
         except ValueError:
@@ -162,6 +201,7 @@ def compute_stats(con, rate):
         by_day[key] = by_day.get(key, 0) + sw
 
     top = con.execute("SELECT word,count,tier FROM swear_counts ORDER BY count DESC").fetchall()
+    top_insults = con.execute("SELECT word,count FROM insult_counts ORDER BY count DESC").fetchall()
     strong = sum(c for _, c, t in top if t == 3)
 
     worst_day = max(by_day.items(), key=lambda kv: kv[1]) if by_day else ("—", 0)
@@ -190,7 +230,11 @@ def compute_stats(con, rate):
         "jar_total": round(total_swears * rate, 2),
         "spicy_pct": round(100 * strong / total_swears) if total_swears else 0,
         "top": [{"word": w, "count": c, "tier": TIER_NAME[t]} for w, c, t in top[:10]],
+        "insults_total": insults_total,
+        "top_insults": [{"word": w, "count": c} for w, c in top_insults[:5]],
+        "insults_counted": include_insults,
         "by_hour": by_hour,
+        "by_hour_words": by_hour_words,
         "by_dow": by_dow,
         "week_series": week_series,
         "worst_day": {"date": worst_day[0], "swears": worst_day[1]},
@@ -218,6 +262,8 @@ def main():
     ap.add_argument("--open", action="store_true", help="open the report when done")
     ap.add_argument("--demo", action="store_true", help="use fake data instead of your folder")
     ap.add_argument("--reset", action="store_true", help="wipe the local tally and rescan")
+    ap.add_argument("--insults", action="store_true",
+                    help="also count put-downs (stupid/idiot/…) as swears")
     args = ap.parse_args()
 
     if args.reset and os.path.exists(DB_PATH):
@@ -237,7 +283,7 @@ def main():
         added, seen = ingest(con, args.path)
         print(f"🫙  Scanned {seen} recordings ({added} new) — all on your machine, nothing uploaded.")
 
-    stats = compute_stats(con, args.rate)
+    stats = compute_stats(con, args.rate, include_insults=args.insults)
     if stats["total_recordings"] == 0:
         print("No recordings with text found yet. Talk to your AI a bit and run me again.", file=sys.stderr)
         return 1
@@ -252,6 +298,8 @@ def main():
     top = stats["top"][0] if stats["top"] else None
     if top:
         print(f"   Favourite word : \"{top['word']}\" ×{top['count']:,}")
+    if not args.insults and stats["insults_total"]:
+        print(f"   Put-downs      : {stats['insults_total']:,} more (stupid/idiot/…) — add --insults to count them")
     print(f"\n✅  Report: {out}")
 
     if args.open:

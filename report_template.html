@@ -79,7 +79,11 @@
   .t3 i{background:linear-gradient(90deg,#8a352b,var(--sev3))}.t2 i{background:linear-gradient(90deg,#8a6a2b,var(--sev2))}.t1 i{background:linear-gradient(90deg,#37634c,var(--sev1))}
   .board .ct{font-family:var(--mono);font-size:13px;text-align:right;color:var(--ink-dim)}
 
-  .callouts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+  .call code{font-family:var(--mono);font-size:.85em;background:#232935;padding:1px 5px;border-radius:4px;color:var(--ink-dim)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:10px}
+  .legend .sw{display:inline-block;width:10px;height:10px;background:#8a5228;border-radius:2px;vertical-align:middle;margin-right:4px}
+  .legend .rt{display:inline-block;width:15px;height:3px;background:var(--gold);vertical-align:middle;margin-right:4px}
   .call{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;border-top:2px solid var(--ember)}
   .call .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
   .call .big{font-family:var(--mono);font-size:26px;font-weight:700;margin:5px 0 2px}
@@ -159,10 +163,13 @@
   </section>
 
   <section class="sec">
-    <div class="sec-head"><h3>Rage-o-clock</h3><span class="note">when you lose it, by hour</span></div>
+    <div class="sec-head"><h3>Rage-o-clock</h3><span class="note">volume vs. rate, by hour</span></div>
     <div class="panel">
-      <div class="clock" id="clock"></div>
-      <div class="clock-labels"><span>12a</span><span>4a</span><span>8a</span><span>12p</span><span>4p</span><span>8p</span><span>11p</span></div>
+      <div class="legend">
+        <span><span class="sw"></span>swears (how much you talk)</span>
+        <span><span class="rt"></span>swears per 1,000 words (your true rage rate)</span>
+      </div>
+      <svg id="clock" viewBox="0 0 920 230" role="img" aria-label="Swears per hour as bars, with a rage-rate line"></svg>
       <p class="cap" id="clockcap"></p>
     </div>
   </section>
@@ -266,12 +273,32 @@ $('vscap').innerHTML=diff>=0
   svg.innerHTML=`<defs><linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8853a" stop-opacity=".32"/><stop offset="1" stop-color="#e8853a" stop-opacity="0"/></linearGradient></defs>`+g;
 })();
 
-// ---- rage o clock ----
+// ---- rage o clock: bars = volume, line = rate (swears per 1k words) ----
 (function(){
-  const h=S.by_hour,mx=Math.max(...h,1),peak=h.indexOf(mx);
-  $('clock').innerHTML=h.map((v,i)=>`<div class="h${i===peak&&v>0?' peak':''}" style="--h:${(v/mx*106+2).toFixed(0)}px" title="${i}:00 — ${v} swears"></div>`).join('');
-  const ap=(peak%12||12)+(peak<12?'am':'pm');
-  $('clockcap').innerHTML=mx>0?`Your breaking point is around <b>${ap}</b>. That's when the robot really gets it.`:'';
+  const sw=S.by_hour, wd=S.by_hour_words||new Array(24).fill(0);
+  const rate=sw.map((s,i)=>wd[i]?1000*s/wd[i]:0);
+  const svg=$('clock');
+  const W=920,H=230,pl=38,pr=46,pt=14,pb=30,iw=W-pl-pr,ih=H-pt-pb;
+  const swmax=Math.max(...sw,1),rmax=Math.max(...rate,1);
+  const bw=iw/24,x=i=>pl+bw*i+bw*0.5,base=pt+ih;
+  const yr=v=>pt+ih*(1-v/rmax);
+  // only trust the rate where the hour has a meaningful sample of words
+  const minW=Math.max(...wd,1)*0.05;
+  let g=`<line x1="${pl}" y1="${base}" x2="${W-pr}" y2="${base}" stroke="#2a313c"/>`;
+  sw.forEach((v,i)=>{if(v>0){const h=ih*v/swmax;g+=`<rect x="${(x(i)-bw*0.34).toFixed(1)}" y="${(base-h).toFixed(1)}" width="${(bw*0.68).toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="#8a5228"/>`;}});
+  const ok=rate.map((v,i)=>({i,v,ok:wd[i]>=minW}));
+  const lp=ok.filter(p=>p.ok).map(p=>`${x(p.i).toFixed(1)},${yr(p.v).toFixed(1)}`).join(' ');
+  g+=`<polyline points="${lp}" fill="none" stroke="#e8b23a" stroke-width="2.5" stroke-linejoin="round"/>`;
+  ok.forEach(p=>{if(p.ok)g+=`<circle cx="${x(p.i)}" cy="${yr(p.v)}" r="2.6" fill="#e8b23a"/>`;});
+  [0,4,8,12,16,20,23].forEach(hh=>g+=`<text class="axis" x="${x(hh)}" y="${H-9}" text-anchor="middle">${(hh%12||12)+(hh<12?'a':'p')}</text>`);
+  g+=`<text class="axis" x="${W-pr+6}" y="${yr(rmax)+3}">${rmax.toFixed(0)}</text><text class="axis" x="${W-pr+6}" y="${base+3}">0</text>`;
+  svg.innerHTML=g;
+  const ap=h=>((h%12)||12)+(h<12?'am':'pm');
+  const volPeak=sw.indexOf(Math.max(...sw));
+  let rp=-1,rpv=-1; ok.forEach(p=>{if(p.ok&&p.v>rpv){rpv=p.v;rp=p.i;}});
+  $('clockcap').innerHTML=(rp>=0&&swmax>0)
+    ? `You <b>talk</b> the most around <b>${ap(volPeak)}</b> — but your rage <b>rate</b> actually peaks at <b>${ap(rp)}</b>. Volume ≠ venom.`
+    : '';
 })();
 
 // ---- leaderboard ----
@@ -283,9 +310,15 @@ $('vscap').innerHTML=diff>=0
 })();
 
 // ---- callouts ----
-$('callouts').innerHTML=
- `<div class="call"><div class="k">Most-cursed day</div><div class="big tnum">${S.worst_day.swears} swears</div><div class="sub">${fdate(S.worst_day.date)} — a day the machine will not forget.</div></div>`+
- `<div class="call"><div class="k">Longest rage streak</div><div class="big tnum">${S.longest_streak} days</div><div class="sub">consecutive days you swore at least once. Impressive stamina.</div></div>`;
+const calls=[
+ `<div class="call"><div class="k">Most-cursed day</div><div class="big tnum">${S.worst_day.swears} swears</div><div class="sub">${fdate(S.worst_day.date)} — a day the machine will not forget.</div></div>`,
+ `<div class="call"><div class="k">Longest rage streak</div><div class="big tnum">${S.longest_streak} days</div><div class="sub">consecutive days you swore at least once. Impressive stamina.</div></div>`];
+if((S.insults_total||0)>0){
+  const ti=(S.top_insults||[]).map(x=>`"${x.word}" ×${fmt(x.count)}`).join(', ');
+  calls.push(`<div class="call" style="border-top-color:#9a6bb0"><div class="k">Not swears, but…</div><div class="big tnum">${fmt(S.insults_total)} put-downs</div>`+
+    `<div class="sub">${ti||'—'}. ${S.insults_counted?'Counted in your total above.':'Run <code>--insults</code> to add these to the jar.'}</div></div>`);
+}
+$('callouts').innerHTML=calls.join('');
 
 // ---- share card + actions ----
 $('cardamt').textContent='$'+fmt(Math.round(S.jar_total));
