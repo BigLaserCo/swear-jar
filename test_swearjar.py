@@ -55,6 +55,13 @@ class TestCounting(unittest.TestCase):
         self.assertEqual(self.total("i support arsenal and account for it"), 0)
         self.assertEqual(self.counts("get off your arse")["arse"], 1)
 
+    def test_code_words_are_not_swears(self):
+        # this tool runs on a programmer's dictation — these MUST never count
+        # ("div" and "git" are British insults but here they're code, every time)
+        code = ("add a div to the git commit, check the token count and the "
+                "polygon count, that class assignment, a cocktail of screws")
+        self.assertEqual(self.total(code), 0, f"false positive: {self.counts(code)}")
+
     # --- insults are counted SEPARATELY, never as swears ---
     def test_insults_separate(self):
         self.assertEqual(count_insults("you stupid idiot moron")[0], 3)
