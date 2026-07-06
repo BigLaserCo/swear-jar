@@ -4,6 +4,7 @@ writes the report. All the user-facing glue; no counting or HTML lives here.
 """
 import os, sys, argparse
 from . import engine
+from .lexicon import LEXICON
 from .render import render_html
 
 # Superwhisper writes recordings here by default; we try a few spellings/locations.
@@ -54,11 +55,39 @@ def build_parser():
     ap.add_argument("--demo", action="store_true", help="use fake data (no Superwhisper needed)")
     ap.add_argument("--reset", action="store_true", help="wipe the local tally and rescan")
     ap.add_argument("--insults", action="store_true", help="also count put-downs (stupid/idiot/…)")
+    ap.add_argument("--audit", action="store_true",
+                    help="print exactly which words were counted (accuracy check), then exit")
     return ap
+
+
+def run_audit(path):
+    """Print every surface word behind the count, so accuracy is verifiable."""
+    folder = find_recordings(path)
+    if not folder or not os.path.isdir(folder):
+        folder = _ask_for_folder()
+    if not folder:
+        return 1
+    forms = engine.audit_forms(folder)
+    print(f"🫙  Audit of {folder} — exactly what got counted (spot any false positives):\n")
+    total = 0
+    for base, _, _ in LEXICON:
+        c = forms.get(base) or {}
+        n = sum(c.values())
+        total += n
+        if not n:
+            continue
+        top = ", ".join(f"{w}×{k}" for w, k in c.most_common(8))
+        print(f"  {base:10} {n:>5}  [{top}]")
+    print(f"\n  TOTAL swears counted: {total}")
+    print("  See a word that isn't a swear? Every pattern is in swearjar/lexicon.py.")
+    return 0
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
+
+    if args.audit:
+        return run_audit(args.path)
 
     if args.reset and os.path.exists(engine.DB_PATH):
         os.remove(engine.DB_PATH)

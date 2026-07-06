@@ -5,8 +5,8 @@ Swear Jar reads your [Superwhisper](https://superwhisper.com) voice-dictation
 history — the stuff you mutter at your AI all day — tallies every swear into a
 little local database, and hands you a shareable "damage report."
 
-The founder swore at his AI **4,392 times in two months** — 6× more f-bombs than
-*The Wolf of Wall Street*, about **65 a day**. That's **$4,392** in the jar.
+The founder swore at his AI **4,308 times in two months** — 6× more f-bombs than
+*The Wolf of Wall Street*, about **63 a day**. That's **$4,308** in the jar.
 What's your number?
 
 > Run it to see your own report. Design notes and the launch plan live in
@@ -42,6 +42,7 @@ Options:
 | `--demo` | run on fake data — nothing saved, real tally untouched |
 | `--reset` | wipe the local tally and rescan from scratch |
 | `--insults` | also count put-downs (stupid / idiot / …) as swears |
+| `--audit` | print every word that got counted, so you can verify the number |
 
 Requires Python 3.8+ (already on every Mac). If it can't find your recordings it
 tells you where they usually live and lets you paste the path. Superwhisper is
@@ -52,16 +53,22 @@ Mac-first; that's who this is for today.
 Your balance, a rage-o-clock (volume **and** a swears-per-word rate line), your
 top swears, **you vs. the founder** (compared per day, so history length doesn't
 matter), and a "fine print" of derived facts — first-swear-of-the-day, signature
-combo, movie-f-bomb multiple, manners ratio, and **rage triggers**: the topics
-you swear about far more than your baseline.
+combo, movie-f-bomb multiple, manners ratio.
 
-## What it counts
+## Accuracy — it counts only real swears, and shows its work
 
 General profanity only, grouped into families (fuck / shit / damn / …) with a
-mild-medium-strong "spice" rating. **No slurs, ever** — it's a swear jar, not a
-hate-speech detector. Put-downs (stupid / idiot) are tracked separately and only
-count as swears with `--insults`. Every word lives in
-[`swearjar/lexicon.py`](swearjar/lexicon.py); edit it to taste.
+mild-medium-strong "spice" rating. **No slurs**, and no mild exclamations that
+aren't really swears ("oh my god" doesn't count). Put-downs (stupid / idiot) are
+tracked separately and only count with `--insults`. Every pattern lives in
+[`swearjar/lexicon.py`](swearjar/lexicon.py) — and `--audit` prints the exact
+word behind every tally so you can check it yourself.
+
+> **One honest caveat:** speech-to-text is prudish. Superwhisper sometimes fails
+> to transcribe your *strongest* words (it wrote "cunt" only 17 times for a
+> founder who says it daily). Swear Jar counts what's in the transcript exactly;
+> it can't count a word the transcription never wrote down. Your real number is a
+> floor, not a ceiling.
 
 ## How it's built
 

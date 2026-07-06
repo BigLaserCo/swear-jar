@@ -2,8 +2,8 @@
 Swear Jar — the engine. Scans Superwhisper recordings into a local SQLite tally
 and computes the stats. No rendering here (see render.py) and no CLI (see cli.py).
 """
-import os, re, glob, json, sqlite3, datetime
-from .lexicon import (count_swears, count_insults, count_polite, trigger_words, TIER_NAME)
+import os, re, glob, json, sqlite3, datetime, collections
+from .lexicon import count_swears, count_insults, count_polite, TIER_NAME, LEXICON
 
 DB_DIR = os.path.expanduser("~/.swearjar")
 DB_PATH = os.path.join(DB_DIR, "swearjar.db")
@@ -23,7 +23,6 @@ def open_db(path=DB_PATH):
     con.execute("CREATE TABLE IF NOT EXISTS insult_counts(word TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS polite_counts(word TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS combo_counts(pair TEXT PRIMARY KEY, count INTEGER)")
-    con.execute("CREATE TABLE IF NOT EXISTS trigger_counts(word TEXT PRIMARY KEY, sweary INTEGER, total INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS scan_meta(key TEXT PRIMARY KEY, value TEXT)")
     cols = [r[1] for r in con.execute("PRAGMA table_info(recordings)").fetchall()]
     if "insults" not in cols:
@@ -53,10 +52,6 @@ def _record(con, rid, dt, epoch, text):
         for b in range(a + 1, len(fams)):
             con.execute("INSERT INTO combo_counts(pair,count) VALUES(?,1) "
                         "ON CONFLICT(pair) DO UPDATE SET count=count+1", (f"{fams[a]} + {fams[b]}",))
-    sweary = 1 if swears > 0 else 0                         # rage triggers
-    for w in trigger_words(text):
-        con.execute("INSERT INTO trigger_counts(word,sweary,total) VALUES(?,?,1) "
-                    "ON CONFLICT(word) DO UPDATE SET sweary=sweary+?, total=total+1", (w, sweary, sweary))
 
 
 def ingest(con, recordings_dir):
@@ -84,6 +79,26 @@ def ingest(con, recordings_dir):
     con.execute("INSERT OR REPLACE INTO scan_meta(key,value) VALUES('source',?)", (recordings_dir,))
     con.commit()
     return added, len(metas)
+
+
+def audit_forms(recordings_dir):
+    """Return {family: Counter(surface_form -> n)} — exactly which words got counted.
+
+    The trust tool: run `--audit` to see every real word behind your number and
+    confirm there are no false positives.
+    """
+    comp = [(b, re.compile(rx, re.I), t) for b, rx, t in LEXICON]
+    forms = {b: collections.Counter() for b, _, _ in LEXICON}
+    for meta in glob.glob(os.path.join(recordings_dir, "*", "meta.json")):
+        try:
+            with open(meta, encoding="utf-8") as f:
+                text = (json.load(f).get("result") or "").lower()
+        except Exception:
+            continue
+        for b, rx, _ in comp:
+            for m in rx.findall(text):
+                forms[b][m if isinstance(m, str) else "".join(m)] += 1
+    return forms
 
 
 def seed_demo(con):
@@ -168,18 +183,6 @@ def compute_stats(con, rate, include_insults=False):
     combo = con.execute("SELECT pair,count FROM combo_counts ORDER BY count DESC LIMIT 1").fetchone()
     signature_combo = {"pair": combo[0], "count": combo[1]} if combo else None
 
-    # rage triggers: topics that co-occur with swearing far more than your baseline
-    base_rate = swore_recs / total_recs if total_recs else 0
-    min_total = max(8, total_recs // 200)
-    cap_total = max(min_total + 1, int(total_recs * 0.12))   # a topic is specific, not ubiquitous
-    trig = con.execute("SELECT word,sweary,total FROM trigger_counts WHERE total BETWEEN ? AND ?",
-                       (min_total, cap_total)).fetchall()
-    # a real trigger: specific topic, mentioned enough, and you swear FAR above baseline when you do
-    scored = [(w, s / t, s, t) for w, s, t in trig if s / t > base_rate * 1.4 and s >= 6]
-    scored.sort(key=lambda x: (-x[1], -x[2]))     # most over-represented first, then volume
-    rage_triggers = [{"word": w, "share": round(100 * sh), "sweary": s, "total": t}
-                     for w, sh, s, t in scored[:6]]
-
     worst_day = max(by_day.items(), key=lambda kv: kv[1]) if by_day else ("—", 0)
 
     days_sworn = sorted(d for d, v in by_day.items() if v > 0)
@@ -219,7 +222,6 @@ def compute_stats(con, rate, include_insults=False):
         "jar_per_year": round(per_day * 365 * rate, 2),
         "first_swear": first_swear,
         "signature_combo": signature_combo,
-        "rage_triggers": rage_triggers,
         "by_hour": by_hour,
         "by_hour_words": by_hour_words,
         "by_dow": by_dow,

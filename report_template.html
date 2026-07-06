@@ -205,14 +205,6 @@
     <div class="panel board" id="board"></div>
   </section>
 
-  <section class="sec" id="triggers-sec">
-    <div class="sec-head"><h3>Rage triggers</h3><span class="note">topics that make you snap</span></div>
-    <div class="panel">
-      <div class="board" id="triggers"></div>
-      <p class="cap" id="triggers-cap"></p>
-    </div>
-  </section>
-
   <section class="sec">
     <div class="callouts" id="callouts"></div>
   </section>
@@ -354,16 +346,6 @@ $('vscap').innerHTML=diff>=0
     `<div class="ct tnum">${fmt(w.count)}</div></div>`).join('');
 })();
 
-// ---- rage triggers: topics you swear about far above your baseline ----
-(function(){
-  const tr=S.rage_triggers||[];
-  if(!tr.length){$('triggers-sec').style.display='none';return;}
-  $('triggers').innerHTML=tr.map(t=>`<div class="lw"><div class="word">${t.word}</div>`+
-    `<div class="bar t3"><i style="--w:${t.share}%"></i></div>`+
-    `<div class="ct tnum">${t.share}%</div></div>`).join('');
-  $('triggers-cap').innerHTML=`When you mention these, you swear <b>far</b> more than your ${S.pct_recordings_sworn}% baseline. `+
-    `The machine knows exactly which words start the fight.`;
-})();
 
 // ---- callouts ----
 const calls=[
