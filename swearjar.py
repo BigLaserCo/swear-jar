@@ -111,6 +111,7 @@ def open_db(path=DB_PATH):
         word TEXT PRIMARY KEY, count INTEGER, tier INTEGER)""")
     con.execute("CREATE TABLE IF NOT EXISTS insult_counts(word TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS polite_counts(word TEXT PRIMARY KEY, count INTEGER)")
+    con.execute("CREATE TABLE IF NOT EXISTS combo_counts(pair TEXT PRIMARY KEY, count INTEGER)")
     con.execute("CREATE TABLE IF NOT EXISTS scan_meta(key TEXT PRIMARY KEY, value TEXT)")
     # migrate older DBs that predate the insults column
     cols = [r[1] for r in con.execute("PRAGMA table_info(recordings)").fetchall()]
@@ -156,6 +157,13 @@ def ingest(con, recordings_dir):
         for base, n in pol_counts.items():
             con.execute("""INSERT INTO polite_counts(word,count) VALUES(?,?)
                 ON CONFLICT(word) DO UPDATE SET count=count+excluded.count""", (base, n))
+        # signature combos: every pair of distinct swear families in one recording
+        fams = sorted(counts)
+        for a in range(len(fams)):
+            for b in range(a + 1, len(fams)):
+                pair = f"{fams[a]} + {fams[b]}"
+                con.execute("""INSERT INTO combo_counts(pair,count) VALUES(?,1)
+                    ON CONFLICT(pair) DO UPDATE SET count=count+1""", (pair,))
         added += 1
     con.execute("INSERT OR REPLACE INTO scan_meta(key,value) VALUES('source',?)", (recordings_dir,))
     con.commit()
@@ -206,14 +214,20 @@ def compute_stats(con, rate, include_insults=False):
     by_dow_words = [0] * 7
     by_week = {}               # 'YYYY-Www' -> swears
     by_day = {}                # 'YYYY-MM-DD' -> swears
+    first_swear_min = {}       # 'YYYY-MM-DD' -> earliest minute-of-day you swore
     for r in rows:
         dt, words, sw = r[0], r[1], swear_of(r)
-        m = re.match(r"(\d{4})-(\d{2})-(\d{2})T(\d{2})", dt or "")
+        m = re.match(r"(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})", dt or "")
         if not m:
             continue
-        y, mo, da, hh = int(m[1]), int(m[2]), int(m[3]), int(m[4])
+        y, mo, da, hh, mm = int(m[1]), int(m[2]), int(m[3]), int(m[4]), int(m[5])
         by_hour[hh] += sw
         by_hour_words[hh] += words
+        if sw > 0:
+            k0 = f"{y:04d}-{mo:02d}-{da:02d}"
+            mins = hh * 60 + mm
+            if k0 not in first_swear_min or mins < first_swear_min[k0]:
+                first_swear_min[k0] = mins
         try:
             dobj = datetime.date(y, mo, da)
         except ValueError:
@@ -246,6 +260,15 @@ def compute_stats(con, rate, include_insults=False):
         d1 = datetime.date.fromisoformat(days_sorted[-1])
         span_days = max(1, (d1 - d0).days + 1)
     per_day = total_swears / span_days
+
+    # first swear of the day (averaged) and your signature swear combo
+    first_swear = ""
+    if first_swear_min:
+        avg_min = round(sum(first_swear_min.values()) / len(first_swear_min))
+        hh12 = (avg_min // 60) % 24
+        first_swear = f"{(hh12 % 12) or 12}:{avg_min % 60:02d}{'am' if hh12 < 12 else 'pm'}"
+    combo_row = con.execute("SELECT pair,count FROM combo_counts ORDER BY count DESC LIMIT 1").fetchone()
+    signature_combo = {"pair": combo_row[0], "count": combo_row[1]} if combo_row else None
 
     worst_day = max(by_day.items(), key=lambda kv: kv[1]) if by_day else ("—", 0)
     week_series = [{"w": k, "v": v} for k, v in sorted(by_week.items())]
@@ -284,6 +307,8 @@ def compute_stats(con, rate, include_insults=False):
         "worst_dow_rate": round(dow_rate[worst_dow_i], 1),
         "swears_per_year": round(per_day * 365),
         "jar_per_year": round(per_day * 365 * rate, 2),
+        "first_swear": first_swear,
+        "signature_combo": signature_combo,
         "by_hour": by_hour,
         "by_hour_words": by_hour_words,
         "by_dow": by_dow,

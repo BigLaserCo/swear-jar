@@ -346,7 +346,12 @@ $('callouts').innerHTML=calls.join('');
   const ratio=S.total_swears/Math.max(S.polite_total||0,1);
   const clean=Math.max(0,100-S.pct_recordings_sworn).toFixed(0);
   const weather=(r=>r>=20?['🌀','Category 5']:r>=15?['⛈️','Severe']:r>=10?['🌧️','Stormy']:r>=5?['🌦️','Cloudy']:['🌤️','Mostly calm'])(S.swears_per_1k);
-  const facts=[
+  const facts=[];
+  if(S.first_swear) facts.push(['⏰', S.first_swear,
+    `Your first swear of the day lands, on average, at <b>${S.first_swear}</b>. Good morning to the machine.`]);
+  if(S.signature_combo) facts.push(['💥', S.signature_combo.pair,
+    `Your signature combo — <b>${S.signature_combo.pair}</b> — showed up together in <b>${fmt(S.signature_combo.count)}</b> recordings.`]);
+  facts.push(
     ['🎬', fbombs>=wolf?`${(fbombs/wolf).toFixed(1)}× the Wolf`:`${fmt(fbombs)} f-bombs`,
       `You dropped <b>${fmt(fbombs)}</b> f-bombs. <em>The Wolf of Wall Street</em> had 569.`],
     ['🙏', `${ratio.toFixed(0)} : 1`,
@@ -360,8 +365,8 @@ $('callouts').innerHTML=calls.join('');
     ['📅', `${S.worst_dow}s`,
       `Your rage <em>rate</em> peaks on <b>${S.worst_dow}s</b> — ${S.worst_dow_rate}/1k words.`],
     [weather[0], weather[1],
-      `Rage weather: <b>${weather[1].toLowerCase()}</b>, ${S.swears_per_1k} swears per 1k words.`],
-  ];
+      `Rage weather: <b>${weather[1].toLowerCase()}</b>, ${S.swears_per_1k} swears per 1k words.`]
+  );
   $('funfacts').innerHTML=facts.map(f=>`<div class="ff"><div class="e">${f[0]}</div><div class="v">${f[1]}</div><div class="l">${f[2]}</div></div>`).join('');
 })();
 
