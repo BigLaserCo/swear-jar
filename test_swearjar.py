@@ -117,5 +117,22 @@ class TestEngine(unittest.TestCase):
         self.assertGreater(s["total_swears"], 0)
 
 
+class TestHook(unittest.TestCase):
+    def test_capture_logs_and_is_silent(self):
+        import subprocess, tempfile, os, json
+        root = os.path.dirname(os.path.abspath(__file__))
+        log = tempfile.mktemp()
+        env = {**os.environ, "SWEARJAR_LOG": log}
+        r = subprocess.run(["python3", "-m", "swearjar.hook"],
+                           input='{"user_input":"fuck this shit, you cunt"}',
+                           capture_output=True, text=True, env=env, cwd=root)
+        self.assertEqual(r.stdout, "")        # ZERO stdout == zero token cost
+        self.assertEqual(r.returncode, 0)      # never breaks the turn
+        words = [json.loads(l)["word"] for l in open(log)]
+        for w in ("fuck", "shit", "cunt"):
+            self.assertIn(w, words)
+        os.remove(log)
+
+
 if __name__ == "__main__":
     unittest.main()
