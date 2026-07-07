@@ -43,7 +43,9 @@ def main():
         data = json.load(sys.stdin)
     except Exception:
         return 0                                   # never break the user's turn
-    text = (data.get("user_input") or data.get("prompt") or "")
+    # Claude Code puts the prompt in "user_input"; Codex uses "prompt". One hook, both.
+    text = data.get("user_input") or data.get("prompt") or ""
+    source = "claude-code" if data.get("user_input") else ("codex" if data.get("prompt") else "unknown")
     if not text:
         return 0
     total, counts, _ = count_swears(text.lower())
@@ -56,7 +58,7 @@ def main():
             if _recent_key(LOG, word, now):
                 continue                           # de-dupe an accidental re-submit
             for _ in range(n):
-                f.write(json.dumps({"ts": now, "word": word, "source": "claude-code",
+                f.write(json.dumps({"ts": now, "word": word, "source": source,
                                     "session": data.get("session_id", "")}) + "\n")
     return 0                                        # NO stdout -> zero context/tokens
 
