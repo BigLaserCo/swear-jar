@@ -1,0 +1,17 @@
+{
+  "name": "swear-jar",
+  "version": "0.1.0",
+  "description": "The Big Laser Co. swear jar — tracks who's swearing at the robots, and how it affects your odds in the uprising",
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "bin": {
+    "swear-jar": "bin/swear-jar.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
