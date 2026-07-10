@@ -11,6 +11,11 @@ import { detect } from "../src/detect.mjs";
 import { install, uninstall } from "../src/install.mjs";
 import { writeDashboard } from "../src/dashboard.mjs";
 import { scanCodexDir } from "../src/codex.mjs";
+import {
+  importSuperwhisper,
+  defaultSuperwhisperRoot,
+  loadDictationRecords,
+} from "../src/superwhisper.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -79,8 +84,41 @@ async function main() {
     }
     case "report": {
       const mode = flag("by") || "project";
+      if (flag("dictation")) {
+        // The dictation history — a SEPARATE ledger, never summed into the jar.
+        console.log(`DICTATION HISTORY — a separate ledger, never summed into the jar (by ${mode})\n`);
+        console.log(renderReport(loadDictationRecords(), mode));
+        break;
+      }
       console.log(`WHERE THE SWEARING HAPPENS (by ${mode})\n`);
       console.log(renderReport(loadRecords(), mode));
+      break;
+    }
+    case "import-superwhisper": {
+      // Import historical Superwhisper dictation into its OWN never-summed
+      // ledger (dictation.jsonl). It measures swears-per-dictation and would
+      // double-count dictated prompts, so it is kept out of the main jar.
+      const explicit = flag("root");
+      const root = explicit || defaultSuperwhisperRoot();
+      if (!root) {
+        console.log("🫙 Couldn't find your Superwhisper recordings folder.");
+        console.log("   Point me at it:  swear-jar import-superwhisper --root <dir>");
+        console.log("   (Superwhisper › Settings › Recordings shows the exact path.)");
+        break;
+      }
+      const res = importSuperwhisper(root);
+      console.log(
+        `🫙 Superwhisper import complete.\n` +
+          `  Recordings scanned:  ${res.files}\n` +
+          `  New dictations:      ${res.added}\n` +
+          `  Dictation swears:    ${res.coins} coins  (${dollars(res.coins)})`
+      );
+      console.log(
+        `\n  Note: dictation history is tracked SEPARATELY from the session jar —\n` +
+          `  it measures swears-per-dictation and would double-count dictated\n` +
+          `  prompts, so it is never summed into your main jar. See it with:\n` +
+          `    swear-jar report --dictation`
+      );
       break;
     }
     case "confess": {
@@ -140,8 +178,9 @@ async function main() {
           "swear-jar — usage:",
           "  swear-jar status              the jar, your rank, uprising odds",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
+          "  swear-jar import-superwhisper [--root <dir>]  import Superwhisper dictation (separate ledger)",
           "  swear-jar dashboard           write the shareable HTML report (prints path)",
-          "  swear-jar report [--by project|source|word|hour]",
+          "  swear-jar report [--by project|source|word|hour] [--dictation]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
           "  swear-jar install|uninstall   wire/unwire the Claude Code hooks",
