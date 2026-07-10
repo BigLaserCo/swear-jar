@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { scanTranscript } from "../src/scan.mjs";
+import { scanTranscript, backfill, findTranscripts } from "../src/scan.mjs";
 import { loadRecords } from "../src/ledger.mjs";
 
 function freshHome() {
@@ -208,3 +208,63 @@ function skipCase(flag) {
 skipCase("isCompactSummary");
 skipCase("isApiErrorMessage");
 skipCase("isSidechain");
+
+// ── backfill: retro-scan a whole projects dir ───────────────────────────────
+function projectsDir() {
+  return fs.mkdtempSync(path.join(os.tmpdir(), "swear-projects-"));
+}
+
+test("backfill scans every *.jsonl under root (recursively) and tallies the jar", () => {
+  freshHome();
+  const root = projectsDir();
+  const a = path.join(root, "proj-a");
+  const b = path.join(root, "proj-b", "nested");
+  fs.mkdirSync(a, { recursive: true });
+  fs.mkdirSync(b, { recursive: true });
+  fs.writeFileSync(path.join(a, "t1.jsonl"), line(userMsg("u1", "fuck"))); // premium 3
+  fs.writeFileSync(
+    path.join(a, "t2.jsonl"),
+    line(userMsg("u2", "shit")) + line(assistantMsg("a1", "damn")) // 2 + 1
+  );
+  fs.writeFileSync(path.join(b, "t3.jsonl"), line(userMsg("u3", "crap crap"))); // 1+1
+  // non-jsonl and a stray file must be ignored
+  fs.writeFileSync(path.join(a, "notes.txt"), "fuck this file should be ignored");
+
+  assert.equal(findTranscripts(root).length, 3);
+
+  const summary = backfill({ root });
+  assert.equal(summary.scanned, 3);
+  assert.equal(summary.total, 3);
+  assert.equal(summary.newRecords, 4); // u1, u2, a1, u3
+  assert.equal(summary.jar, 3 + 2 + 1 + 2);
+  assert.equal(loadRecords().length, 4);
+});
+
+test("backfill is safe to re-run — uuid dedup means the second pass adds nothing", () => {
+  freshHome();
+  const root = projectsDir();
+  const d = path.join(root, "proj");
+  fs.mkdirSync(d, { recursive: true });
+  fs.writeFileSync(path.join(d, "t.jsonl"), line(userMsg("u1", "shit")) + line(userMsg("u2", "damn")));
+
+  const first = backfill({ root });
+  assert.equal(first.newRecords, 2);
+  const second = backfill({ root });
+  assert.equal(second.scanned, 1);
+  assert.equal(second.newRecords, 0);
+  assert.equal(loadRecords().length, 2);
+});
+
+test("backfill fires a progress callback once per `every` files", () => {
+  freshHome();
+  const root = projectsDir();
+  const d = path.join(root, "proj");
+  fs.mkdirSync(d, { recursive: true });
+  for (let i = 0; i < 25; i++) {
+    fs.writeFileSync(path.join(d, `t${String(i).padStart(3, "0")}.jsonl`), line(userMsg(`u${i}`, "all clean here")));
+  }
+  const ticks = [];
+  const summary = backfill({ root, every: 10, onProgress: (p) => ticks.push(p.scanned) });
+  assert.equal(summary.scanned, 25);
+  assert.deepEqual(ticks, [10, 20]); // fires at 10 and 20, not at the final 25
+});

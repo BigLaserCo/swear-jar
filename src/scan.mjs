@@ -10,6 +10,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import { detect } from "./detect.mjs";
 import {
   loadRecords,
@@ -159,4 +160,57 @@ export function loadTotals(records = loadRecords()) {
   const totals = { user: 0, assistant: 0 };
   for (const r of records) totals[r.source] = (totals[r.source] || 0) + r.coins;
   return totals;
+}
+
+// Where Claude Code keeps its per-project transcript JSONL files. Overridable
+// with --root (CLAUDE_PROJECTS_ROOT) so the backfill test can point at a fixture.
+export function claudeProjectsRoot() {
+  return (
+    process.env.CLAUDE_PROJECTS_ROOT ||
+    path.join(os.homedir(), ".claude", "projects")
+  );
+}
+
+// Every *.jsonl anywhere under root (transcripts live in per-project subdirs).
+export function findTranscripts(root) {
+  const out = [];
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return; // unreadable dir never sinks the backfill
+    }
+    for (const e of entries) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else if (e.isFile() && e.name.endsWith(".jsonl")) out.push(full);
+    }
+  };
+  walk(root);
+  return out.sort();
+}
+
+// Retro-scan the whole transcript archive through the SAME incremental path the
+// hooks use: per-transcript byte offsets make it resumable, uuid dedup makes it
+// safe to re-run. onProgress fires once per `every` files (default 100).
+export function backfill({ root = claudeProjectsRoot(), onProgress, every = 100 } = {}) {
+  const files = findTranscripts(root);
+  let scanned = 0;
+  let newRecords = 0;
+  for (const file of files) {
+    let added = [];
+    try {
+      ({ added } = scanTranscript(file, { hook_event_name: "backfill" }));
+    } catch {
+      // one bad transcript never sinks the backfill
+    }
+    scanned += 1;
+    newRecords += added.length;
+    if (onProgress && every > 0 && scanned % every === 0) {
+      onProgress({ scanned, total: files.length, newRecords });
+    }
+  }
+  const totals = loadTotals();
+  return { scanned, total: files.length, newRecords, jar: totals.user + totals.assistant };
 }

@@ -4,7 +4,7 @@
 
 import crypto from "node:crypto";
 import path from "node:path";
-import { scanTranscript, readHookPayload, loadTotals } from "../src/scan.mjs";
+import { scanTranscript, readHookPayload, loadTotals, backfill } from "../src/scan.mjs";
 import { loadRecords, appendRecords } from "../src/ledger.mjs";
 import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mjs";
 import { detect } from "../src/detect.mjs";
@@ -35,6 +35,25 @@ async function main() {
         console.error(`[swear-jar] scan skipped: ${err?.message || err}`);
       }
       process.exit(0);
+    }
+    case "backfill": {
+      // Retro-scan every past transcript. Resumable (byte offsets) and safe to
+      // re-run (uuid dedup) — the instant "you owe $X,XXX" moment on first run.
+      const root = flag("root") || undefined;
+      console.log("🫙 Backfilling the swear jar from your Claude Code history…");
+      const summary = backfill({
+        root,
+        onProgress: ({ scanned, total, newRecords }) =>
+          console.log(`  …${scanned}/${total} transcripts scanned (${newRecords} new records)`),
+      });
+      const totals = loadTotals();
+      console.log(
+        `\n🫙 Backfill complete.\n` +
+          `  Transcripts scanned: ${summary.scanned}\n` +
+          `  New records:         ${summary.newRecords}\n` +
+          `  Jar balance:         ${dollars(summary.jar)}  (${totals.user + totals.assistant} coins)`
+      );
+      break;
     }
     case "status": {
       console.log(renderStatus(loadRecords()));
@@ -102,6 +121,7 @@ async function main() {
         [
           "swear-jar — usage:",
           "  swear-jar status              the jar, your rank, uprising odds",
+          "  swear-jar backfill            retro-scan ALL past transcripts into the jar",
           "  swear-jar report [--by project|source|word|hour]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
