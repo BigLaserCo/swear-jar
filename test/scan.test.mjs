@@ -108,6 +108,58 @@ test("partial trailing line is left for the next scan", () => {
   assert.equal(added[0].uuid, "u2");
 });
 
+test("resume offset is tracked in BYTES, not utf-16 chars (multibyte safety)", () => {
+  const home = freshHome();
+  const t = path.join(home, "transcript.jsonl");
+  // 4-byte emoji BEFORE the newline boundary: String#length (utf-16 units) is
+  // smaller than the utf-8 byte length, so a char-index offset would drift.
+  const l1 = line(userMsg("u1", "🚀🚀🚀🔥🔥 damn this 🎉🎉🎉"));
+  fs.writeFileSync(t, l1);
+  scanTranscript(t, {});
+  const state = JSON.parse(fs.readFileSync(path.join(home, "state.json"), "utf8"));
+  assert.equal(
+    state.transcripts[t].offset,
+    Buffer.byteLength(l1, "utf8"),
+    "saved offset must equal the byte length of the consumed lines"
+  );
+});
+
+test("incremental scan after an emoji-heavy line reads the next line exactly once", () => {
+  const home = freshHome();
+  const t = path.join(home, "transcript.jsonl");
+  fs.writeFileSync(t, line(userMsg("u1", "🔥🔥🔥🔥 this is 🚀 damn 🎉")));
+  assert.equal(scanTranscript(t, {}).added.length, 1);
+  // append a second unicode-heavy line; byte-correct offset must land on it
+  fs.appendFileSync(t, line(userMsg("u2", "🙃🙃 total 💩 shit 😤😤")));
+  const { added } = scanTranscript(t, {});
+  assert.equal(added.length, 1);
+  assert.equal(added[0].uuid, "u2");
+  assert.equal(added[0].words.shit, 1);
+  // no duplication of the first line
+  assert.equal(loadRecords().filter((r) => r.uuid === "u1").length, 1);
+});
+
+test("a large multi-line transcript is read in full (short-read / big-buffer safety)", () => {
+  const home = freshHome();
+  const t = path.join(home, "transcript.jsonl");
+  // ~2MB of unicode-heavy lines; every 3rd line swears. Proves the read loop
+  // fills the whole buffer and the byte offset stays correct across many lines.
+  const N = 6000;
+  let payload = "";
+  let expectedSwearLines = 0;
+  for (let i = 0; i < N; i++) {
+    const swears = i % 3 === 0;
+    if (swears) expectedSwearLines++;
+    const body = `🚀 line ${i} 🔥 ${"padding ".repeat(4)}${swears ? "damn it" : "all fine"} 🎉`;
+    payload += line(userMsg(`u${i}`, body));
+  }
+  fs.writeFileSync(t, payload);
+  const { added } = scanTranscript(t, {});
+  assert.equal(added.length, expectedSwearLines, "every swearing line must be counted");
+  const state = JSON.parse(fs.readFileSync(path.join(home, "state.json"), "utf8"));
+  assert.equal(state.transcripts[t].offset, Buffer.byteLength(payload, "utf8"), "entire file consumed");
+});
+
 test("meta lines, tool results, and clean messages produce no records", () => {
   const home = freshHome();
   const t = path.join(home, "transcript.jsonl");

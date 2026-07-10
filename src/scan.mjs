@@ -80,20 +80,30 @@ export function scanTranscript(transcriptPath, hook = {}) {
   const offset = resumeOffset(state, transcriptPath, size);
 
   const fd = fs.openSync(transcriptPath, "r");
-  let chunk;
+  const buf = Buffer.alloc(size - offset);
+  let read = 0;
   try {
-    const buf = Buffer.alloc(size - offset);
-    fs.readSync(fd, buf, 0, buf.length, offset);
-    chunk = buf.toString("utf8");
+    // readSync can SHORT-READ a large buffer in a single call (a multi-MB tail
+    // won't be filled in one shot — reproduced on an 84MB transcript), so loop
+    // until the requested bytes are fully read or we hit EOF. backfill() drives
+    // this over the whole archive, where big files are common.
+    while (read < buf.length) {
+      const n = fs.readSync(fd, buf, read, buf.length - read, offset + read);
+      if (n <= 0) break; // EOF / no more bytes
+      read += n;
+    }
   } finally {
     fs.closeSync(fd);
   }
 
-  // Only consume complete lines; a partially-flushed last line is re-read
-  // next time from the same offset.
-  const lastNewline = chunk.lastIndexOf("\n");
-  const consumed = lastNewline === -1 ? 0 : lastNewline + 1;
-  const lines = lastNewline === -1 ? [] : chunk.slice(0, consumed).split("\n");
+  // Only consume COMPLETE lines; a partially-flushed last line is re-read next
+  // time from the same offset. ALL offset math is done in BYTES against the raw
+  // buffer — a UTF-16 char index (String#lastIndexOf) is NOT a UTF-8 byte
+  // offset, so emoji/unicode-heavy transcripts would otherwise drift the resume
+  // offset. Only the consumed byte-slice is decoded to a string for parsing.
+  const lastNewline = read === 0 ? -1 : buf.lastIndexOf(0x0a, read - 1);
+  const consumed = lastNewline === -1 || lastNewline >= read ? 0 : lastNewline + 1;
+  const lines = consumed === 0 ? [] : buf.toString("utf8", 0, consumed).split("\n");
 
   const seen = seenUuids();
   const added = [];
