@@ -60,6 +60,26 @@ returns the filled HTML string, and `writeDashboard(records, opts)` writes the
 report and returns its path (`src/dashboard.mjs`); `computeStats(records, now)`
 produces the stats object (`src/stats.mjs`).
 
+## Website
+
+The public landing page and a live demo report live in [`docs/`](docs/) and are
+served by **GitHub Pages** (Settings → Pages → *Deploy from a branch* → `main`,
+folder `/docs`). Turning Pages on is a one-time repo-settings action for the repo
+owner; once the repo is public and Pages is enabled, the site goes live at the
+Pages URL.
+
+- `docs/index.html` — the landing page. Self-contained: inline CSS/JS, zero
+  external requests (the only outbound links point at this repo on GitHub).
+- `docs/demo.html` — a synthetic damage report rendered by the **real** dashboard
+  engine from fake data (a loud "synthetic demo" banner says so). Regenerate with
+  `node scripts/site/buildDemo.mjs` — it is deterministic (fixed seed, same bytes
+  every run) and reads **no** real ledger, `~/.swear-jar`, or `~/.claude` data.
+- `docs/.nojekyll` — tells Pages to serve the files verbatim (skip the Jekyll build).
+
+Both pages make zero network requests and carry no uncensored language; the
+`docs/*` invariant is enforced by `test/site.test.mjs` (part of `npm test` and the
+CI gate).
+
 ## The Uprising Odds
 
 Everyone starts around 50%. Swearing at the machines lowers your odds
