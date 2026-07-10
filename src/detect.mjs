@@ -75,20 +75,33 @@ export const LEXICON = [
   pat("sod", "mild", "\\bsod(?:ding|\\s+off|\\s+it)\\b"), // "sod" alone excluded (soil)
 ];
 
+// A message that repeats one family more than this is a paste/key-repeat
+// artifact ("grovel, bitch." ×104), not 104 swears. Real swearing rarely
+// exceeds it; slight undercount beats overcount.
+export const FAMILY_CAP = 10;
+
 // Overlapping matches are attributed once: longer/pricier patterns (which run
 // first) blank their match, so a cheaper pattern can't re-claim the same span.
 export function detect(text) {
   if (!text || typeof text !== "string") return { words: {}, coins: 0 };
   let scratch = text.toLowerCase();
   const words = {};
+  const tiers = {};
   let coins = 0;
   for (const { key, tier, re } of LEXICON) {
     re.lastIndex = 0;
     scratch = scratch.replace(re, (m) => {
       words[key] = (words[key] || 0) + 1;
+      tiers[key] = tier;
       coins += TIER_COINS[tier];
       return " ".repeat(m.length); // blank so a cheaper pattern can't re-match
     });
+  }
+  for (const [key, n] of Object.entries(words)) {
+    if (n > FAMILY_CAP) {
+      coins -= (n - FAMILY_CAP) * TIER_COINS[tiers[key]];
+      words[key] = FAMILY_CAP;
+    }
   }
   return { words, coins };
 }

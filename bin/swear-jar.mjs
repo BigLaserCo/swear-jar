@@ -60,12 +60,13 @@ async function main() {
         codexLine = `\n  Codex rollouts:      ${cx.files} scanned, ${cx.added.length} new records`;
       }
       const totals = loadTotals();
+      const totalCoins = totals.user + totals.assistant;
       console.log(
         `\n🫙 Backfill complete.\n` +
           `  Transcripts scanned: ${summary.scanned}\n` +
           `  New records:         ${summary.newRecords}` +
           codexLine +
-          `\n  Jar balance:         ${dollars(summary.jar)}  (${totals.user + totals.assistant} coins)`
+          `\n  Jar balance:         ${dollars(totalCoins)}  (${totalCoins} coins)`
       );
       break;
     }
@@ -180,7 +181,7 @@ async function main() {
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
           "  swear-jar import-superwhisper [--root <dir>]  import Superwhisper dictation (separate ledger)",
           "  swear-jar dashboard           write the shareable HTML report (prints path)",
-          "  swear-jar report [--by project|source|word|hour] [--dictation]",
+          "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
           "  swear-jar install|uninstall   wire/unwire the Claude Code hooks",

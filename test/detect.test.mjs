@@ -179,3 +179,14 @@ test("insult and polite detectors are safe on empty/non-string input", () => {
   assert.equal(detectInsults(null).total, 0);
   assert.equal(detectPolite(undefined).total, 0);
 });
+
+test("family cap: a pasted phrase repeated 104x is capped, not 104 swears", () => {
+  const r = detect("No, you will grovel, bitch.".repeat(104));
+  assert.equal(r.words.bitch, 10);
+  assert.equal(r.coins, 20);
+});
+
+test("family cap leaves realistic counts untouched", () => {
+  const r = detect("fuck fuck fucking fucked");
+  assert.equal(r.words.fuck, 4);
+});

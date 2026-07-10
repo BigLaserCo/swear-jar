@@ -60,6 +60,7 @@ export function renderReport(records, mode = "project") {
   const buckets = new Map();
   const keyFor = (r) => {
     if (mode === "source") return r.source;
+    if (mode === "agent") return r.agent || "unknown";
     if (mode === "hour") {
       const d = new Date(r.ts);
       return isNaN(d) ? "??" : `${String(d.getHours()).padStart(2, "0")}:00`;
