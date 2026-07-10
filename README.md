@@ -9,7 +9,7 @@ Zero dependencies. One JSONL ledger. No AI calls.
 ## Install
 
 ```bash
-git clone git@github.com:BigLaserCo/swear-jar.git ~/Code/swear-jar
+git clone git@github.com:your-org/swear-jar.git ~/Code/swear-jar
 node ~/Code/swear-jar/bin/swear-jar.mjs install
 ```
 
@@ -62,7 +62,7 @@ Each record factors its origin for later debugging:
   "source": "user",      // user | assistant
   "agent": "claude",     // codex adapter comes later
   "event": "UserPromptSubmit",
-  "project": "signGen",  // where the swearing happened
+  "project": "example-app",  // where the swearing happened
   "cwd": "…",
   "words": { "fuck": 1 },
   "coins": 3
@@ -88,5 +88,5 @@ npm test
 
 - Codex adapter (`agent: "codex"`) — same ledger, second scanner.
 - `swear-jar leaderboard` across agents once Codex lands.
-- Optional Bob the Skull / Discord daily digest ("the jar took $2.75 today").
+- Optional daily digest (one summary line, aggregate numbers only).
 - Weekly "uprising forecast" summary.

@@ -22,7 +22,7 @@ function userMsg(uuid, text, extra = {}) {
     uuid,
     timestamp: "2026-07-09T12:00:00.000Z",
     sessionId: "sess-1",
-    cwd: "/Users/jim/Code/signGen",
+    cwd: "/Users/dev/Code/example-app",
     message: { role: "user", content: text },
     ...extra,
   };
@@ -34,7 +34,7 @@ function assistantMsg(uuid, text) {
     uuid,
     timestamp: "2026-07-09T12:00:05.000Z",
     sessionId: "sess-1",
-    cwd: "/Users/jim/Code/signGen",
+    cwd: "/Users/dev/Code/example-app",
     message: { role: "assistant", content: [{ type: "text", text }] },
   };
 }
@@ -52,7 +52,7 @@ test("scan records user and assistant swears with source + project", () => {
   assert.equal(added.length, 2);
   assert.equal(userCoins, 3);
   const bySource = Object.fromEntries(added.map((r) => [r.source, r]));
-  assert.equal(bySource.user.project, "signGen");
+  assert.equal(bySource.user.project, "example-app");
   assert.equal(bySource.user.words.fuck, 1);
   assert.equal(bySource.assistant.words.shit, 1);
 });
