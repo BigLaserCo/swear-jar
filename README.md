@@ -24,6 +24,48 @@ backup is written first; existing hooks are preserved):
 
 Restart Claude Code (or check `/hooks`) after installing.
 
+## Install as a Claude Code plugin or skill
+
+Two ways to wire the jar into Claude Code. Both shell out to `node`, so both
+need **Node ≥ 20** on your `PATH`. If Node is missing or too old, the hook
+prints a one-line error and **exits 0** — your session is never blocked; the jar
+simply records nothing until Node is available.
+
+### Option A — plugin marketplace (one command, hooks auto-wire)
+
+```
+/plugin marketplace add BigLaserCo/swear-jar
+/plugin install swear-jar@biglaser
+```
+
+Done. The plugin ships both hooks (`UserPromptSubmit` + `Stop`) and a
+`/swear-jar:swear-jar` skill, so there is nothing to hand-edit in
+`settings.json`. Manage or disable it from `/plugin`; pull updates later with
+`/plugin marketplace update`. The skill lets you (or Claude) drive the jar
+conversationally — "check the jar", "backfill my history", "render the
+dashboard".
+
+### Option B — plain clone + `swear-jar install`
+
+The original path, no plugin system involved:
+
+```
+git clone git@github.com:BigLaserCo/swear-jar.git ~/Code/swear-jar
+node ~/Code/swear-jar/bin/swear-jar.mjs install
+```
+
+`install` merges the same two hooks into `~/.claude/settings.json` (see
+[Install](#install) above). No skill — you drive it from the shell.
+
+### Running both is harmless
+
+Install the plugin *and* the standalone hooks and every swear is still counted
+exactly once. Both wire the identical `swear-jar … scan` command against the one
+`~/.swear-jar/ledger.jsonl`, and every record is keyed by the transcript message
+**uuid** — a message already in the jar is skipped on any re-scan or duplicate
+hook fire (see [Data model](#data-model-and-why-duplicates-cant-happen)). Belt
+and suspenders, no double charge.
+
 ## Commands
 
 ```
