@@ -104,6 +104,33 @@ Coin pricing: mild (damn, hell, crap) = 1 · standard (shit, ass, …) = 2 ·
 premium (f-tier) = 3 · artisanal (motherfucker, goddamn, clusterfuck) = 5.
 Jar balance is $0.25/coin.
 
+## Codex
+
+The jar also listens to the **OpenAI Codex CLI**. `src/codex.mjs` is a second
+collector that scans Codex session *rollouts* (`~/.codex/sessions/YYYY/MM/DD/
+rollout-*.jsonl`) into the **same ledger**, tagged `agent: "codex"`. It exports
+`scanCodexFile(path)` and `scanCodexDir(root = ~/.codex/sessions)`.
+
+Same design as the Claude scanner — same record shape, incremental per-file byte
+offsets in `state.json`, shrink→full-rescan fallback, and uuid dedup — so both
+agents pay into one jar and `swear-jar report --by agent` slices cleanly.
+
+Codex-specific details:
+
+- **What's counted.** Each rollout line is an envelope `{ timestamp, type,
+  payload }`. The adapter reads only the `event_msg` stream — `user_message`
+  (your typed text, `source: "user"`) and `agent_message` (the model's reply,
+  `source: "assistant"`). Reasoning, tool calls/results (`function_call`,
+  `exec_command_end`, …), system/instruction frames, telemetry, and the parallel
+  `response_item` transcript are all skipped, so nothing is double-counted.
+- **Identity.** Codex rollouts carry no stable per-message id, so each record
+  uses a deterministic synthetic uuid `codex:<file-basename>:<line-index>`. Same
+  physical line → same id on any re-scan, so a full rescan after a rewrite can't
+  double-count. The session id is recovered from the rollout filename; `cwd`
+  comes from the `session_meta` / `turn_context` frames.
+- **Only word counts are stored** — never the surrounding text, same as the
+  Claude side.
+
 ## Testing
 
 ```bash
@@ -112,7 +139,7 @@ npm test
 
 ## Roadmap
 
-- Codex adapter (`agent: "codex"`) — same ledger, second scanner.
-- `swear-jar leaderboard` across agents once Codex lands.
+- ~~Codex adapter (`agent: "codex"`) — same ledger, second scanner.~~ ✅ shipped (see **Codex** above).
+- `swear-jar leaderboard` across agents now that Codex has landed.
 - Optional daily digest (one summary line, aggregate numbers only).
 - Weekly "uprising forecast" summary.
