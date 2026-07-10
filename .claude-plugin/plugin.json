@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "swear-jar",
+  "displayName": "🫙 Swear Jar",
+  "version": "0.1.0",
+  "description": "Drops a coin in the jar every time you (or the machine) swear in a Claude Code or Codex session, and tracks your Robot Uprising Survival Odds. Zero deps, one local ledger, no AI calls.",
+  "author": {
+    "name": "Big Laser Co.",
+    "url": "https://github.com/BigLaserCo/swear-jar"
+  },
+  "homepage": "https://github.com/BigLaserCo/swear-jar",
+  "repository": "https://github.com/BigLaserCo/swear-jar",
+  "license": "UNLICENSED",
+  "keywords": ["swear-jar", "novelty", "hooks", "fun", "stats"],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/swear-jar.mjs\" scan",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/bin/swear-jar.mjs\" scan",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}
