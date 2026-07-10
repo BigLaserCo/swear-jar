@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>swear-jar — submit your score</title>
+<meta name="description" content="Put your jar on the public swear-jar leaderboard. Email-verified, censored words only, no spam.">
+<style>
+  :root{
+    --ground:#0f1216;--panel:#171b21;--panel-2:#1d222a;--line:#272d37;
+    --ink:#e8e6e1;--ink-dim:#b9bfc8;--muted:#8a93a0;--faint:#5a626e;
+    --ember:#e8853a;--gold:#e8b23a;--sev1:#5b8a72;--sev3:#d1543f;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 620px at 82% -14%,#1a2230 0,transparent 60%)}
+  a{color:var(--gold);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .mono{font-family:var(--mono)}
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px 60px}
+
+  .nav{display:flex;align-items:center;gap:9px;padding:18px 0;border-bottom:1px solid var(--line)}
+  .nav .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-.01em;color:var(--ink)}
+  .nav .brand .j{font-size:22px}
+
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ember);margin:36px 0 10px}
+  h1{font-size:clamp(28px,5vw,40px);line-height:1.05;letter-spacing:-.02em;margin:0 0 12px;font-weight:800}
+  h1 .g{color:var(--gold)}
+  .lede{color:var(--ink-dim);font-size:15.5px;margin:0 0 28px;max-width:52ch}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .card{background:linear-gradient(180deg,var(--panel),#13171d);border:1px solid var(--line);
+    border-radius:15px;padding:24px;margin-bottom:18px}
+  .card h2{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);margin:0 0 16px;font-weight:600}
+
+  /* the read-only stats grid — the user SEES exactly what is submitted */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.stats{grid-template-columns:1fr}}
+  .stat{border:1px solid var(--line);background:#0c0f13;border-radius:10px;padding:10px 13px}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-family:var(--mono);font-size:17px;color:var(--gold);font-variant-numeric:tabular-nums;
+    word-break:break-all;margin-top:2px}
+  .stat .v.dim{color:var(--ink-dim);font-size:13px}
+  .statnote{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:14px;line-height:1.5}
+
+  label.fld{display:block;margin-bottom:14px}
+  label.fld .t{display:block;font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  label.fld .hint{font-weight:400;color:var(--muted);font-size:12px}
+  input[type=text],input[type=email]{width:100%;background:#0c0f13;border:1px solid var(--line);
+    border-radius:10px;color:var(--ink);font-family:var(--mono);font-size:14.5px;padding:11px 13px;outline:none}
+  input[type=text]:focus,input[type=email]:focus{border-color:var(--ember)}
+
+  .consent{display:flex;gap:11px;align-items:flex-start;font-size:14px;color:var(--ink-dim);
+    padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:#12161b;margin-bottom:12px;cursor:pointer}
+  .consent input{margin-top:3px;accent-color:var(--gold);width:16px;height:16px;flex:none;cursor:pointer}
+  .consent b{color:var(--ink);font-weight:600}
+  .consent .sub{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    font-family:var(--sans);font-size:15.5px;font-weight:700;padding:14px 20px;border-radius:11px;
+    cursor:pointer;border:1px solid transparent;background:linear-gradient(90deg,#c47f2a,var(--gold));
+    color:#1a1205;transition:transform .15s,filter .15s;margin-top:6px}
+  .btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.06)}
+  .btn:disabled{background:var(--panel-2);color:var(--faint);border-color:var(--line);cursor:not-allowed}
+
+  .notice{border-radius:12px;padding:16px 18px;font-size:14px;margin-top:16px;display:none}
+  .notice.show{display:block}
+  .notice.ok{background:#141b17;border:1px solid #2c3a33;color:var(--sev1)}
+  .notice.err{background:#1b1213;border:1px solid #43272b;color:var(--sev3)}
+  .notice b{font-weight:700}
+
+  .soon{background:#1e1a12;border:1px solid #3a3222;border-left:3px solid var(--gold);
+    border-radius:12px;padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--ink-dim);
+    margin-bottom:18px;display:none}
+  .soon.show{display:block}
+
+  .privacy{font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.7;margin-top:18px}
+  .privacy b{color:var(--muted);font-weight:600}
+
+  footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;
+    font-family:var(--mono);font-size:12px;color:var(--faint);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="nav">
+    <span class="brand"><span class="j">&#129753;</span> swear-jar</span>
+  </nav>
+
+  <p class="eyebrow">The public leaderboard</p>
+  <h1>Put your jar <span class="g">on the board</span></h1>
+  <p class="lede">Submit your damage report to the public leaderboard. We email you a
+    <b>confirmation link</b> first — nothing is published until you click it. Words are
+    <b>censored</b> (f***), and your email is <b>never shown</b> anywhere.</p>
+
+  <div id="soon" class="soon">Submissions are opening soon — the board isn&#8217;t taking
+    entries yet. Check back shortly.</div>
+
+  <form id="form" autocomplete="off" novalidate>
+    <div class="card">
+      <h2>What gets submitted &mdash; exactly this, nothing else</h2>
+      <div class="stats" id="stats"></div>
+      <p class="statnote">These numbers were filled in by <span class="mono">swear-jar wrapped --submit</span>
+        on your machine. Only what you see here is sent &mdash; never a transcript, never a raw word,
+        never anything from your ledger.</p>
+    </div>
+
+    <div class="card">
+      <h2>Who&#8217;s on the board</h2>
+      <label class="fld">
+        <span class="t">Display name <span class="hint">(shown publicly &middot; letters, numbers, _ - and spaces &middot; max 24)</span></span>
+        <input type="text" id="handle" maxlength="24" placeholder="Potty Mouth" required>
+      </label>
+      <label class="fld">
+        <span class="t">Email <span class="hint">(verification only &mdash; never displayed, never shared)</span></span>
+        <input type="email" id="email" placeholder="you@example.com" required>
+      </label>
+
+      <label class="consent">
+        <input type="checkbox" id="consent" required>
+        <span><b>Submit my numbers &amp; verify my email.</b>
+          <span class="sub">Required. We send one confirmation email; your entry appears only after you click it.</span></span>
+      </label>
+
+      <label class="consent">
+        <input type="checkbox" id="joinlist">
+        <span>Also join the mailing list &mdash; occasional AI tooling stuff from the makers.
+          <span class="sub">Optional. No spam, unsubscribe anytime.</span></span>
+      </label>
+
+      <button type="submit" class="btn" id="submitBtn">Send my confirmation email</button>
+
+      <div class="notice ok" id="okNotice"><b>Check your email.</b> We sent a confirmation link.
+        Click it within 48 hours and your entry goes live on the board.</div>
+      <div class="notice err" id="errNotice"></div>
+    </div>
+  </form>
+
+  <p class="privacy"><b>The fine print:</b> your email is used only to verify this submission
+    (and, only if you ticked the box, the mailing list). It is never displayed on the board,
+    never sold, never shared. Ask and we delete it. The board shows censored words only.</p>
+
+  <footer>
+    <span id="credit"></span>
+    <span id="repoLink"></span>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════ CONFIG — edit here only ═══════════════════════════
+ * API_BASE      the deployed funnel Worker origin, e.g. "https://jar.unfocused.ai"
+ *               LEAVE AS THE PLACEHOLDER until the Worker is live: the page
+ *               then renders disabled with a "submissions opening soon" note,
+ *               so the site can ship before the Worker is deployed.
+ * BRAND_CREDIT  visible footer credit.
+ * THANKS_URL    where the confirm link lands people (informational here; the
+ *               actual redirect is configured on the Worker).
+ * REPO_URL      the project repo link in the footer.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  API_BASE: "__API_BASE__",                    // <-- placeholder = form disabled
+  BRAND_CREDIT: "an unfocused.ai project",
+  THANKS_URL: "https://unfocused.ai/thanks",
+  REPO_URL: "https://github.com/BigLaserCo/swear-jar",
+};
+
+// The submission field set — mirrored from funnel/schema.mjs. Filled from the
+// URL query params that `wrapped --submit` passes; shown read-only so the user
+// SEES exactly what is sent.
+const FIELDS = [
+  ["total_coins",   "total coins",     "int"],
+  ["dollars",       "$ owed",          "num"],
+  ["swears_per_day","swears / day",    "num"],
+  ["top_word",      "top word",        "str"],
+  ["fbomb_pct",     "f-bomb %",        "num"],
+  ["active_days",   "active days",     "int"],
+  ["agent",         "agent",           "str"],
+  ["app_version",   "app version",     "str"],
+  ["release_hash",  "release",         "str"],
+];
+
+const $ = (id) => document.getElementById(id);
+const apiConfigured = /^https?:\/\//.test(CONFIG.API_BASE);
+
+// Escape-free rendering: every value goes in via textContent, never innerHTML.
+function renderStats(stats) {
+  const grid = $("stats");
+  for (const [key, label] of FIELDS) {
+    const cell = document.createElement("div");
+    cell.className = "stat";
+    const k = document.createElement("div");
+    k.className = "k";
+    k.textContent = label;
+    const v = document.createElement("div");
+    v.className = "v" + (["agent","app_version","release_hash","top_word"].includes(key) ? " dim" : "");
+    v.textContent = stats[key] === "" ? "—" : String(stats[key]);
+    cell.append(k, v);
+    grid.append(cell);
+  }
+}
+
+function readStatsFromQuery() {
+  const q = new URLSearchParams(location.search);
+  const stats = {};
+  for (const [key, , kind] of FIELDS) {
+    let raw = (q.get(key) || "").trim().slice(0, 64);
+    if (kind === "int" || kind === "num") {
+      const n = Number(raw);
+      stats[key] = Number.isFinite(n) && raw !== "" ? n : "";
+    } else {
+      stats[key] = raw;
+    }
+  }
+  return stats;
+}
+
+const stats = readStatsFromQuery();
+renderStats(stats);
+$("credit").textContent = CONFIG.BRAND_CREDIT;
+const repoA = document.createElement("a");
+repoA.href = CONFIG.REPO_URL;
+repoA.textContent = "source";
+$("repoLink").append(repoA);
+
+// Graceful degrade: no API yet -> disabled form + "opening soon".
+if (!apiConfigured) {
+  $("soon").classList.add("show");
+  $("submitBtn").disabled = true;
+  $("submitBtn").textContent = "Submissions opening soon";
+  for (const el of document.querySelectorAll("input")) el.disabled = true;
+}
+
+function showError(msg) {
+  const n = $("errNotice");
+  n.textContent = msg;
+  n.classList.add("show");
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!apiConfigured) return;
+  $("errNotice").classList.remove("show");
+  $("okNotice").classList.remove("show");
+
+  const email = $("email").value.trim();
+  const handle = $("handle").value.trim();
+  if (!$("consent").checked) return showError("Please tick the consent box — we can't verify your email without it.");
+  if (!handle) return showError("Pick a display name for the board.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return showError("That email doesn't look right.");
+  const missing = FIELDS.filter(([k]) => stats[k] === "");
+  if (missing.length) {
+    return showError("Some stats are missing — open this page via `swear-jar wrapped --submit` so the numbers fill in.");
+  }
+
+  const btn = $("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  try {
+    const res = await fetch(CONFIG.API_BASE + "/api/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, join_list: $("joinlist").checked, handle, stats }),
+    });
+    if (res.status === 429) {
+      showError("Easy there — too many submissions for now. Try again in an hour.");
+    } else if (res.ok) {
+      $("okNotice").classList.add("show");
+      $("form").querySelectorAll("input,button").forEach((el) => (el.disabled = true));
+      return;
+    } else {
+      let detail = "";
+      try { detail = (await res.json())?.details?.join("; ") || ""; } catch {}
+      showError(detail ? "Submission rejected: " + detail : "Submission failed — check your numbers and try again.");
+    }
+  } catch {
+    showError("Couldn't reach the leaderboard server. Try again in a minute.");
+  }
+  btn.disabled = false;
+  btn.textContent = "Send my confirmation email";
+});
+</script>
+</body>
+</html>
