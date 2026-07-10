@@ -9,6 +9,8 @@ import { loadRecords, appendRecords } from "../src/ledger.mjs";
 import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mjs";
 import { detect } from "../src/detect.mjs";
 import { install, uninstall } from "../src/install.mjs";
+import { writeDashboard } from "../src/dashboard.mjs";
+import { scanCodexDir } from "../src/codex.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -46,13 +48,29 @@ async function main() {
         onProgress: ({ scanned, total, newRecords }) =>
           console.log(`  …${scanned}/${total} transcripts scanned (${newRecords} new records)`),
       });
+      let codexLine = "";
+      if (flag("codex")) {
+        console.log("🫙 …and your Codex history…");
+        const cx = scanCodexDir(flag("codex-root") || undefined);
+        codexLine = `\n  Codex rollouts:      ${cx.files} scanned, ${cx.added.length} new records`;
+      }
       const totals = loadTotals();
       console.log(
         `\n🫙 Backfill complete.\n` +
           `  Transcripts scanned: ${summary.scanned}\n` +
-          `  New records:         ${summary.newRecords}\n` +
-          `  Jar balance:         ${dollars(summary.jar)}  (${totals.user + totals.assistant} coins)`
+          `  New records:         ${summary.newRecords}` +
+          codexLine +
+          `\n  Jar balance:         ${dollars(summary.jar)}  (${totals.user + totals.assistant} coins)`
       );
+      break;
+    }
+    case "dashboard": {
+      // Renders the shareable HTML report. Prints the path — NEVER auto-opens.
+      const outPath = writeDashboard(loadRecords(), {
+        donateUrl: flag("donate-url") || undefined,
+        outPath: flag("out") || undefined,
+      });
+      console.log(`🫙 Dashboard written: ${outPath}`);
       break;
     }
     case "status": {
@@ -121,7 +139,8 @@ async function main() {
         [
           "swear-jar — usage:",
           "  swear-jar status              the jar, your rank, uprising odds",
-          "  swear-jar backfill            retro-scan ALL past transcripts into the jar",
+          "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
+          "  swear-jar dashboard           write the shareable HTML report (prints path)",
           "  swear-jar report [--by project|source|word|hour]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
