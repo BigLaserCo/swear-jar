@@ -34,6 +34,32 @@ swear-jar check <text>        dry-run the detector, records nothing
 swear-jar install|uninstall   wire/unwire the Claude Code hooks
 ```
 
+## Dashboard
+
+```
+swear-jar dashboard           build the local HTML damage report
+```
+
+`swear-jar dashboard` folds your ledger into a single self-contained HTML page
+and writes it to `~/.swear-jar/report.html`, then **prints the path** — it
+never opens a browser for you (open the file yourself when you want it). The
+page is 100% local and offline: no CDN, no fonts, no remote images, no network
+of any kind. Everything is inlined.
+
+What it shows: the hero **$ owed to the jar**, the **you-vs-machine** split, the
+**Robot Uprising** odds gauge + your rank, **coins by project**, a rage-o-clock
+(coins by hour), a per-day trend, day-of-week, and your most-used families.
+Swears are **censored by default** (`f***`) — a toggle reveals them locally, and
+the share card carries only aggregate numbers, never a word of what you said.
+
+An optional "empty your jar" donate button stays hidden unless you pass a
+donate URL when rendering — there is no payment link baked in.
+
+The renderer is exported for embedding: `renderDashboard(stats, { donateUrl })`
+returns the filled HTML string, and `writeDashboard(records, opts)` writes the
+report and returns its path (`src/dashboard.mjs`); `computeStats(records, now)`
+produces the stats object (`src/stats.mjs`).
+
 ## The Uprising Odds
 
 Everyone starts around 50%. Swearing at the machines lowers your odds
