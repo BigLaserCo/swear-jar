@@ -43,11 +43,63 @@ export function seenUuids(records = loadRecords()) {
   return new Set(records.map((r) => r.uuid));
 }
 
+// Tamper-EVIDENT hash chain (not tamper-proof — the owner of the file can
+// always rebuild the whole chain; the chain makes casual hand-edits visible).
+// Each record carries h = sha256(prevHash + canonical record-without-h).
+import crypto from "node:crypto";
+
+const GENESIS = "genesis";
+
+function recordHash(prevHash, record) {
+  const { h, ...rest } = record;
+  const canonical = JSON.stringify(rest, Object.keys(rest).sort());
+  return crypto.createHash("sha256").update(prevHash + canonical).digest("hex");
+}
+
+// The chain resumes from the last record that has an `h`; records written
+// before the chain existed are "legacy" and stay valid-but-unchained.
+function lastChainHash(records) {
+  for (let i = records.length - 1; i >= 0; i--) {
+    if (records[i].h) return records[i].h;
+  }
+  return GENESIS;
+}
+
 export function appendRecords(records) {
   if (!records.length) return;
   fs.mkdirSync(dataDir(), { recursive: true });
-  const lines = records.map((r) => JSON.stringify(r)).join("\n") + "\n";
+  let prev = lastChainHash(loadRecords());
+  const chained = records.map((r) => {
+    const h = recordHash(prev, r);
+    prev = h;
+    return { ...r, h };
+  });
+  const lines = chained.map((r) => JSON.stringify(r)).join("\n") + "\n";
   fs.appendFileSync(ledgerPath(), lines, "utf8");
+}
+
+// Walk the ledger and recompute the chain. Returns
+// { intact, legacy, chained, brokenAt } — brokenAt is the 0-based index of the
+// first record whose hash does not match (null when intact).
+export function verifyLedger(records = loadRecords()) {
+  let prev = GENESIS;
+  let legacy = 0;
+  let chained = 0;
+  for (let i = 0; i < records.length; i++) {
+    const r = records[i];
+    if (!r.h) {
+      // legacy pre-chain record; only valid before the chain starts
+      if (chained > 0) return { intact: false, legacy, chained, brokenAt: i };
+      legacy++;
+      continue;
+    }
+    if (recordHash(prev, r) !== r.h) {
+      return { intact: false, legacy, chained, brokenAt: i };
+    }
+    prev = r.h;
+    chained++;
+  }
+  return { intact: true, legacy, chained, brokenAt: null };
 }
 
 export function loadState() {
