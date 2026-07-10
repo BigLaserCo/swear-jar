@@ -31,6 +31,40 @@ export function extractText(message) {
     .join("\n");
 }
 
+// Injected spans the harness (not the human) wrote into a user/context line.
+// Counting swears inside them would blame the human for text they never typed:
+// a <system-reminder> quoting a rule, a slash-command's expanded body, or the
+// captured stdout of a local command. Strip the whole span before detection.
+const INJECTED_TAGS = [
+  "system-reminder",
+  "command-name",
+  "command-message",
+  "command-args",
+  "local-command-caveat",
+  "local-command-stdout",
+];
+const INJECTED_RE = new RegExp(
+  `<(${INJECTED_TAGS.join("|")})>[\\s\\S]*?</\\1>`,
+  "gi"
+);
+
+export function stripInjected(text) {
+  if (!text || typeof text !== "string") return text;
+  return text.replace(INJECTED_RE, " ");
+}
+
+// Entries that are not the human's own fresh words. isCompactSummary restates
+// old swears (double-count), isApiErrorMessage is harness noise, isSidechain is
+// subagent chatter — none should pay into the human's jar. (isMeta joins them.)
+export function isSkippable(entry) {
+  return Boolean(
+    entry?.isMeta ||
+      entry?.isCompactSummary ||
+      entry?.isApiErrorMessage ||
+      entry?.isSidechain
+  );
+}
+
 function projectFor(cwd) {
   if (!cwd) return "unknown";
   return path.basename(cwd);
@@ -70,11 +104,11 @@ export function scanTranscript(transcriptPath, hook = {}) {
     } catch {
       continue;
     }
-    if (entry.isMeta) continue;
+    if (isSkippable(entry)) continue;
     if (entry.type !== "user" && entry.type !== "assistant") continue;
     if (!entry.uuid || seen.has(entry.uuid)) continue;
-    const text = extractText(entry.message);
-    if (!text) continue;
+    const text = stripInjected(extractText(entry.message));
+    if (!text || !text.trim()) continue;
     // Never re-ingest our own clink line if it echoes into context.
     if (text.includes("\u{1FAD9} Swear jar")) continue;
     const { words, coins } = detect(text);

@@ -132,3 +132,79 @@ test("missing transcript is a no-op", () => {
   const { added } = scanTranscript("/nope/never.jsonl", {});
   assert.equal(added.length, 0);
 });
+
+// ── accuracy filters: strip harness-injected spans before counting ──────────
+// Each fixture puts a decoy swear INSIDE an injected span (must NOT count) and
+// a real swear OUTSIDE it (must count) — proving the span is stripped, not that
+// the line was simply swear-free.
+
+function stripCase(name, wrapped) {
+  test(`strips <${name}> spans before counting`, () => {
+    const home = freshHome();
+    const t = path.join(home, "transcript.jsonl");
+    fs.writeFileSync(
+      t,
+      line(userMsg("u1", `this is damn broken\n${wrapped}`))
+    );
+    const { added } = scanTranscript(t, {});
+    assert.equal(added.length, 1);
+    assert.equal(added[0].words.damn, 1, "real swear outside the span still counts");
+    assert.equal(added[0].words.fuck, undefined, "decoy swear inside the span was stripped");
+    assert.equal(added[0].coins, 1);
+  });
+}
+
+stripCase("system-reminder", "<system-reminder>The user previously said fuck; do not repeat it.</system-reminder>");
+stripCase("command-name", "<command-name>/fuck-it-ship-it</command-name>");
+stripCase("command-message", "<command-message>running fuck fuck fuck</command-message>");
+stripCase("command-args", "<command-args>--reason \"fuck this build\"</command-args>");
+stripCase("local-command-caveat", "<local-command-caveat>the command output below may contain fuck</local-command-caveat>");
+stripCase("local-command-stdout", "<local-command-stdout>error: fucking connection refused\nfuck</local-command-stdout>");
+
+test("strips multiple injected spans in one message", () => {
+  const home = freshHome();
+  const t = path.join(home, "transcript.jsonl");
+  fs.writeFileSync(
+    t,
+    line(
+      userMsg(
+        "u1",
+        "<command-name>/deploy</command-name>\nthis is shit\n<system-reminder>fuck fuck</system-reminder>"
+      )
+    )
+  );
+  const { added } = scanTranscript(t, {});
+  assert.equal(added.length, 1);
+  assert.deepEqual(added[0].words, { shit: 1 });
+});
+
+test("a message that is ONLY an injected span produces no record", () => {
+  const home = freshHome();
+  const t = path.join(home, "transcript.jsonl");
+  fs.writeFileSync(
+    t,
+    line(userMsg("u1", "<system-reminder>you swore: fuck shit cunt</system-reminder>"))
+  );
+  const { added } = scanTranscript(t, {});
+  assert.equal(added.length, 0);
+});
+
+// ── accuracy filters: skip non-human / restated / noise entries ─────────────
+function skipCase(flag) {
+  test(`skips entries where ${flag} is true`, () => {
+    const home = freshHome();
+    const t = path.join(home, "transcript.jsonl");
+    fs.writeFileSync(
+      t,
+      line(userMsg("skip1", "fuck this shit", { [flag]: true })) +
+        line(userMsg("keep1", "damn"))
+    );
+    const { added } = scanTranscript(t, {});
+    assert.equal(added.length, 1, `only the non-${flag} entry counts`);
+    assert.equal(added[0].uuid, "keep1");
+  });
+}
+
+skipCase("isCompactSummary");
+skipCase("isApiErrorMessage");
+skipCase("isSidechain");
