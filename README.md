@@ -131,6 +131,29 @@ Codex-specific details:
 - **Only word counts are stored** — never the surrounding text, same as the
   Claude side.
 
+## Superwhisper import
+
+If you dictate to your AI with [Superwhisper](https://superwhisper.com/), the jar
+can also count the swears in your **historical dictations** — the voice notes you
+spoke, measured as *swears-per-dictation*.
+
+```
+swear-jar import-superwhisper [--root <dir>]
+swear-jar report --dictation            # the dictation history, on its own
+```
+
+Superwhisper stores each recording as `<root>/<recording-id>/meta.json`; the
+importer auto-detects the folder (e.g. `~/Documents/superwhisper/recordings`) or
+takes `--root`. Same audited lexicon, same "word counts only, never the text"
+privacy rule; re-running imports nothing new (idempotent by recording-id).
+
+**It is a separate, never-summed ledger** (`~/.swear-jar/dictation.jsonl`), not
+the main jar. This is the no-double-count rule made mechanical: a dictated prompt
+usually *also* appears in the Claude/Codex transcript the main jar already scans,
+so folding dictation into `ledger.jsonl` would count it twice. `status`,
+`dashboard`, and plain `report` read only `ledger.jsonl` and never see it;
+dictation surfaces only through `report --dictation`.
+
 ## Testing
 
 ```bash
