@@ -234,6 +234,28 @@ test("missing sessions root is a no-op", () => {
   assert.equal(res.added.length, 0);
 });
 
+test("multibyte-unicode content keeps byte-accurate offsets (no drift on re-scan/append)", () => {
+  // Regression: rollouts are emoji/unicode heavy. Offset math must be in bytes,
+  // not UTF-16 char indices, or the resume offset drifts and lines get re-read
+  // or skipped. Padding makes byte-length >> char-length.
+  const home = freshHome();
+  const pad = "🔥🧊✨🌊— café — ".repeat(40); // multibyte, byte len != char len
+  const p = writeRollout(home, [
+    meta(),
+    turnCtx(),
+    userMsg(`${pad} this damn thing ${pad}`),
+    agentMsg(`${pad} what a shit show ${pad}`),
+  ]);
+  assert.equal(scanCodexFile(p).added.length, 2);
+  assert.equal(scanCodexFile(p).added.length, 0); // no re-read despite multibyte
+  fs.appendFileSync(p, line(userMsg(`${pad} bloody hell ${pad}`)));
+  const { added } = scanCodexFile(p);
+  assert.equal(added.length, 1); // incremental pickup lands on the right byte
+  assert.equal(added[0].source, "user");
+  assert.equal(added[0].words.hell, 1);
+  assert.equal(loadRecords().length, 3);
+});
+
 test("cwd is recovered on an incremental scan whose window starts past session_meta", () => {
   const home = freshHome();
   // first turn establishes offset past the meta line
