@@ -95,21 +95,22 @@ async function main() {
       console.log(renderReport(loadRecords(), mode));
       break;
     }
+    case "import-dictation": // alias — the branded name for the same importer
     case "import-superwhisper": {
-      // Import historical Superwhisper dictation into its OWN never-summed
-      // ledger (dictation.jsonl). It measures swears-per-dictation and would
+      // Import historical rage.wav dictation into its OWN never-summed ledger
+      // (dictation.jsonl). It measures swears-per-dictation and would
       // double-count dictated prompts, so it is kept out of the main jar.
       const explicit = flag("root");
       const root = explicit || defaultSuperwhisperRoot();
       if (!root) {
-        console.log("🫙 Couldn't find your Superwhisper recordings folder.");
-        console.log("   Point me at it:  swear-jar import-superwhisper --root <dir>");
-        console.log("   (Superwhisper › Settings › Recordings shows the exact path.)");
+        console.log("🫙 Couldn't find your dictation recordings folder.");
+        console.log("   Point me at it:  swear-jar import-dictation --root <dir>");
+        console.log("   (your dictation app's Settings › Recordings shows the exact path.)");
         break;
       }
       const res = importSuperwhisper(root);
       console.log(
-        `🫙 Superwhisper import complete.\n` +
+        `🫙 Dictation import (rage.wav) complete.\n` +
           `  Recordings scanned:  ${res.files}\n` +
           `  New dictations:      ${res.added}\n` +
           `  Dictation swears:    ${res.coins} coins  (${dollars(res.coins)})`
@@ -179,7 +180,7 @@ async function main() {
           "swear-jar — usage:",
           "  swear-jar status              the jar, your rank, uprising odds",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
-          "  swear-jar import-superwhisper [--root <dir>]  import Superwhisper dictation (separate ledger)",
+          "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
           "  swear-jar dashboard           write the shareable HTML report (prints path)",
           "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
