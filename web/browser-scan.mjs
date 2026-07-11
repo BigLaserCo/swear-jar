@@ -2,8 +2,8 @@
 //
 // This is the ONE piece the npm package's src/ can't share verbatim: the CLI's
 // src/scan.mjs does its filtering INSIDE a node:fs read loop (byte offsets, an
-// on-disk ledger), so it opens with `import fs from "node:fs"` — which a browser
-// cannot load at all. This module re-implements ONLY the pure, IO-free parts of
+// on-disk ledger), so it opens by importing the node:fs / node:path / node:os
+// builtins — which a browser cannot load at all. This module re-implements ONLY the pure, IO-free parts of
 // that loop so the exact same records come out, and imports the real scoring
 // brain — `detect` from src/detect.mjs — verbatim (that file is runtime-agnostic
 // and is the part worth auditing).
