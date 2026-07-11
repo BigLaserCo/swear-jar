@@ -138,7 +138,7 @@ async function main() {
       if (flag("submit")) {
         const base =
           process.env.SWEAR_JAR_SUBMIT_URL ||
-          "https://swearjar.unfocused.ai/submit.html";
+          "https://swearjar.biglaser.co/submit.html";
         const params = new URLSearchParams({
           total_coins: String(stats.totalCoins),
           dollars: String(stats.dollarsOwed),

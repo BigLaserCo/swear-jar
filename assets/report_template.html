@@ -324,7 +324,7 @@
           <div class="wmini" id="wmini"></div>
         </div>
         <div class="wstats" id="wstats"></div>
-        <div class="wfoot">processed locally · nothing left this machine · unfocused.ai</div>
+        <div class="wfoot">processed locally · nothing left this machine · biglaser.co</div>
       </div>
       <div class="share-actions">
         <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
@@ -541,7 +541,7 @@ const wrappedCaption=
   `rage, wrapped · 2026 🫙\n`+
   `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
   `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
-  `processed locally · nothing left this machine · unfocused.ai`;
+  `processed locally · nothing left this machine · biglaser.co`;
 
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};

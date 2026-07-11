@@ -19,13 +19,13 @@ id = "REPLACE_WITH_KV_NAMESPACE_ID"
 # ── plain vars (not secret, but still environment-specific) ──────────────────
 [vars]
 # From address for the confirmation email (domain must be verified in Resend).
-MAIL_FROM = "jar@unfocused.ai"
+MAIL_FROM = "jar@biglaser.co"
 # Host used in the confirm link + default thanks redirect (the Worker's host).
-PUBLIC_HOST = "jar.unfocused.ai"
+PUBLIC_HOST = "jar.biglaser.co"
 # The ONE origin allowed to POST /api/submit (where docs/submit.html is served).
-ALLOWED_ORIGIN = "https://unfocused.ai"
+ALLOWED_ORIGIN = "https://biglaser.co"
 # Optional: override the post-confirmation redirect.
-THANKS_URL = "https://unfocused.ai/thanks"
+THANKS_URL = "https://biglaser.co/thanks"
 # Optional: comma-separated release hashes that earn the `verified` badge.
 KNOWN_RELEASES = "cd15e0b"
 
