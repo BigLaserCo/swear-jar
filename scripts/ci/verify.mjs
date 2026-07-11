@@ -61,32 +61,62 @@ function checkTests() {
   }
 }
 
-// ── (b) no network / process-exec smells in src/ or bin/ ─────────────────────
+// ── (b) no network / process-exec smells ─────────────────────────────────────
+// src/ and bin/ must be network-FREE (they ship in the npm package + run the
+// hooks). web/ and docs/ are the hosted client surfaces: their whole promise is
+// "your files never leave your machine", so they too must be network-free —
+// EXCEPT the single opt-in leaderboard submit, which each such call site must
+// mark with a `NETWORK-OK:` annotation (same line or the line above). Any
+// UN-annotated network call in web/ or docs/ fails the gate, so the zero-upload
+// guarantee is mechanically enforced, not merely a matter of current design.
 const NET_PATTERNS = [
   ["fetch(", /\bfetch\s*\(/],
   ["http.request", /\bhttp\.request\b/],
   ["https.request", /\bhttps\.request\b/],
   ["net.connect", /\bnet\.connect\b/],
   ["child_process", /\bchild_process\b/],
+  ["WebSocket", /\bnew\s+WebSocket\b/],
+  ["EventSource", /\bnew\s+EventSource\b/],
+  ["sendBeacon", /\bsendBeacon\s*\(/],
+  ["XMLHttpRequest", /\bnew\s+XMLHttpRequest\b/],
+  ["RTCPeerConnection", /\bnew\s+RTCPeerConnection\b/],
   [
     "exec of curl/wget",
     /(?:exec|execSync|execFile|execFileSync|spawn|spawnSync)\s*\(\s*[`'"]\s*(?:curl|wget)\b/i,
   ],
 ];
+const NETWORK_OK = /NETWORK-OK/;
 function checkNoNetwork(tracked) {
-  const sources = tracked.filter((f) => f.startsWith("src/") || f.startsWith("bin/"));
   let hits = 0;
-  for (const f of sources) {
+  // src/ + bin/ — zero tolerance, whole-file test.
+  const strict = tracked.filter((f) => f.startsWith("src/") || f.startsWith("bin/"));
+  for (const f of strict) {
     const text = readText(f);
     if (text == null) continue;
     for (const [name, re] of NET_PATTERNS) {
-      if (re.test(text)) {
-        fail("(b) no-network", `"${name}" found in ${f}`);
-        hits++;
+      if (re.test(text)) { fail("(b) no-network", `"${name}" found in ${f}`); hits++; }
+    }
+  }
+  // web/ + docs/ — network-free EXCEPT explicitly `NETWORK-OK`-annotated lines.
+  const client = tracked.filter((f) => f.startsWith("web/") || f.startsWith("docs/"));
+  for (const f of client) {
+    const text = readText(f);
+    if (text == null) continue;
+    const lines = text.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      for (const [name, re] of NET_PATTERNS) {
+        if (!re.test(lines[i])) continue;
+        const annotated = NETWORK_OK.test(lines[i]) || (i > 0 && NETWORK_OK.test(lines[i - 1]));
+        if (!annotated) {
+          fail("(b) no-network", `unannotated "${name}" in ${f}:${i + 1} (add a NETWORK-OK note if this opt-in call is intended)`);
+          hits++;
+        }
       }
     }
   }
-  if (!hits) ok("(b) no-network", `${sources.length} src/bin file(s) free of network/exec smells`);
+  if (!hits) {
+    ok("(b) no-network", `${strict.length} src/bin + ${client.length} web/docs file(s) free of unauthorized network`);
+  }
 }
 
 // ── (c) zero runtime dependencies ────────────────────────────────────────────

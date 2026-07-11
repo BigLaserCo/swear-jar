@@ -260,6 +260,10 @@ $("form").addEventListener("submit", async (e) => {
   btn.disabled = true;
   btn.textContent = "Sending…";
   try {
+    // Opt-in leaderboard submit. Disabled until CONFIG.API_BASE is set; body is
+    // the email/handle the user typed here + the aggregate `stats` (counts +
+    // censored top word), NEVER transcript/file content.
+    // NETWORK-OK — sole opt-in egress, aggregate only (see scripts/ci/verify.mjs).
     const res = await fetch(CONFIG.API_BASE + "/api/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

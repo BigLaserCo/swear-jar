@@ -343,6 +343,11 @@
   };
 
   const $ = (id) => document.getElementById(id);
+  // Escape HTML — user/file-derived strings (e.g. a scanned folder's name) must
+  // never be interpolated raw into innerHTML. No transcript text ever reaches
+  // the DOM, but a maliciously-named folder must not be able to inject markup.
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (n) => Number(n || 0).toLocaleString("en-US");
   const usd = (d) => "$" + Number(d || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -579,7 +584,7 @@
     // projects
     const d = S.byProject, pmx = d.length ? d[0].coins || 1 : 1;
     $("projbars").innerHTML = d.length
-      ? d.map((p) => `<div class="lw"><div class="pj" title="${p.project}">${p.project}</div>` +
+      ? d.map((p) => `<div class="lw"><div class="pj" title="${esc(p.project)}">${esc(p.project)}</div>` +
           `<div class="bar2"><i style="--w:${((p.coins / pmx) * 100).toFixed(1)}%"></i></div>` +
           `<div class="ct tnum">${fmt(p.coins)}</div></div>`).join("")
       : '<div class="pj">No projects yet — suspiciously calm.</div>';
@@ -632,6 +637,11 @@
       const checked = validate(submission);
       if (!checked.ok) { toast("Score payload failed the schema check: " + checked.errors[0]); return; }
       try {
+        // The ONLY network call in this app — the opt-in leaderboard submit.
+        // Disabled by default (CONFIG.API_BASE is null); the body is the
+        // schema-validated aggregate `submission` (counts + censored top word),
+        // NEVER transcript/file content.
+        // NETWORK-OK — sole opt-in egress, aggregate only (see scripts/ci/verify.mjs).
         const res = await fetch(`${CONFIG.API_BASE}/submit`, {
           method: "POST",
           headers: { "content-type": "application/json" },
