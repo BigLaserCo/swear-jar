@@ -1,0 +1,12 @@
+{
+  "_comment": "SYNTHETIC seed so LEADERBOARD.md renders before any real submission. Each entry mirrors one public-safe row from the hosted funnel's /api/board.json (a handle + aggregate numbers + a verified flag — never email/PII/text). Real rows replace these once the funnel is live. Fake handles only.",
+  "submissions": [
+    { "handle": "octocat-rage", "verified": true, "total_coins": 8087, "dollars": 2021.75, "swears_per_day": 49, "fbomb_pct": 64, "active_days": 56, "top_word": "f**k", "agent": "both", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
+    { "handle": "commitlord", "verified": true, "total_coins": 5400, "dollars": 1350.0, "swears_per_day": 38, "fbomb_pct": 71, "active_days": 40, "top_word": "s**t", "agent": "claude", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
+    { "handle": "merge-goblin", "verified": true, "total_coins": 3200, "dollars": 800.0, "swears_per_day": 22, "fbomb_pct": 55, "active_days": 30, "top_word": "f**k", "agent": "codex", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
+    { "handle": "dictation-dan", "verified": true, "total_coins": 640, "dollars": 160.0, "swears_per_day": 12, "fbomb_pct": 40, "active_days": 15, "top_word": "h**l", "agent": "dictation", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
+    { "handle": "calm-dev", "verified": true, "total_coins": 120, "dollars": 30.0, "swears_per_day": 2, "fbomb_pct": 10, "active_days": 20, "top_word": "d**n", "agent": "claude", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
+    { "handle": "anon-tinkerer", "verified": false, "total_coins": 4000, "dollars": 1000.0, "swears_per_day": 30, "fbomb_pct": 60, "active_days": 25, "top_word": "f**k", "agent": "codex", "app_version": "0.1.0-dev", "release_hash": "0000000000000000000000000000000000000000" },
+    { "handle": "rage-quit-rick", "verified": true, "total_coins": 9999, "dollars": 2499.75, "swears_per_day": 3500, "fbomb_pct": 92, "active_days": 3, "top_word": "f**k", "agent": "both", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" }
+  ]
+}
