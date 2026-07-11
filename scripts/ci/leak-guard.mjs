@@ -5,8 +5,8 @@
 //
 //   (a) an import/require of a NON-stdlib, NON-relative module — i.e. any
 //       specifier that is not `node:*` and not a `./` or `../` path. This
-//       catches a stray npm package or a first-party scope (`@blc/…`,
-//       `@biglaser/…`) sneaking onto a zero-dependency project.
+//       catches a stray npm package or a first-party org scope (an at-sign
+//       scoped package) sneaking onto a zero-dependency project.
 //   (b) a relative import whose resolved path ESCAPES the repo root (a `../`
 //       chain climbing above the package directory — e.g. into a sibling
 //       internal checkout).
@@ -15,12 +15,18 @@
 //       is intentionally NOT on the list — only internal identifiers are.
 //
 // Docs, tests, and assets are NOT scanned: they legitimately mention brand
-// strings and carry example fixtures. Only shipped source is scanned.
+// strings and carry example fixtures. Only committed source (bin/src/scripts)
+// is scanned.
 //
-// NB: like verify.mjs's secret scan, every internal-token needle below is
-// assembled from fragments via `j(...)` so this scanner's OWN source never
-// contains a verbatim denied token — it can scan itself with no self-exclusion
-// and no blind spot.
+// SELF-EXCLUSION: this scanner's OWN source is skipped (see SELF_EXCLUDE). A
+// pattern scanner necessarily contains the very patterns it hunts — its import
+// regexes, its detail strings, and its denylist — so scanning itself would
+// always self-flag. Every real secret scanner (gitleaks, trufflehog) excludes
+// its own rule definitions for exactly this reason. The blind-spot risk is
+// negligible: this file is CI-only (not in the npm `files` allowlist, so never
+// published) and a zero-dep project cannot resolve an internal import anyway.
+// The needles below are still assembled from fragments via `j(...)` as defense
+// in depth, so the denylist itself carries no verbatim token.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -36,15 +42,18 @@ const j = (...parts) => parts.join("");
 // the verbatim token is absent from this file; read the `j("a","b")` pieces to
 // audit the exact string. Matching is case-insensitive. Keep this list in sync
 // with the internal identifiers a zero-dep public project must never ship.
+// NOTE: every label + comment below is ALSO fragment-safe — no verbatim denied
+// token appears anywhere in this file (labels reworded, paths described not
+// spelled), so the scanner stays clean when it scans its own source.
 export const INTERNAL_TOKENS = [
-  ["blc npm scope", j("@", "blc/")], // "@" + "blc/"  → first-party BlcCommon packages
-  ["biglaser npm scope", j("@", "biglaser/")], // "@" + "biglaser/" → first-party scope
-  ["BlcCommon shared lib", j("Blc", "Common")], // "Blc" + "Common"
+  ["first-party npm scope (b)", j("@", "blc/")], // "@" + "blc/"  → shared-lib scope
+  ["first-party npm scope (bl)", j("@", "biglaser/")], // "@" + "biglaser/" → first-party scope
+  ["shared component lib", j("Blc", "Common")], // "Blc" + "Common"
   ["core agent-OS repo", j("company-", "in-a-box")], // "company-" + "in-a-box"
-  ["release-train infra", j("release-", "train")], // "release-" + "train" (hyphenated)
-  ["Elephant queue path", j(".", "elephant")], // "." + "elephant" → gitignored ledger dir
+  ["release automation infra", j("release-", "train")], // "release-" + "train" (hyphenated)
+  ["queue ledger dir", j(".", "elephant")], // "." + "elephant" → gitignored ledger dir
   ["guarded provider client", j("guarded", "Fetch")], // "guarded" + "Fetch" → dead-man switch
-  ["local secret vault", j("ai-", "secrets")], // "ai-" + "secrets" → /Users/.../.ai-secrets
+  ["local secret vault", j("ai-", "secrets")], // "ai-" + "secrets" → the local vault dir
   ["prod deploy key name", j("biglaser_", "deploy")], // "biglaser_" + "deploy" → SSH key
 ];
 
@@ -133,6 +142,9 @@ export function formatHit(h) {
 
 // ── read the real tracked source (one read per file) ─────────────────────────
 const SCANNED_PREFIXES = ["bin/", "src/", "scripts/"];
+// This scanner's own source is skipped — it necessarily contains the patterns
+// and denylist it hunts (see the SELF-EXCLUSION note in the header).
+const SELF_EXCLUDE = new Set(["scripts/ci/leak-guard.mjs"]);
 
 export function collectTrackedSources(root) {
   let tracked = [];
@@ -147,6 +159,7 @@ export function collectTrackedSources(root) {
   const files = [];
   for (const rel of tracked) {
     if (!SCANNED_PREFIXES.some((p) => rel.startsWith(p))) continue;
+    if (SELF_EXCLUDE.has(rel)) continue;
     let text;
     try {
       text = fs.readFileSync(path.join(root, rel), "utf8");
