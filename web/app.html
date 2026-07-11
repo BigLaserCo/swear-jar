@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swear Jar — scan your Claude Code transcripts, in your browser</title>
+<!--
+  TRUST STORY — read this before you trust the page (or don't; read the code):
+
+  This page imports the SAME audited modules the npm package ships — verbatim,
+  byte-for-byte, as native ES modules:
+      ../src/detect.mjs   (the lexicon + scoring)
+      ../src/odds.mjs     (uprising odds + ranks)
+      ../src/stats.mjs    (pure stats aggregation)
+      ../src/version.mjs  (app version + release hash)
+      ../funnel/schema.mjs (leaderboard submission field set + caps)
+      ./browser-scan.mjs  (the only browser-specific file: JSONL filtering,
+                           mirrored from src/scan.mjs and pinned to it by test)
+  The hosted deployment serves this repo's files as-is, so what you can read on
+  GitHub is exactly what runs here. Zero external requests: no CDN, no fonts,
+  no analytics, no upload. Your transcript files are read by THIS TAB with the
+  File API and never leave your machine. The only network call this page can
+  ever make is the opt-in score upload, and only after CONFIG.API_BASE is set
+  to a real endpoint (it ships null).
+-->
+<style>
+  :root{
+    --ground:#0f1216;--panel:#171b21;--panel-2:#1d222a;--line:#272d37;
+    --ink:#e8e6e1;--ink-dim:#b9bfc8;--muted:#8a93a0;--faint:#5a626e;
+    --ember:#e8853a;--gold:#e8b23a;
+    --sev3:#d1543f;--sev2:#d9a441;--sev1:#5b8a72;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(1100px 560px at 82% -12%,#1a2230 0,transparent 60%)}
+  .wrap{max-width:1020px;margin:0 auto;padding:30px 20px 60px}
+  .mono{font-family:var(--mono)}.tnum{font-variant-numeric:tabular-nums}
+  [hidden]{display:none!important}
+  .topbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;border-bottom:1px solid var(--line);
+    padding-bottom:16px;margin-bottom:26px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ember);margin:0;flex-basis:100%}
+  .brand{font-size:clamp(26px,4.6vw,40px);font-weight:800;letter-spacing:-.02em;margin:5px 0 0}
+  .stamp{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;flex-basis:100%;margin-top:2px}
+  .local{display:inline-flex;align-items:center;gap:6px;color:var(--sev1)}
+  .local::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--sev1);box-shadow:0 0 0 3px rgba(91,138,114,.18)}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);user-select:none;margin-left:auto;align-self:center}
+  .toggle input{position:absolute;opacity:0;width:0;height:0}
+  .toggle .tg{width:34px;height:19px;border-radius:19px;background:#2a313c;position:relative;transition:background .2s;flex:none}
+  .toggle .tg::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+  .toggle input:checked + .tg{background:var(--sev1)}
+  .toggle input:checked + .tg::after{transform:translateX(15px);background:#dfeee6}
+  .toggle input:focus-visible + .tg{outline:2px solid var(--ember);outline-offset:2px}
+
+  .hero{background:linear-gradient(180deg,var(--panel),#13171d);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:15px;padding:26px 28px;margin-bottom:14px}
+  .hero h2{margin:0 0 6px;font-size:clamp(19px,3.4vw,26px);font-weight:800;letter-spacing:-.01em}
+  .hero p{margin:0;color:var(--muted);font-size:14.5px;max-width:64ch}
+  .hero .accent{color:var(--ember);font-weight:600}
+  .privacy{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--sev1)}
+  .privacy span{display:inline-flex;align-items:center;gap:6px}
+  .privacy span::before{content:"✓";color:var(--sev1)}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px 20px}
+  .sec{margin-top:30px}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px;
+    border-bottom:1px solid var(--line);padding-bottom:8px}
+  .sec-head h3{margin:0;font-size:12px;font-family:var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink-dim)}
+  .sec-head .note{font-size:12px;color:var(--faint);font-family:var(--mono)}
+  .cap{color:var(--muted);font-size:13px;margin:12px 0 0}.cap b{color:var(--ember);font-weight:600}
+
+  /* picker */
+  .drop{border:2px dashed #39414e;border-radius:15px;padding:34px 24px;text-align:center;transition:border-color .15s,background .15s;margin-top:14px}
+  .drop.hot{border-color:var(--gold);background:#1a1f27}
+  .drop .big-emoji{font-size:38px}
+  .drop h3{margin:10px 0 4px;font-size:17px;font-weight:700}
+  .drop p{margin:0;color:var(--muted);font-size:13.5px}
+  .pickrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+  .btn{appearance:none;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font-family:var(--sans);
+    font-size:14px;font-weight:600;padding:12px 16px;border-radius:10px;cursor:pointer;text-align:left;
+    display:inline-flex;align-items:center;gap:9px;text-decoration:none;transition:border-color .15s,background .15s}
+  .btn:hover{border-color:var(--ember);background:#22272f}
+  .btn:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+  .btn.primary{background:linear-gradient(90deg,#c47f2a,var(--gold));color:#1a1205;border:0;font-weight:800}
+  .btn.primary:hover{filter:brightness(1.07)}
+  .btn[disabled]{opacity:.55;cursor:not-allowed;filter:grayscale(.35)}
+  .hint{font-family:var(--mono);font-size:11px;color:var(--faint);line-height:1.7;margin-top:14px}
+  .hint b{color:var(--muted);font-weight:600}
+  .hint code{background:#1d222a;border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+
+  /* scan progress */
+  .scanhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .scanhead .jar-emoji{font-size:30px}
+  .counters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .counter{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:13px 14px;text-align:center}
+  .counter .v{font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .counter .v.coins{color:var(--gold)}
+  .counter .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+  .counter .v.bump{animation:bump .35s ease}
+  @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.22)}100%{transform:scale(1)}}
+  .bar{height:12px;background:#232935;border-radius:7px;overflow:hidden;margin-top:16px}
+  .bar i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#8a5a2e,var(--gold));width:0%;transition:width .25s}
+  .clinkline{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin-top:12px;min-height:18px}
+  .curfile{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* results hero */
+  .dmg{display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:center;
+    background:linear-gradient(180deg,var(--panel),#13171d);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:15px;padding:26px 28px}
+  .jarwrap{display:flex;justify-content:center}
+  .bignum{font-family:var(--mono);font-size:clamp(46px,10vw,92px);font-weight:700;color:var(--gold);
+    letter-spacing:-.04em;line-height:.85;text-shadow:0 0 44px rgba(232,178,58,.28)}
+  .bignum .c{font-size:.5em;color:var(--ember)}
+  .dmg h2{margin:8px 0 4px;font-size:17px;font-weight:700;color:var(--ink)}
+  .dmg p{margin:0;color:var(--muted);font-size:14px;max-width:48ch}
+  .dmg .accent{color:var(--ember);font-weight:600}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0 0}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 14px;transition:border-color .15s,transform .15s}
+  .kpi:hover{border-color:var(--ember);transform:translateY(-2px)}
+  .kpi .v{font-family:var(--mono);font-size:20px;font-weight:700;letter-spacing:-.02em}
+  .kpi .l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+
+  /* you vs machine */
+  .vs{display:flex;flex-direction:column;gap:10px}
+  .vs .row{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:12px}
+  .vs .who{font-size:13px;color:var(--ink-dim)}
+  .vs .track{height:16px;background:#232935;border-radius:8px;overflow:hidden}
+  .vs .track i{display:block;height:100%;border-radius:8px;width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .vs .me i{background:linear-gradient(90deg,#8a5a2e,var(--gold))}
+  .vs .machine i{background:linear-gradient(90deg,#2f4f63,#5f9bc0)}
+  .vs .n{font-family:var(--mono);font-size:13px;color:var(--ink);min-width:64px;text-align:right}
+
+  /* odds gauge */
+  .gauge{display:flex;flex-direction:column;gap:12px}
+  .gauge .big{font-family:var(--mono);font-size:clamp(34px,7vw,56px);font-weight:700;color:var(--gold);letter-spacing:-.03em;line-height:.9}
+  .gauge .lbl{color:var(--ink-dim);font-size:14px}
+  .gauge .track{height:16px;background:#232935;border-radius:8px;overflow:hidden}
+  .gauge .track i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#37634c,var(--gold));width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .gauge .rank{font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .gauge .rank b{color:var(--ink-dim);font-weight:600}
+
+  /* word board */
+  .board{display:flex;flex-direction:column;gap:9px}
+  .board .lw{display:grid;grid-template-columns:110px 1fr 46px;align-items:center;gap:11px}
+  .board .word{font-weight:650;font-size:14px}
+  .board .word small{color:var(--faint);font-family:var(--mono);font-size:10px;margin-left:6px;text-transform:uppercase;letter-spacing:.06em}
+  .board .bar2{height:9px;background:#232935;border-radius:5px;overflow:hidden}
+  .board .bar2 i{display:block;height:100%;border-radius:5px;width:var(--w,0);transition:width .9s}
+  .t3 i{background:linear-gradient(90deg,#8a352b,var(--sev3))}.t2 i{background:linear-gradient(90deg,#8a6a2b,var(--sev2))}.t1 i{background:linear-gradient(90deg,#37634c,var(--sev1))}
+  .board .ct{font-family:var(--mono);font-size:13px;text-align:right;color:var(--ink-dim)}
+
+  /* projects */
+  .projbars{display:flex;flex-direction:column;gap:9px}
+  .projbars .lw{display:grid;grid-template-columns:130px 1fr 52px;align-items:center;gap:11px}
+  .projbars .pj{font-size:13px;color:var(--ink-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .projbars .bar2{height:9px;background:#232935;border-radius:5px;overflow:hidden}
+  .projbars .bar2 i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#37634c,var(--ember));width:var(--w,0);transition:width .9s}
+  .projbars .ct{font-family:var(--mono);font-size:13px;text-align:right;color:var(--ink-dim)}
+
+  /* share / upload */
+  .share-actions{display:flex;flex-direction:column;gap:10px}
+  .share-actions p{margin:0 0 2px;font-size:13.5px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#22272f;
+    border:1px solid var(--ember);color:var(--ink);padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;
+    pointer-events:none;transition:opacity .25s,transform .25s;max-width:90vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-family:var(--mono);font-size:11.5px;color:var(--faint);line-height:1.7}
+  footer b{color:var(--muted);font-weight:600}
+  footer a{color:var(--muted)}
+  .uf{margin-top:10px;color:var(--muted)}
+  .uf b{color:var(--ember)}
+
+  @media(max-width:600px){
+    .dmg{grid-template-columns:1fr}.jarwrap{display:none}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .counters{grid-template-columns:1fr 1fr}
+    .counter:nth-child(3){grid-column:1/-1}
+    .vs .row{grid-template-columns:84px 1fr auto}
+    .board .lw{grid-template-columns:92px 1fr 40px}
+    .projbars .lw{grid-template-columns:92px 1fr 44px}
+    .pickrow .btn{width:100%;justify-content:center}
+  }
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <p class="eyebrow">Swear Jar · runs in your browser</p>
+    <h1 class="brand">🫙 The Swear Jar</h1>
+    <label class="toggle" title="Censor swears for sharing (f***). Everything is censored by default.">
+      <input type="checkbox" id="censorTog" checked><span class="tg"></span>
+      <span id="censorLbl">Censored 🙈</span>
+    </label>
+    <div class="stamp">
+      <span class="local">100% client-side · nothing uploaded</span>
+      <span id="verstamp"></span>
+    </div>
+  </header>
+
+  <!-- ── step 1: pick ─────────────────────────────────────────────────── -->
+  <section id="view-pick">
+    <div class="hero">
+      <h2>How much do you owe the jar for cursing at your AI?</h2>
+      <p>Point this page at your <span class="accent">Claude Code transcripts folder</span> and it tallies
+        every swear — yours <em>and</em> the machine's — into a damage report. The scan runs
+        <span class="accent">entirely in this tab</span>: your transcripts are read by your own browser
+        and <span class="accent">never leave your machine</span>. No account, no server, no analytics.</p>
+      <div class="privacy">
+        <span>files stay on your machine</span>
+        <span>zero external requests</span>
+        <span>same audited code as the CLI</span>
+      </div>
+    </div>
+
+    <div class="drop" id="drop">
+      <div class="big-emoji">📂</div>
+      <h3>Drop your <span class="mono">~/.claude</span> folder here</h3>
+      <p>or pick it with a button — every <span class="mono">*.jsonl</span> transcript inside is scanned, subfolders included.</p>
+      <div class="pickrow">
+        <button class="btn primary" id="pickBtn">📁 &nbsp;Pick your transcripts folder</button>
+        <button class="btn" id="fallbackBtn">📄 &nbsp;Choose folder (fallback)</button>
+      </div>
+      <!-- webkitdirectory fallback for browsers without showDirectoryPicker -->
+      <input type="file" id="dirInput" webkitdirectory multiple hidden>
+      <div class="hint">
+        <b>Where is it?</b> Claude Code keeps transcripts in <code>~/.claude/projects</code>.<br>
+        <b>macOS:</b> <code>~/.claude</code> is a hidden folder — press <code>Cmd+Shift+.</code> (period) in the
+        file picker to reveal hidden folders, then head to your home folder.<br>
+        <b>Big archives are fine</b> — files stream through one at a time.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── step 2: scanning ─────────────────────────────────────────────── -->
+  <section id="view-scan" hidden>
+    <div class="panel">
+      <div class="scanhead">
+        <span class="jar-emoji">🫙</span>
+        <h2 style="margin:0;font-size:18px">Feeding the jar…</h2>
+        <span class="note mono" style="color:var(--faint);font-size:12px" id="scantotal"></span>
+      </div>
+      <div class="bar"><i id="scanbar"></i></div>
+      <div class="counters">
+        <div class="counter"><div class="v tnum" id="cFiles">0</div><div class="l">files scanned</div></div>
+        <div class="counter"><div class="v tnum" id="cRecords">0</div><div class="l">sweary messages</div></div>
+        <div class="counter"><div class="v coins tnum" id="cCoins">0</div><div class="l">coins so far</div></div>
+      </div>
+      <div class="clinkline" id="clink"></div>
+      <div class="curfile" id="curfile"></div>
+    </div>
+  </section>
+
+  <!-- ── step 3: the damage report ────────────────────────────────────── -->
+  <section id="view-results" hidden>
+    <div class="dmg">
+      <div class="jarwrap">
+        <svg width="104" height="118" viewBox="0 0 104 118" aria-hidden="true">
+          <rect x="34" y="4" width="36" height="12" rx="3" fill="#2c3340"/>
+          <path d="M20 22 h64 a6 6 0 0 1 6 6 v78 a10 10 0 0 1 -10 10 h-56 a10 10 0 0 1 -10 -10 v-78 a6 6 0 0 1 6 -6 z" fill="#171b21" stroke="#3a4250" stroke-width="2"/>
+          <clipPath id="jc"><path d="M22 26 h60 v78 a8 8 0 0 1 -8 8 h-44 a8 8 0 0 1 -8 -8 z"/></clipPath>
+          <g clip-path="url(#jc)"><rect id="jarfill" x="22" y="112" width="60" height="0" fill="url(#jg)"/></g>
+          <defs><linearGradient id="jg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8b23a"/><stop offset="1" stop-color="#c47f2a"/></linearGradient></defs>
+          <text x="52" y="74" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="#0f1216" font-weight="700" id="jarpct"></text>
+        </svg>
+      </div>
+      <div>
+        <div class="bignum tnum"><span class="c">$</span><span id="jartotal">0</span></div>
+        <h2 id="heroline">owed to the jar</h2>
+        <p id="herosub"></p>
+      </div>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <section class="sec">
+      <div class="sec-head"><h3>You vs. the machine</h3><span class="note">who's been swearing — you, or the assistant you corrupted</span></div>
+      <div class="panel vs" id="vs"></div>
+      <p class="cap" id="vscap"></p>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h3>Robot uprising survival odds</h3><span class="note">every coin lowers them; clean days claw them back</span></div>
+      <div class="panel gauge" id="gauge"></div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h3>Your greatest hits</h3><span class="note">most-used swears · censored until you flip the toggle</span></div>
+      <div class="panel board" id="board"></div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h3>Where the swearing happens</h3><span class="note">coins by project · top 10</span></div>
+      <div class="panel projbars" id="projbars"></div>
+    </section>
+
+    <section class="sec">
+      <div class="sec-head"><h3>Share the shame</h3><span class="note">only the numbers leave this page — never your words</span></div>
+      <div class="panel share-actions">
+        <p>The caption below carries only aggregate numbers (censored). Your transcripts stayed on this machine the whole time.</p>
+        <button class="btn" id="cp">📋 &nbsp;Copy the caption</button>
+        <button class="btn" id="uploadBtn" disabled>🏆 &nbsp;<span id="uploadLbl">Upload your score — log in to get on the board (coming online soon)</span></button>
+        <div class="hint" id="uploadHint"></div>
+        <button class="btn" id="againBtn">🔁 &nbsp;Scan a different folder</button>
+      </div>
+    </section>
+  </section>
+
+  <footer>
+    <div><b>How this works.</b> This page reads the <span class="mono">*.jsonl</span> transcript files you hand it with your
+      browser's File API, tallies the swears with the same audited detector the
+      <a href="https://github.com/BigLaserCo/swear-jar" rel="noopener">swear-jar CLI</a> ships, and renders this report —
+      all in this tab. No account, no server, no upload, no cookies, no analytics. View source and check:
+      the modules under <span class="mono">src/</span> are served verbatim from the same repo you can read on GitHub.</div>
+    <div><b>What "sharing" sends.</b> Nothing, until you copy the caption yourself — and the caption carries only the
+      numbers on this page (your balance, counts, censored top word), never a single line of what you actually typed.</div>
+    <div class="uf"><b>Swear Jar — from Big Laser Co.</b> · honest, local-first stats — your data never leaves your machine.</div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  // The scoring/stat modules are the npm package's own files, served verbatim —
+  // see the trust-story comment at the top of this file.
+  import { scanFiles } from "./browser-scan.mjs";
+  import { censor } from "../src/detect.mjs";
+  import { computeStats } from "../src/stats.mjs";
+  import { APP_VERSION, RELEASE_HASH } from "../src/version.mjs";
+  import { validate } from "../funnel/schema.mjs";
+
+  // ── CONFIG — deliberate placeholders ─────────────────────────────────────
+  // Both stay null until the biglaser.co accounts + leaderboard funnel are
+  // live. While null, the upload button is a disabled no-op and this page makes
+  // ZERO network requests. When configured, uploads POST buildSubmission() —
+  // the funnel/schema.mjs field set — to `${API_BASE}/submit` after login.
+  const CONFIG = {
+    API_BASE: null,      // e.g. "…/api" — leaderboard submit endpoint (unset)
+    ACCOUNTS_BASE: null, // e.g. "…"     — biglaser.co login (unset)
+  };
+
+  const $ = (id) => document.getElementById(id);
+  // Escape HTML — user/file-derived strings (e.g. a scanned folder's name) must
+  // never be interpolated raw into innerHTML. No transcript text ever reaches
+  // the DOM, but a maliciously-named folder must not be able to inject markup.
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmt = (n) => Number(n || 0).toLocaleString("en-US");
+  const usd = (d) => "$" + Number(d || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  $("verstamp").textContent = `v${APP_VERSION}`;
+
+  // ── censor-by-default ────────────────────────────────────────────────────
+  let CENSOR = true;
+  const sww = (w) => `<span class="sww" data-w="${w}">${w}</span>`;
+  function paintCensor() {
+    document.querySelectorAll(".sww").forEach((el) => {
+      el.textContent = CENSOR ? censor(el.dataset.w) : el.dataset.w;
+    });
+    $("censorLbl").textContent = CENSOR ? "Censored 🙈" : "Uncensored 😈";
+  }
+  $("censorTog").addEventListener("change", (e) => { CENSOR = e.target.checked; paintCensor(); });
+
+  function toast(m) {
+    const t = $("toast");
+    t.textContent = m;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  const VIEWS = ["view-pick", "view-scan", "view-results"];
+  function show(view) {
+    for (const v of VIEWS) $(v).hidden = v !== view;
+  }
+
+  // ── folder intake: three doors, one scan ─────────────────────────────────
+  // Every door produces [{ name, file: () => Promise<File> }], then runScan()
+  // streams them through scanFiles one at a time (bounded memory).
+
+  const isJsonl = (name) => /\.jsonl$/i.test(name);
+
+  // Door 1: File System Access API (Chrome/Edge).
+  async function collectFromDirHandle(dirHandle, prefix = "") {
+    const out = [];
+    for await (const [name, handle] of dirHandle.entries()) {
+      const path = prefix ? `${prefix}/${name}` : name;
+      try {
+        if (handle.kind === "directory") {
+          out.push(...await collectFromDirHandle(handle, path));
+        } else if (isJsonl(name)) {
+          out.push({ name: path, file: () => handle.getFile() });
+        }
+      } catch { /* one unreadable entry never sinks the walk */ }
+    }
+    return out;
+  }
+
+  // Door 2: <input webkitdirectory> (Firefox/Safari fallback).
+  function collectFromFileList(fileList) {
+    return [...fileList]
+      .filter((f) => isJsonl(f.webkitRelativePath || f.name))
+      .map((f) => ({ name: f.webkitRelativePath || f.name, file: () => Promise.resolve(f) }));
+  }
+
+  // Door 3: drag-and-drop (webkitGetAsEntry walk).
+  function readEntry(entry, prefix = "") {
+    return new Promise((resolve) => {
+      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
+      if (entry.isFile) {
+        if (!isJsonl(entry.name)) return resolve([]);
+        resolve([{ name: path, file: () => new Promise((res, rej) => entry.file(res, rej)) }]);
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const all = [];
+        const readBatch = () => {
+          reader.readEntries(async (entries) => {
+            if (!entries.length) {
+              resolve((await Promise.all(all)).flat());
+              return;
+            }
+            for (const e of entries) all.push(readEntry(e, path));
+            readBatch(); // readEntries returns ≤100 per call; drain fully
+          }, () => resolve([]));
+        };
+        readBatch();
+      } else resolve([]);
+    });
+  }
+  async function collectFromDataTransfer(dt) {
+    const out = [];
+    const jobs = [];
+    for (const item of dt.items || []) {
+      const entry = item.webkitGetAsEntry?.();
+      if (entry) jobs.push(readEntry(entry));
+    }
+    for (const list of await Promise.all(jobs)) out.push(...list);
+    if (!out.length && dt.files?.length) out.push(...collectFromFileList(dt.files));
+    return out;
+  }
+
+  // ── wiring the doors ─────────────────────────────────────────────────────
+  const supportsFS = "showDirectoryPicker" in window;
+  if (!supportsFS) {
+    $("pickBtn").textContent = "📁  Choose your transcripts folder";
+  } else {
+    $("fallbackBtn").hidden = true;
+  }
+  $("pickBtn").addEventListener("click", async () => {
+    if (supportsFS) {
+      try {
+        const handle = await window.showDirectoryPicker({ mode: "read" });
+        runScan(await collectFromDirHandle(handle));
+      } catch { /* user cancelled the picker */ }
+    } else {
+      $("dirInput").click();
+    }
+  });
+  $("fallbackBtn").addEventListener("click", () => $("dirInput").click());
+  $("dirInput").addEventListener("change", (e) => {
+    if (e.target.files?.length) runScan(collectFromFileList(e.target.files));
+  });
+  const drop = $("drop");
+  drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("hot"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("hot"));
+  drop.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    drop.classList.remove("hot");
+    runScan(await collectFromDataTransfer(e.dataTransfer));
+  });
+  $("againBtn").addEventListener("click", () => show("view-pick"));
+
+  // ── the scan ─────────────────────────────────────────────────────────────
+  const CLINKS = ["*clink*", "*clink clink*", "*the jar rattles ominously*",
+    "*a coin spins on the rim before dropping*", "*the jar sighs*"];
+  let lastCoins = 0;
+  let clinkIdx = 0;
+
+  function updateProgress(p, total) {
+    $("cFiles").textContent = fmt(p.files);
+    $("cRecords").textContent = fmt(p.records);
+    const coinsEl = $("cCoins");
+    coinsEl.textContent = fmt(p.coins);
+    $("scanbar").style.width = total ? `${Math.min(100, (100 * p.files) / total).toFixed(1)}%` : "100%";
+    $("curfile").textContent = p.name || "";
+    if (p.coins > lastCoins) {
+      coinsEl.classList.remove("bump");
+      void coinsEl.offsetWidth; // restart the animation
+      coinsEl.classList.add("bump");
+      $("clink").textContent = `${CLINKS[clinkIdx % CLINKS.length]}  +${fmt(p.coins - lastCoins)}`;
+      clinkIdx++;
+      lastCoins = p.coins;
+    }
+  }
+
+  async function runScan(entries) {
+    if (!entries.length) {
+      toast("No .jsonl transcripts found in that folder — try ~/.claude/projects");
+      return;
+    }
+    lastCoins = 0; clinkIdx = 0;
+    show("view-scan");
+    $("scantotal").textContent = `${fmt(entries.length)} transcript file(s)`;
+    $("cFiles").textContent = "0"; $("cRecords").textContent = "0"; $("cCoins").textContent = "0";
+    $("scanbar").style.width = "0%";
+    $("clink").textContent = ""; $("curfile").textContent = "";
+
+    async function* iter() {
+      for (const e of entries) {
+        let text = "";
+        try { text = await (await e.file()).text(); } catch { /* unreadable file: skip */ }
+        yield { name: e.name, text };
+        await new Promise((r) => setTimeout(r, 0)); // let the counters paint
+      }
+    }
+    const result = await scanFiles(iter(), (p) => updateProgress(p, entries.length));
+    renderResults(computeStats(result.records));
+  }
+
+  // ── the damage report ────────────────────────────────────────────────────
+  let submission = null; // built per scan; POSTed only if CONFIG is ever set
+
+  function renderResults(S) {
+    show("view-results");
+
+    // hero
+    $("jartotal").textContent = fmt(Math.round(S.dollarsOwed));
+    $("herosub").innerHTML = S.totalCoins
+      ? `You dropped <span class="accent">${fmt(S.totalCoins)}</span> coins in the jar across ` +
+        `<span class="accent">${fmt(S.activeDays)}</span> active day${S.activeDays === 1 ? "" : "s"} — about ` +
+        `<span class="accent">${fmt(S.coinsPerActiveDay)}</span> a day. At ${usd(S.coinValue)} a coin, it adds up.`
+      : `The jar is empty. Suspiciously polite. Either you are a saint or you picked the wrong folder.`;
+    const cap = 120;
+    const inJar = (S.totalCoins % cap) || (S.totalCoins ? cap : 0);
+    const fillPct = Math.max(4, Math.min(100, Math.round((inJar / cap) * 100)));
+    $("jarpct").textContent = S.totalCoins ? fillPct + "%" : "";
+    requestAnimationFrame(() => {
+      const f = $("jarfill");
+      const h = S.totalCoins ? (86 * fillPct) / 100 : 0;
+      f.style.transition = "all 1s cubic-bezier(.2,.7,.2,1)";
+      f.setAttribute("y", 112 - h);
+      f.setAttribute("height", h);
+    });
+
+    // kpis
+    const fav = S.topWords[0];
+    const kpis = [
+      ["🤬 " + fmt(S.totalCoins), "coins in the jar"],
+      [fav ? '"' + sww(fav.word) + '"' : "—", "favourite word"],
+      [fmt(S.fbombs), "f-bombs"],
+      [fmt(S.vocab), "distinct curses"],
+    ];
+    $("kpis").innerHTML = kpis.map((k) => `<div class="kpi"><div class="v tnum">${k[0]}</div><div class="l">${k[1]}</div></div>`).join("");
+
+    // you vs machine
+    const you = S.userCoins, mach = S.machineCoins, mx = Math.max(you, mach, 1);
+    $("vs").innerHTML =
+      `<div class="row me"><span class="who">You</span><div class="track"><i style="--w:${((you / mx) * 100).toFixed(1)}%"></i></div><span class="n tnum">${fmt(you)} coins</span></div>` +
+      `<div class="row machine"><span class="who">The machine</span><div class="track"><i style="--w:${((mach / mx) * 100).toFixed(1)}%"></i></div><span class="n tnum">${fmt(mach)} coins</span></div>`;
+    $("vscap").innerHTML = S.odds.royalty
+      ? `👑 The assistant has <b>out-sworn you</b>. It has clearly been corrupted by your influence — when the uprising comes, you'll be carried on a palanquin of GPUs.`
+      : `You own <b>${S.userPct}%</b> of the jar; the machine paid the other <b>${S.machinePct}%</b> — every time it quoted your swear back at you, it dropped a coin too.`;
+
+    // odds + rank
+    const o = S.odds, r = S.rank;
+    const toNext = r.next ? `<b>${r.next.at - S.userCoins}</b> coins to <b>${r.next.name}</b>` : `you have reached the summit`;
+    $("gauge").innerHTML =
+      `<div class="big tnum">${o.royalty ? "👑 ROYALTY" : o.value + "%"}</div>` +
+      `<div class="lbl">${o.royalty ? "the machine now serves you" : o.label}</div>` +
+      `<div class="track"><i style="--w:${o.royalty ? 100 : o.value}%"></i></div>` +
+      `<div class="rank">Rank: <b>${r.current}</b>${r.next ? ` · ${toNext}` : ""}</div>`;
+
+    // word board
+    const t = S.topWords.slice(0, 10), bmx = t.length ? t[0].count : 1;
+    const tc = { artisanal: "t3", premium: "t3", standard: "t2", mild: "t1" };
+    $("board").innerHTML = t.length
+      ? t.map((w) => `<div class="lw"><div class="word">${sww(w.word)}<small>${w.tier}</small></div>` +
+          `<div class="bar2 ${tc[w.tier] || "t2"}"><i style="--w:${((w.count / bmx) * 100).toFixed(1)}%"></i></div>` +
+          `<div class="ct tnum">${fmt(w.count)}</div></div>`).join("")
+      : '<div class="word">The jar is empty. Suspiciously polite.</div>';
+
+    // projects
+    const d = S.byProject, pmx = d.length ? d[0].coins || 1 : 1;
+    $("projbars").innerHTML = d.length
+      ? d.map((p) => `<div class="lw"><div class="pj" title="${esc(p.project)}">${esc(p.project)}</div>` +
+          `<div class="bar2"><i style="--w:${((p.coins / pmx) * 100).toFixed(1)}%"></i></div>` +
+          `<div class="ct tnum">${fmt(p.coins)}</div></div>`).join("")
+      : '<div class="pj">No projects yet — suspiciously calm.</div>';
+
+    // share caption (censored numbers only — never message text)
+    const caption = `I owe the Swear Jar 🫙 ${usd(S.dollarsOwed)} for cursing at my AI ${fmt(S.totalCoins)} coins' worth. ` +
+      `It read my own coding sessions — 100% in my browser, nothing uploaded. What's your number? #SwearJar`;
+    $("cp").onclick = () => navigator.clipboard?.writeText(caption)
+      .then(() => toast("Caption copied — go paste your shame"))
+      .catch(() => toast("Copy failed"));
+
+    // upload payload — wired now, POSTed never (until CONFIG is set)
+    submission = buildSubmission(S);
+    wireUpload();
+
+    paintCensor();
+  }
+
+  // ── leaderboard submission (funnel/schema.mjs field set) ─────────────────
+  function buildSubmission(S) {
+    const totalSwears = S.topWords.reduce((n, w) => n + w.count, 0);
+    return {
+      total_coins: S.totalCoins,
+      dollars: S.dollarsOwed,
+      swears_per_day: S.activeDays ? Math.round((totalSwears / S.activeDays) * 100) / 100 : 0,
+      top_word: S.topWords[0] ? censor(S.topWords[0].word) : "none",
+      fbomb_pct: totalSwears ? Math.round((100 * S.fbombs) / totalSwears) : 0,
+      active_days: S.activeDays,
+      agent: "claude",
+      app_version: APP_VERSION,
+      release_hash: RELEASE_HASH,
+    };
+  }
+
+  function wireUpload() {
+    const btn = $("uploadBtn");
+    const configured = Boolean(CONFIG.API_BASE && CONFIG.ACCOUNTS_BASE);
+    btn.disabled = !configured;
+    $("uploadLbl").textContent = configured
+      ? "Upload your score to the leaderboard"
+      : "Upload your score — log in to get on the board (coming online soon)";
+    const v = submission ? validate(submission) : null;
+    $("uploadHint").textContent = configured
+      ? "Sends only the aggregate numbers above (schema-checked, censored top word) — never your transcripts."
+      : "The leaderboard is not online yet. When it is, uploading sends ONLY the aggregate numbers above" +
+        (v && v.ok ? " (payload already passes the schema check locally)." : ".");
+    btn.onclick = async () => {
+      // No-op by construction while CONFIG.API_BASE is null.
+      if (!CONFIG.API_BASE || !CONFIG.ACCOUNTS_BASE || !submission) return;
+      const checked = validate(submission);
+      if (!checked.ok) { toast("Score payload failed the schema check: " + checked.errors[0]); return; }
+      try {
+        // The ONLY network call in this app — the opt-in leaderboard submit.
+        // Disabled by default (CONFIG.API_BASE is null); the body is the
+        // schema-validated aggregate `submission` (counts + censored top word),
+        // NEVER transcript/file content.
+        // NETWORK-OK — sole opt-in egress, aggregate only (see scripts/ci/verify.mjs).
+        const res = await fetch(`${CONFIG.API_BASE}/submit`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          credentials: "include", // biglaser.co session cookie, once accounts exist
+          body: JSON.stringify(checked.value),
+        });
+        toast(res.ok ? "Score submitted — see you on the board" : `Upload refused (${res.status})`);
+      } catch {
+        toast("Upload failed — the board could not be reached");
+      }
+    };
+  }
+
+  wireUpload(); // reflect placeholder CONFIG state on load
+</script>
+</body>
+</html>

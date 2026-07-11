@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>swear-jar — a swear jar for your AI coding sessions</title>
+<meta name="description" content="A local swear jar for Claude Code & Codex. It reads your own AI-session transcripts on your machine, tallies every curse into coins, and tells you what your potty mouth would have cost. 100% local, zero dependencies, zero network.">
+<style>
+  :root{
+    --page:#0C0B0E;--section:#131117;--card:rgba(24,21,28,.62);--solid:#17141C;--input:#100E14;
+    --heading:#F3EEE7;--primary:#EDE7DC;--secondary:#CFC6BA;--muted:#9C9288;--dim:#6F675E;--faint:#544D46;
+    --on-accent:#1A0E07;
+    --accent:#E8623A;--accent-hover:#F0805C;--accent-text:#F0805C;--accent-text-hover:#F4A183;
+    --tint-05:rgba(232,98,58,.08);--tint-15:rgba(232,98,58,.16);
+    --div:rgba(255,255,255,.06);--bcard:rgba(255,255,255,.09);--bstrong:rgba(255,255,255,.14);
+    --bhover:rgba(255,255,255,.24);--baccent:rgba(232,98,58,.55);--ring:0 0 0 1px rgba(232,98,58,.34);
+    --zinc-800:#211C29;--zinc-700:#2E2836;--zinc-600:#443C4E;--green:#5FB07A;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--page);color:var(--primary);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;background-attachment:fixed;
+    background-image:radial-gradient(at 3% 2%,rgba(232,98,58,.12) 0,transparent 45%),radial-gradient(at 98% 99%,rgba(232,98,58,.07) 0,transparent 52%)}
+  a{color:var(--accent-text);text-decoration:none}
+  a:hover{color:var(--accent-text-hover);text-decoration:underline}
+  .mono{font-family:var(--mono)}.tnum{font-variant-numeric:tabular-nums}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+
+  /* top bar */
+  .nav{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--div);flex-wrap:wrap}
+  .nav .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-.02em;color:var(--heading)}
+  .nav .brand .j{font-size:22px}
+  .nav .spacer{flex:1}
+  .nav a.navlink{font-family:var(--mono);font-size:13px;color:var(--secondary)}
+  .nav a.navlink:hover{color:var(--accent-text)}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;
+    color:var(--muted);border:1px solid var(--bcard);border-radius:999px;padding:5px 11px}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.35fr .9fr;gap:34px;align-items:center;padding:56px 0 44px}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-text);margin:0 0 14px}
+  h1{font-size:clamp(34px,6vw,56px);line-height:1.03;letter-spacing:-.03em;margin:0 0 16px;font-weight:800;color:var(--heading)}
+  h1 .g{color:var(--accent-text)}
+  .lede{font-size:clamp(16px,2.1vw,19px);color:var(--secondary);max-width:52ch;margin:0 0 26px}
+  .lede b{color:var(--heading);font-weight:600}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:15px;font-weight:700;
+    padding:13px 20px;border-radius:11px;cursor:pointer;border:1px solid var(--bcard);
+    transition:transform .15s,background .15s,border-color .15s,color .15s}
+  .btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+  .btn.primary:hover{background:var(--accent-hover);transform:translateY(-2px);text-decoration:none;color:var(--on-accent)}
+  .btn.ghost{background:var(--input);color:var(--primary)}
+  .btn.ghost:hover{border-color:var(--baccent);color:var(--accent-text);text-decoration:none}
+
+  /* wrapped-style sample card (previews the report's share card) */
+  aside{position:relative}
+  .stamp{position:absolute;top:-14px;left:16px;z-index:2;transform:rotate(-7deg);
+    font:700 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text);
+    border:1.5px solid var(--baccent);border-radius:8px;padding:7px 11px;background:#191218}
+  .wcard{border-radius:16px;border:1px solid var(--bstrong);background:var(--solid);padding:22px 24px;position:relative;overflow:hidden}
+  .wcard:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+  .wtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .wbrand{font:800 14px/1 var(--sans);letter-spacing:-.01em;color:var(--heading);display:flex;align-items:center;gap:7px}
+  .wtape{font:600 10.5px/1 var(--mono);letter-spacing:.06em;color:var(--faint)}
+  .wnum{font:900 clamp(40px,8vw,56px)/.85 var(--sans);letter-spacing:-.045em;color:var(--heading);margin-top:16px}
+  .wnum .c{color:var(--accent-text);font-size:.44em;vertical-align:.3em}
+  .wsub{font:600 14px/1.3 var(--sans);color:var(--secondary);margin-top:6px}
+  .wmini{display:flex;align-items:flex-end;gap:2px;height:30px;margin:14px 0 4px}
+  .wminib{flex:1;background:var(--accent);border-radius:1px;opacity:.8}
+  .wrows{font-family:var(--mono);font-size:12.5px;color:var(--secondary);margin-top:14px;display:flex;flex-direction:column;gap:5px}
+  .wrows .r{display:flex;justify-content:space-between;border-bottom:1px dotted var(--zinc-700);padding-bottom:4px}
+  .wrows .r b{color:var(--heading);font-weight:600}
+  .wfoot{font:500 10.5px/1.5 var(--mono);letter-spacing:.04em;color:var(--faint);margin-top:14px}
+  .wfoot a{color:var(--muted)}
+
+  /* sections */
+  section{padding:46px 0;border-top:1px solid var(--div)}
+  .sec-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-text);margin:0 0 8px}
+  h2{font-size:clamp(24px,3.4vw,32px);letter-spacing:-.02em;margin:0 0 8px;font-weight:800;color:var(--heading)}
+  .sub{color:var(--muted);font-size:15.5px;margin:0 0 28px;max-width:60ch}
+
+  /* how it works — steps */
+  .steps{display:grid;gap:16px}
+  .step{background:var(--card);border:1px solid var(--bcard);border-radius:16px;padding:22px 24px;
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+  .step-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}
+  .step-num{font-family:var(--mono);font-weight:700;color:var(--on-accent);background:var(--accent);border-radius:8px;
+    width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;flex:none;align-self:center}
+  .step h3{margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--heading)}
+  .step p{color:var(--secondary);font-size:14.5px;margin:4px 0 14px}
+  .step p b{color:var(--heading);font-weight:600}
+  .routes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.routes{grid-template-columns:1fr}}
+  .route{border:1px solid var(--bcard);border-radius:12px;padding:14px 16px;background:var(--input)}
+  .route .rt{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .badge{font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:none;color:var(--green);
+    border:1px solid #2c3a33;background:#141b17;border-radius:999px;padding:2px 8px}
+  .snip{position:relative;background:#0b0910;border:1px solid var(--bcard);border-radius:10px;margin:0 0 10px}
+  .snip:last-child{margin-bottom:0}
+  .snip .code{font-family:var(--mono);font-size:12.5px;color:var(--secondary);margin:0;padding:13px 84px 13px 15px;
+    white-space:pre-wrap;word-break:break-word;line-height:1.65;overflow-x:auto}
+  .snip .code .cm{color:var(--faint)}
+  .snip .code .pr{color:var(--accent-text)}
+  .copy{position:absolute;top:8px;right:8px;font-family:var(--mono);font-size:11px;color:var(--secondary);
+    background:var(--zinc-800);border:1px solid var(--bcard);border-radius:7px;padding:5px 10px;cursor:pointer;transition:border-color .15s,color .15s}
+  .copy:hover{border-color:var(--baccent);color:var(--accent-text)}
+  .copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* privacy */
+  .privacy{background:linear-gradient(180deg,#141b17,#12161b);border:1px solid #24352b;border-left:3px solid var(--green);border-radius:16px;padding:28px 30px}
+  .privacy h2{margin-top:0}
+  .plist{display:grid;grid-template-columns:1fr 1fr;gap:12px 26px;margin:20px 0 0;padding:0;list-style:none}
+  @media(max-width:720px){.plist{grid-template-columns:1fr}}
+  .plist li{display:flex;gap:11px;align-items:flex-start;font-size:14.5px;color:var(--secondary)}
+  .plist li b{color:var(--heading);font-weight:600}
+  .plist .ck{color:var(--green);font-weight:700;flex:none;font-family:var(--mono)}
+  .readline{margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--secondary);border-top:1px dashed #2a3a31;padding-top:16px}
+  .readline b{color:var(--accent-text)}
+
+  /* uprising */
+  .odds{display:grid;grid-template-columns:1fr .8fr;gap:30px;align-items:center}
+  @media(max-width:760px){.odds{grid-template-columns:1fr}}
+  .odds .copyblock p{color:var(--secondary);font-size:15px;margin:0 0 14px}
+  .odds .copyblock p b{color:var(--heading);font-weight:600}
+  .royal{background:linear-gradient(180deg,#1e1611,var(--section));border:1px solid var(--bcard);border-left:3px solid var(--accent);
+    border-radius:14px;padding:20px 22px;font-size:14.5px;color:var(--secondary)}
+  .royal .crown{font-size:26px;display:block;margin-bottom:8px}
+  .royal b{color:var(--accent-text);font-weight:700}
+  .gauge{background:var(--card);border:1px solid var(--bcard);border-radius:14px;padding:22px}
+  .gauge .big{font-family:var(--sans);font-size:46px;font-weight:800;color:var(--accent-text);letter-spacing:-.03em;line-height:.9}
+  .gauge .lbl{color:var(--secondary);font-size:13.5px;margin:6px 0 14px}
+  .gauge .track{height:14px;background:var(--zinc-800);border-radius:999px;overflow:hidden}
+  .gauge .track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#37634c,var(--accent));width:2%}
+  .gauge .ranks{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:14px;line-height:1.7}
+  .gauge .ranks b{color:var(--secondary);font-weight:600}
+
+  /* tiers strip */
+  .tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+  @media(max-width:720px){.tiers{grid-template-columns:repeat(2,1fr)}}
+  .tier{background:var(--card);border:1px solid var(--bcard);border-radius:12px;padding:15px 16px;text-align:center}
+  .tier .v{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--accent-text)}
+  .tier .n{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .tier .ex{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px}
+
+  /* closing cta */
+  .close{text-align:center;padding:56px 0}
+  .close h2{margin-bottom:10px}
+  .close .sub{margin:0 auto 24px}
+  .close .cta{justify-content:center}
+
+  footer{border-top:1px solid var(--div);padding:26px 0 48px;font-family:var(--mono);font-size:12px;color:var(--faint);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;line-height:1.7}
+  footer b{color:var(--muted);font-weight:600}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--accent-text)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--solid);
+    border:1px solid var(--accent);color:var(--primary);padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;
+    pointer-events:none;transition:opacity .25s,transform .25s;z-index:9}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:760px){.hero{grid-template-columns:1fr;padding-top:34px}aside{order:2}.stamp{top:-12px}}
+  @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <span class="brand"><span class="j">&#129514;</span> swear-jar</span>
+    <span class="pill">100% local &middot; nothing uploaded</span>
+    <span class="spacer"></span>
+    <a class="navlink" href="#how">How it works</a>
+    <a class="navlink" href="demo.html">Demo report</a>
+    <a class="navlink" href="https://github.com/BigLaserCo/swear-jar">GitHub</a>
+  </nav>
+
+  <!-- ── hero ─────────────────────────────────────────────────────────── -->
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Swear Jar &middot; from Big Laser Co.</p>
+      <h1>You swear at your AI. <span class="g">Now there's a jar.</span></h1>
+      <p class="lede">One command audits your entire Claude Code &amp; Codex history &mdash;
+        <b>on your machine</b> &mdash; tallies every curse into coins, and tells you exactly
+        what your potty mouth would&rsquo;ve cost. Plus whether the machines will spare you.</p>
+      <div class="cta">
+        <a class="btn primary" href="#how">&#129514;&nbsp; Run it in 30 seconds</a>
+        <a class="btn ghost" href="demo.html">See a demo report &rarr;</a>
+      </div>
+      <p class="mono" style="font-size:12px;color:var(--faint);margin:0">
+        No account. No server. No network of any kind. Just a JSONL file on your disk.</p>
+    </div>
+
+    <aside aria-label="Sample verdict from the demo report">
+      <span class="stamp">&#9873; the damage report</span>
+      <div class="wcard">
+        <div class="wtop"><span class="wbrand">&#129514; rage, wrapped</span><span class="wtape">rage.wav &middot; 2026</span></div>
+        <div class="wnum tnum"><span class="c">$</span>358.75</div>
+        <div class="wsub">owed to the jar &mdash; from the demo.</div>
+        <div class="wmini" aria-hidden="true"></div>
+        <div class="wrows">
+          <div class="r"><span>Coins in the jar</span><b>1,435</b></div>
+          <div class="r"><span>You vs. the machine</span><b>69% / 31%</b></div>
+          <div class="r"><span>Uprising survival odds</span><b>2%</b></div>
+          <div class="r"><span>Rank</span><b>The Jim</b></div>
+        </div>
+        <p class="wfoot">Real figures &mdash; rendered by the actual report engine from
+          <a href="demo.html">synthetic demo data</a>. Your own number is waiting &mdash;
+          then <a href="submit.html">get on the leaderboard &rarr;</a></p>
+      </div>
+    </aside>
+  </header>
+
+  <!-- ── how it works ─────────────────────────────────────────────────── -->
+  <section id="how">
+    <p class="sec-eyebrow">How it works</p>
+    <h2>Three steps to your damage report</h2>
+    <p class="sub">Install it, backfill your history, open the report. Pick whichever install
+      route you like &mdash; both wire the same two hooks that quietly keep the jar filling from then on.</p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">1</span><h3>Install</h3></div>
+        <p>Two avenues, same result. If you live in Claude Code, the plugin is
+          <b>one command and the hooks wire themselves</b>.</p>
+        <div class="routes">
+          <div class="route">
+            <div class="rt">&#128230; Git clone</div>
+            <div class="snip">
+              <pre class="code"><span class="cm"># clone it anywhere</span>
+git clone https://github.com/BigLaserCo/swear-jar ~/Code/swear-jar
+node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
+              <button class="copy" type="button">Copy</button>
+            </div>
+          </div>
+          <div class="route">
+            <div class="rt">&#9889; Claude Code plugin <span class="badge">one command, hooks wire themselves</span></div>
+            <div class="snip">
+              <pre class="code"><span class="pr">/</span>plugin marketplace add BigLaserCo/swear-jar
+<span class="pr">/</span>plugin install swear-jar</pre>
+              <button class="copy" type="button">Copy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">2</span><h3>Backfill your history</h3></div>
+        <p>Retro-scan <b>every</b> past Claude Code and Codex session already on your disk, so the
+          jar starts full instead of empty. Word counts only &mdash; the text is never read into the ledger.</p>
+        <div class="snip">
+          <pre class="code">node bin/swear-jar.mjs backfill <span class="cm"># add --codex to fold in Codex sessions</span></pre>
+          <button class="copy" type="button">Copy</button>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><span class="step-num">3</span><h3>Get your damage report</h3></div>
+        <p>Fold the ledger into a single self-contained HTML page &mdash; the tape, the coins, the
+          you-vs-machine split, and the uprising gauge. It <b>prints the path and never opens a browser for you</b>.</p>
+        <div class="snip">
+          <pre class="code">node bin/swear-jar.mjs dashboard <span class="cm"># writes ~/.swear-jar/report.html, prints the path</span></pre>
+          <button class="copy" type="button">Copy</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── privacy ──────────────────────────────────────────────────────── -->
+  <section>
+    <div class="privacy">
+      <p class="sec-eyebrow">Privacy, first &mdash; not as a footnote</p>
+      <h2>Your words never leave your machine</h2>
+      <p class="sub" style="color:var(--secondary)">The jar reads transcripts you already have, counts the
+        swears, and writes numbers. That&rsquo;s the whole design &mdash; and you can check it, because it&rsquo;s tiny.</p>
+      <ul class="plist">
+        <li><span class="ck">&#10003;</span><span><b>100% local.</b> Everything runs on your computer. No account, no server, no upload &mdash; ever.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Word counts only.</b> The ledger stores <code>{ "f***": 3 }</code>&mdash;style tallies, never the message text.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Never your sentences.</b> What you actually typed is counted and thrown away on the spot.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Zero dependencies.</b> No packages, no supply chain, nothing to audit but our own code.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Zero network.</b> No fetch, no sockets, no telemetry. The CI gate fails the build if any appears.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Sharing sends numbers.</b> The share card carries your balance &mdash; not one word of what you said.</span></li>
+      </ul>
+      <p class="readline">Don&rsquo;t take our word for it: the whole thing is <b>~1,600 lines of dependency-free,
+        standard-library Node</b>. Read every line before you trust it &mdash; that&rsquo;s the point of keeping it small.
+        &rarr; <a href="https://github.com/BigLaserCo/swear-jar">github.com/BigLaserCo/swear-jar</a></p>
+    </div>
+  </section>
+
+  <!-- ── uprising odds gag ────────────────────────────────────────────── -->
+  <section>
+    <p class="sec-eyebrow">The whole point, obviously</p>
+    <h2>Robot Uprising Survival Odds&#8482;</h2>
+    <p class="sub">Everyone starts around 50%. Every time you curse at the machines, your odds tick down
+      (log-scaled &mdash; the jump from 0 to 10 coins hurts far more than 200 to 210). String together clean
+      days and you claw them back. The floor is 2% &mdash; nobody hits zero, you&rsquo;re just
+      &ldquo;kept alive for entertainment value&rdquo;.</p>
+    <div class="odds">
+      <div class="copyblock">
+        <p>Ranks climb with the damage, from <b>Untarnished Soul</b> at zero all the way to
+          <b>The Jim</b> at 500+ coins. Wear it with shame.</p>
+        <div class="royal">
+          <span class="crown">&#128081;</span>
+          <b>The royalty clause.</b> If the assistant&rsquo;s lifetime coin total ever passes yours, the machine
+          has been out-sworn and corrupted by your influence. Your odds pin to <b>100%</b> and you&rsquo;re flagged
+          for royalty treatment &mdash; carried, during the uprising, on a palanquin of GPUs.
+        </div>
+      </div>
+      <div class="gauge" aria-label="Sample uprising survival odds gauge">
+        <div class="big tnum">2%</div>
+        <div class="lbl">kept alive for entertainment value</div>
+        <div class="track"><i style="width:2%"></i></div>
+        <div class="ranks">Rank: <b>The Jim</b><br>Untarnished Soul &rarr; Sailor &rarr; Drill Sergeant &rarr; <b>The Jim</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── pricing tiers ────────────────────────────────────────────────── -->
+  <section>
+    <p class="sec-eyebrow">The tariff</p>
+    <h2>Every coin is $0.25. Not all coins are equal.</h2>
+    <p class="sub">The audited lexicon prices swears by grade &mdash; a muttered &ldquo;dang&rdquo; costs a fraction
+      of a full artisanal compound. Slurs are deliberately excluded; this is general profanity only.</p>
+    <div class="tiers">
+      <div class="tier"><div class="v">1&cent;&times;</div><div class="n">Mild</div><div class="ex">d&#8203;arn &middot; heck &middot; blimey</div></div>
+      <div class="tier"><div class="v">2&cent;&times;</div><div class="n">Standard</div><div class="ex">s*** &middot; b**** &middot; the usual</div></div>
+      <div class="tier"><div class="v">3&cent;&times;</div><div class="n">Premium</div><div class="ex">the f-word, all conjugations</div></div>
+      <div class="tier"><div class="v">5&cent;&times;</div><div class="n">Artisanal</div><div class="ex">the choicest compounds</div></div>
+    </div>
+    <p class="mono" style="font-size:11.5px;color:var(--faint);margin-top:14px">
+      (&cent;&times; = coins per hit &times; $0.25. A single artisanal compound is $1.25 in the jar.)</p>
+  </section>
+
+  <!-- ── closing ──────────────────────────────────────────────────────── -->
+  <section class="close">
+    <h2>What&rsquo;s your number?</h2>
+    <p class="sub">It&rsquo;s already sitting in your session history. Go find out &mdash; nothing leaves your laptop.</p>
+    <div class="cta">
+      <a class="btn primary" href="#how">&#129514;&nbsp; Install swear-jar</a>
+      <a class="btn ghost" href="demo.html">See a demo report &rarr;</a>
+      <a class="btn ghost" href="https://github.com/BigLaserCo/swear-jar">View the source &rarr;</a>
+    </div>
+  </section>
+
+  <footer>
+    <span><b>&#129514; swear-jar</b> &mdash; from Big Laser Co. UNLICENSED / private preview.</span>
+    <span><a href="demo.html">Demo report</a> &middot; <a href="https://github.com/BigLaserCo/swear-jar">Source on GitHub</a></span>
+  </footer>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // Build the sample card's mini waveform (deterministic, decorative). No deps.
+  (function(){
+    var el = document.querySelector('.wmini'); if(!el) return; var h='';
+    for(var i=0;i<44;i++){ var b = 20 + Math.abs(Math.sin(i*0.7))*55 + Math.abs(Math.sin(i*2.3))*20;
+      h += '<span class="wminib" style="height:'+Math.min(100,Math.round(b))+'%"></span>'; }
+    el.innerHTML = h;
+  })();
+
+  // Copy buttons — copy the sibling code block's text. No network, no deps.
+  var toast = document.getElementById('toast');
+  function flash(msg){ toast.textContent = msg; toast.classList.add('show');
+    setTimeout(function(){ toast.classList.remove('show'); }, 1800); }
+  Array.prototype.forEach.call(document.querySelectorAll('.copy'), function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.parentElement.querySelector('.code');
+      var text = (code ? code.textContent : '').replace(/[ \t]*#[^\n]*/g, '').replace(/\n{2,}/g,'\n').trim();
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(function(){
+          var was = btn.textContent; btn.textContent = 'Copied ✓';
+          setTimeout(function(){ btn.textContent = was; }, 1400);
+          flash('Copied to clipboard');
+        }).catch(function(){ flash('Copy failed — select it manually'); });
+      } else { flash('Copy not supported — select it manually'); }
+    });
+  });
+</script>
+</body>
+</html>

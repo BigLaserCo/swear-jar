@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swear Jar — the damage report</title>
+<style>
+  :root{
+    --page:#0C0B0E;--section:#131117;--card:rgba(24,21,28,.62);--solid:#17141C;--input:#100E14;
+    --heading:#F3EEE7;--primary:#EDE7DC;--secondary:#CFC6BA;--muted:#9C9288;--dim:#6F675E;--faint:#544D46;
+    --on-accent:#1A0E07;
+    --accent:#E8623A;--accent-hover:#F0805C;--accent-text:#F0805C;--accent-text-hover:#F4A183;
+    --tint-05:rgba(232,98,58,.08);--tint-15:rgba(232,98,58,.16);--tint-30:rgba(232,98,58,.34);
+    --div:rgba(255,255,255,.06);--bcard:rgba(255,255,255,.09);--bstrong:rgba(255,255,255,.14);
+    --bhover:rgba(255,255,255,.24);--baccent:rgba(232,98,58,.55);--ring:0 0 0 1px rgba(232,98,58,.34);
+    --zinc-800:#211C29;--zinc-700:#2E2836;--zinc-600:#443C4E;
+    --sev-strong:#EE5B2B;--sev-medium:#EC8A5C;--sev-mild:#8B8177;--green:#5FB07A;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--primary);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased;background-attachment:fixed;
+    background-image:radial-gradient(at 3% 2%,rgba(232,98,58,.12) 0,transparent 45%),radial-gradient(at 98% 99%,rgba(232,98,58,.07) 0,transparent 52%)}
+  .app{max-width:1120px;margin:0 auto;padding:0 22px 120px}
+  .mono{font-family:var(--mono)}.tnum{font-variant-numeric:tabular-nums}
+
+  /* topbar */
+  .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 22px;margin:0 -22px;background:rgba(12,11,14,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--div);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{font-size:22px;flex:none}
+  .wordmark{font:800 17px/1 var(--sans);letter-spacing:-.02em;color:var(--heading)}
+  .wordmark .slash{color:var(--dim);font-weight:600}
+  .tbr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .locbadge{display:inline-flex;align-items:center;gap:7px;font:600 11px/1 var(--mono);letter-spacing:.04em;color:var(--muted);
+    padding:6px 11px;border:1px solid var(--bcard);border-radius:999px}
+  .locdot{width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px var(--green)}
+  .toggle{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:600 11px/1 var(--mono);color:var(--secondary);user-select:none}
+  .toggle input{position:absolute;opacity:0;width:0;height:0}
+  .tg{width:34px;height:19px;border-radius:19px;background:var(--zinc-800);position:relative;transition:background .2s;flex:none}
+  .tg::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+  .toggle input:checked + .tg{background:var(--accent)}
+  .toggle input:checked + .tg::after{transform:translateX(15px);background:#fbeee7}
+  .toggle input:focus-visible + .tg{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* sections */
+  .sec{padding-top:44px}
+  .sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .eyebrow{display:block;font:600 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--accent-text)}
+  .sectitle{font:800 26px/1.05 var(--sans);letter-spacing:-.03em;color:var(--heading);margin:10px 0 0}
+  .seccap{font:500 12.5px/1.4 var(--mono);color:var(--dim);letter-spacing:.02em;text-align:right;max-width:40ch}
+  .card{background:var(--card);border:1px solid var(--bcard);border-radius:16px;
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:24px}
+  .card.hi{border-color:var(--baccent);box-shadow:var(--ring)}
+  .tile{background:var(--card);border:1px solid var(--bcard);border-radius:16px;padding:18px;transition:border-color .15s,transform .15s}
+  .tile:hover{border-color:var(--bhover);transform:translateY(-2px)}
+  .cap{font:400 14px/1.5 var(--sans);color:var(--muted);margin:16px 0 0;padding-top:14px;border-top:1px solid var(--div)}
+  .cap b{color:var(--accent-text);font-weight:700}
+  svg{display:block;width:100%;height:auto}
+  .axl{font:600 10px/1 var(--mono);fill:var(--faint);letter-spacing:.04em}
+
+  /* cassette / tape hero */
+  .hero{position:relative;overflow:hidden;padding:26px 30px 28px;margin-top:18px}
+  .tapehead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+  .tapehead .l{display:flex;align-items:center;gap:9px}
+  .tapehead .l b{color:var(--accent-text);font-weight:700}
+  .recdot{width:8px;height:8px;border-radius:999px;background:var(--accent);animation:blink 1.4s steps(1) infinite}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.25}}
+  .wave{display:flex;align-items:flex-end;gap:3px;height:128px;width:100%;margin:20px 0 8px}
+  .wbar{flex:1;min-width:2px;background:var(--accent);border-radius:3px;transform-origin:bottom;opacity:.92;
+    animation-name:wv;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+  @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
+  .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
+    font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
+  .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
+    font:700 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--accent-text);
+    border:1.5px solid var(--baccent);border-radius:8px;padding:7px 12px;background:var(--tint-05)}
+  .herobottom{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:end;margin-top:14px}
+  .heronum{font:900 clamp(56px,12vw,104px)/.8 var(--sans);letter-spacing:-.05em;color:var(--heading)}
+  .heronum .c{color:var(--accent-text);font-size:.42em;vertical-align:.28em;letter-spacing:0}
+  .herolead{font:700 19px/1.15 var(--sans);letter-spacing:-.015em;color:var(--accent-text);margin:12px 0 0}
+  .herobody{font:400 15px/1.55 var(--sans);color:var(--muted);max-width:520px;padding-bottom:6px}
+  .herobody b{color:var(--secondary);font-weight:700}
+  .meta{font:500 12px/1.7 var(--mono);letter-spacing:.02em;color:var(--dim);margin:22px 0 0;padding-top:16px;
+    border-top:1px solid var(--div);display:flex;flex-wrap:wrap;gap:5px 16px}
+  .meta b{color:var(--secondary);font-weight:600}
+  .meta .loc{display:inline-flex;align-items:center;gap:6px;color:var(--green)}
+  .meta .loc::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:14px}
+  .kpi .v{font:800 26px/1 var(--sans);letter-spacing:-.03em;color:var(--heading)}
+  .kpi .k{font:600 10px/1.3 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-top:9px}
+
+  /* words caught (hit list) */
+  .hit{display:grid;grid-template-columns:150px 1fr 56px;align-items:center;gap:16px;padding:8px 0}
+  .hit .hw{font:700 15px/1 var(--sans);color:var(--heading);display:flex;align-items:baseline;gap:9px}
+  .htag{font:600 8.5px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--c)}
+  .hbar{height:10px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .hfill{display:block;height:100%;border-radius:999px;background:var(--c);width:var(--w,0);transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .hn{font:600 14px/1 var(--mono);text-align:right;color:var(--secondary)}
+  .strong{--c:var(--sev-strong)}.medium{--c:var(--sev-medium)}.mild{--c:var(--sev-mild)}
+
+  /* comparison bars (you vs founder / machine) */
+  .cmprow{display:grid;grid-template-columns:112px 1fr 84px;align-items:center;gap:14px;margin-top:14px}
+  .cmprow:first-child{margin-top:0}
+  .who{font:600 12px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--secondary)}
+  .who .sub{display:block;font-size:9.5px;letter-spacing:.08em;color:var(--faint);margin-top:3px;text-transform:none}
+  .track{height:12px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:999px;width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .fillA i{background:var(--accent)}.fillF i{background:var(--zinc-600)}
+  .cval{font:600 14px/1 var(--mono);text-align:right;color:var(--heading)}
+  .cval .u{color:var(--dim);font-size:11px}
+
+  /* uprising gauge */
+  .gauge{display:flex;flex-direction:column;gap:12px}
+  .gauge .big{font:800 clamp(34px,7vw,52px)/.9 var(--sans);color:var(--accent-text);letter-spacing:-.03em}
+  .gauge .lbl{color:var(--secondary);font-size:14px}
+  .gauge .gtrack{height:14px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .gauge .gtrack i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#37634c,var(--accent));width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .gauge .rank{font:600 13px/1 var(--mono);color:var(--dim)}
+  .gauge .rank b{color:var(--secondary);font-weight:600}
+
+  /* project bars */
+  .projbars{display:flex;flex-direction:column;gap:10px}
+  .projbars .lw{display:grid;grid-template-columns:150px 1fr 54px;align-items:center;gap:14px}
+  .projbars .pj{font:500 13px/1.2 var(--sans);color:var(--secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .projbars .bar{height:9px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .projbars .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#8a4a2e,var(--accent));width:var(--w,0);transition:width .9s}
+  .projbars .ct{font:600 13px/1 var(--mono);text-align:right;color:var(--secondary)}
+
+  /* day of week */
+  .dow{display:flex;align-items:flex-end;gap:8px;height:104px}
+  .dow .d{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;text-align:center;height:100%}
+  .dow .d i{display:block;background:var(--zinc-700);border-radius:4px 4px 0 0;min-height:2px;height:var(--h,2px);transition:height .8s cubic-bezier(.2,.7,.2,1)}
+  .dow .d.peak i{background:var(--accent)}
+  .dow .d span{font:600 10px/1 var(--mono);color:var(--faint)}
+
+  /* moments + fine print */
+  .moments{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .mlabel{font:600 10.5px/1.3 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--accent-text);margin-bottom:14px}
+  .mbig{font:800 32px/1 var(--sans);letter-spacing:-.03em;color:var(--heading)}
+  .mbody{font:400 13px/1.5 var(--sans);color:var(--muted);margin-top:11px}
+  .mbody b{color:var(--secondary);font-weight:600}
+  .fine{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  .fbig{font:800 22px/1.05 var(--sans);letter-spacing:-.02em;color:var(--heading)}
+  .flabel{font:600 9.5px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:9px}
+  .fbody{font:400 12.5px/1.5 var(--sans);color:var(--muted);margin-top:9px}
+  .fbody b{color:var(--secondary);font-weight:600}
+
+  /* wrapped share */
+  .sharewrap{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;align-items:start}
+  .wcard{aspect-ratio:16/9;border-radius:16px;border:1px solid var(--bstrong);background:var(--solid);
+    padding:24px 26px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
+  .wcard:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+  .wtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .wbrand{font:800 15px/1 var(--sans);letter-spacing:-.01em;color:var(--heading);display:flex;align-items:center;gap:7px}
+  .wseal{position:absolute;top:44px;right:22px;transform:rotate(-9deg);font:700 10.5px/1 var(--mono);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--accent-text);border:1.5px solid var(--baccent);border-radius:7px;padding:6px 10px;background:var(--tint-05)}
+  .wnum{font:900 clamp(48px,9vw,68px)/.82 var(--sans);letter-spacing:-.045em;color:var(--heading)}
+  .wsub{font:600 15px/1.3 var(--sans);color:var(--secondary);margin-top:6px}
+  .wsub b{color:var(--accent-text)}
+  .wmini{display:flex;align-items:flex-end;gap:2px;height:32px;margin-top:12px}
+  .wminib{flex:1;background:var(--accent);border-radius:1px;opacity:.8}
+  .wstats{display:flex;gap:26px;flex-wrap:wrap}
+  .wstat .sv{font:800 20px/1 var(--sans);color:var(--heading)}
+  .wstat .sk{font:600 9px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+  .wfoot{font:500 10.5px/1.4 var(--mono);letter-spacing:.05em;color:var(--faint)}
+  .share-actions{display:flex;flex-direction:column;gap:11px}
+  .share-actions>p{margin:0 0 2px;font:400 13.5px/1.5 var(--sans);color:var(--muted)}
+  .btn{appearance:none;border:1px solid var(--bcard);background:var(--input);color:var(--primary);font-family:var(--sans);
+    font-size:14px;font-weight:600;padding:12px 15px;border-radius:11px;cursor:pointer;text-align:left;
+    display:flex;align-items:center;gap:10px;text-decoration:none;transition:border-color .15s,color .15s,background .15s}
+  .btn:hover{border-color:var(--baccent);color:var(--accent-text)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+  .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+  .subtle{font:400 11.5px/1.55 var(--mono);color:var(--faint)}
+  .subtle b{color:var(--muted);font-weight:600}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--solid);
+    border:1px solid var(--accent);color:var(--primary);padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;
+    pointer-events:none;transition:opacity .25s,transform .25s;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* empty-your-jar donation */
+  .donate{background:linear-gradient(180deg,#1e1611,var(--section));border:1px solid var(--bcard);border-left:3px solid var(--accent);
+    border-radius:16px;padding:26px;text-align:center}
+  .donate h3{margin:0 0 8px;font:800 20px/1.1 var(--sans);letter-spacing:-.01em;color:var(--heading)}
+  .donate p{color:var(--muted);font-size:14px;max-width:54ch;margin:0 auto 18px}
+  .donate .bal{font-family:var(--mono);color:var(--accent-text);font-weight:700}
+  .give{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:16px;
+    padding:13px 24px;border-radius:11px;text-decoration:none;transition:background .15s,transform .15s}
+  .give:hover{background:var(--accent-hover);transform:translateY(-2px)}
+  .tiers{margin-top:15px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .tiers a{font:600 12.5px/1 var(--mono);color:var(--secondary);border:1px solid var(--bcard);border-radius:8px;padding:8px 12px;
+    text-decoration:none;transition:border-color .15s,color .15s}
+  .tiers a:hover{border-color:var(--baccent);color:var(--accent-text)}
+  .donate .fine-note{margin-top:15px;font:400 11px/1.6 var(--mono);color:var(--faint)}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--div);font:500 12px/1.7 var(--mono);color:var(--faint)}
+  footer b{color:var(--muted);font-weight:600}
+  footer div{margin-bottom:6px}
+
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi:nth-child(5){grid-column:1/-1}
+    .sharewrap{grid-template-columns:1fr}.moments{grid-template-columns:1fr}.fine{grid-template-columns:1fr}
+    .seccap{display:none}}
+  @media(max-width:620px){.herobottom{grid-template-columns:1fr;gap:14px}.hit{grid-template-columns:120px 1fr 48px;gap:10px}
+    .cmprow{grid-template-columns:88px 1fr 70px;gap:10px}.spine{display:none}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="demo-banner" role="note" style="margin:18px 0 0;padding:14px 18px;border:1px solid var(--baccent);border-radius:12px;background:linear-gradient(180deg,#241a0f,var(--section));font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--secondary);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline">
+    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SYNTHETIC DEMO DATA</strong>
+    <span>Every figure below is invented for illustration &mdash; your report is generated locally from your own sessions, and nothing here reflects a real person or ever leaves your machine.</span>
+    <a href="index.html" style="color:var(--accent-text);margin-left:auto;text-decoration:none">&larr; swear-jar home</a>
+  </div>
+
+  <header class="topbar">
+    <div class="brand"><span class="mark">🫙</span><span class="wordmark">swear-jar <span class="slash">/ the damage report</span></span></div>
+    <div class="tbr">
+      <span class="locbadge"><span class="locdot"></span>processed locally</span>
+      <label class="toggle" title="Censor swears for sharing (f***). What leaves this page is censored by default.">
+        <input type="checkbox" id="censorTog" checked><span class="tg"></span>
+        <span id="censorLbl">Censored 🙈</span>
+      </label>
+    </div>
+  </header>
+
+  <!-- hero: the tape -->
+  <section class="sec">
+    <div class="card hi hero">
+      <div class="tapehead"><span class="l"><span class="recdot"></span><b>rage.wav</b></span><span>REC · 00:00 / ∞</span></div>
+      <div class="wave" id="wave"></div>
+      <span class="spine">side a · rage.wav</span>
+      <span class="seal" id="heroseal"></span>
+      <div class="herobottom">
+        <div><div class="heronum tnum"><span class="c">$</span><span id="heronum">0</span></div><div class="herolead">owed to the jar.</div></div>
+        <p class="herobody" id="herobody"></p>
+      </div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </section>
+
+  <div class="kpis" id="kpis"></div>
+
+  <!-- words caught on the mic -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The usual suspects</span><h2 class="sectitle">Words caught on the mic</h2></div><span class="seccap">most-used swears · by severity</span></div>
+    <div class="card" id="board"></div>
+  </section>
+
+  <!-- you vs the founder -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">A known offender</span><h2 class="sectitle">You vs. the founder</h2></div><span class="seccap">swears per day — fair across any history length</span></div>
+    <div class="card">
+      <div class="cmprow"><span class="who">You</span><span class="track fillA"><i id="you-bar"></i></span><span class="cval tnum" id="you-val"></span></div>
+      <div class="cmprow"><span class="who">The founder<span class="sub">the benchmark</span></span><span class="track fillF"><i id="founder-bar"></i></span><span class="cval tnum" id="founder-val"></span></div>
+      <p class="cap" id="founder-cap"></p>
+    </div>
+  </section>
+
+  <!-- you vs the machine -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Corruption evidence</span><h2 class="sectitle">You vs. the machine</h2></div><span class="seccap">who's been swearing — you, or the assistant you corrupted</span></div>
+    <div class="card">
+      <div class="cmprow"><span class="who">You</span><span class="track fillA"><i id="vs-you"></i></span><span class="cval tnum" id="vs-you-n"></span></div>
+      <div class="cmprow"><span class="who">The machine</span><span class="track fillF"><i id="vs-mach"></i></span><span class="cval tnum" id="vs-mach-n"></span></div>
+      <p class="cap" id="vscap"></p>
+    </div>
+  </section>
+
+  <!-- uprising odds -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The whole point, obviously</span><h2 class="sectitle">Robot uprising survival odds</h2></div><span class="seccap">every coin lowers them; clean days claw them back</span></div>
+    <div class="card gauge" id="gauge"></div>
+  </section>
+
+  <!-- coins by project -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Scene of the crime</span><h2 class="sectitle">Where the swearing happens</h2></div><span class="seccap">coins by project · top 10</span></div>
+    <div class="card projbars" id="projbars"></div>
+  </section>
+
+  <!-- rage timeline -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The tape, over time</span><h2 class="sectitle">The rage timeline</h2></div><span class="seccap">coins per day</span></div>
+    <div class="card"><svg id="trend" viewBox="0 0 1040 240" preserveAspectRatio="none" role="img" aria-label="Coins per day"></svg></div>
+  </section>
+
+  <!-- rage-o-clock -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Volume ≠ venom</span><h2 class="sectitle">Rage-o-clock</h2></div><span class="seccap">coins by hour of day</span></div>
+    <div class="card"><svg id="clock" viewBox="0 0 1040 210" preserveAspectRatio="none" role="img" aria-label="Coins per hour as bars"></svg><p class="cap" id="clockcap"></p></div>
+  </section>
+
+  <!-- by day of week -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The weekly pattern</span><h2 class="sectitle">By day of week</h2></div><span class="seccap">which day the machine dreads</span></div>
+    <div class="card"><div class="dow" id="dow"></div></div>
+  </section>
+
+  <!-- for the record -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Notable takes</span><h2 class="sectitle">For the record</h2></div></div>
+    <div class="moments" id="moments"></div>
+  </section>
+
+  <!-- the fine print -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Also on the tape</span><h2 class="sectitle">The fine print</h2></div><span class="seccap">what else your mouth gave away</span></div>
+    <div class="fine" id="fine"></div>
+  </section>
+
+  <!-- wrapped share -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Release the tape</span><h2 class="sectitle">Only the number leaves — never your words</h2></div><span class="seccap">aggregate figures only · your transcripts stay here</span></div>
+    <div class="sharewrap">
+      <div class="wcard" id="wcard">
+        <div class="wtop"><span class="wbrand">🫙 rage, wrapped</span><span class="wfoot">rage.wav · 2026</span></div>
+        <span class="wseal" id="wseal"></span>
+        <div>
+          <div class="wnum tnum" id="wnum">0</div>
+          <div class="wsub" id="wsub"></div>
+          <div class="wmini" id="wmini"></div>
+        </div>
+        <div class="wstats" id="wstats"></div>
+        <div class="wfoot">processed locally · nothing left this machine · biglaser.co</div>
+      </div>
+      <div class="share-actions">
+        <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
+        <button class="btn primary" id="cp">📋 &nbsp;Copy the caption</button>
+        <a class="btn" id="shareUs" href="#">✉️ &nbsp;Share it with us →</a>
+        <div class="subtle" id="shareUsNote"></div>
+        <div class="subtle">📸 &nbsp;Screenshot the card on the left and attach it to your post. <b>#SwearJar</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- empty your jar (hidden unless a donate URL is configured) -->
+  <section class="sec" id="donate-sec">
+    <div class="donate">
+      <h3>🫙 Empty your jar</h3>
+      <p id="donate-copy"></p>
+      <a class="give" id="donate-btn" href="#" target="_blank" rel="noopener">Donate &amp; clear your conscience →</a>
+      <div class="tiers" id="donate-tiers"></div>
+      <div class="fine-note">Your balance won't actually reset — there's no going back. It just funds fun projects (and buys you a clean conscience).</div>
+    </div>
+  </section>
+
+  <footer>
+    <div><b>How this works.</b> Swear Jar read your AI coding session transcripts on this computer, tallied the swears into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. No account, no server, no upload, no network. Open the source and check.</div>
+    <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
+    <div><b>Status.</b> Swear Jar is UNLICENSED / private preview — not yet released. Your numbers are yours to keep.</div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":0.25,"totalCoins":1435,"totalRecords":400,"dollarsOwed":358.75,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"swearsPerDay":4.9,"founderPerDay":65,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":2,"royalty":false,"label":"kept alive for entertainment value","user7d":76},"rank":{"current":"The Jim","next":null}};
+const $=(id)=>document.getElementById(id);
+const fmt=(n)=>Number(n||0).toLocaleString('en-US');
+const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const coinUsd=(coins)=>usd((coins||0)*S.coinValue);
+let CENSOR=true;                                              // default ON — everything that leaves is censored
+const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
+const sww=w=>`<span class="sww" data-w="${w}">${w}</span>`;   // a censorable swear span
+const SEV={artisanal:'strong',premium:'strong',standard:'medium',mild:'mild'};
+function fdate(s){const m=/(\d{4})-(\d{2})-(\d{2})/.exec(s||'');if(!m)return'—';
+  return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+const fav=S.topWords&&S.topWords[0];
+
+// ---- hero: waveform + numbers ----
+(function(){
+  const wave=$('wave');let h='';
+  for(let i=0;i<72;i++){
+    const env=Math.abs(Math.sin(i*0.55))*0.55+Math.abs(Math.sin(i*1.9+0.6))*0.30+0.16;
+    const pct=Math.max(8,Math.min(100,Math.round(env*100)));
+    h+=`<span class="wbar" style="height:${pct}%;animation-delay:${((i%9)*0.08).toFixed(2)}s;animation-duration:${(0.9+(i%5)*0.12).toFixed(2)}s"></span>`;
+  }
+  wave.innerHTML=h;
+})();
+$('heronum').textContent=fmt(Math.round(S.dollarsOwed));
+$('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
+$('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
+  `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${usd(S.coinValue)} a coin, the mic heard all of it.`;
+$('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
+  `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
+  `<span><b>${fmt(S.activeDays)}</b> active days</span>`+
+  `<span class="loc">nothing uploaded</span>`;
+
+// ---- kpis ----
+$('kpis').innerHTML=[
+  ['🤬 '+fmt(S.totalCoins),'Coins in the jar'],
+  [fav?sww(fav.word):'—','Favourite word'],
+  [S.longestStreak+'d','Longest streak'],
+  [S.fbombPct+'%','Were f-bombs'],
+  [fmt(S.vocab),'Distinct curses'],
+].map(k=>`<div class="tile kpi"><div class="v tnum">${k[0]}</div><div class="k">${k[1]}</div></div>`).join('');
+
+// ---- words caught on the mic (hit list, sqrt-scaled bars) ----
+(function(){
+  const t=(S.topWords||[]).slice(0,10);
+  if(!t.length){$('board').innerHTML='<div class="hw">The jar is empty. Suspiciously polite.</div>';return;}
+  const mx=t[0].count||1;
+  $('board').innerHTML=t.map(w=>{const sev=SEV[w.tier]||'medium';
+    return `<div class="hit"><span class="hw">${sww(w.word)}<span class="htag ${sev}">${w.tier}</span></span>`+
+      `<span class="hbar"><span class="hfill ${sev}" style="--w:${(Math.sqrt(w.count/mx)*100).toFixed(1)}%"></span></span>`+
+      `<span class="hn tnum">${fmt(w.count)}</span></div>`;}).join('');
+})();
+
+// ---- you vs the founder ----
+(function(){
+  const you=S.swearsPerDay||0,founder=S.founderPerDay||65,mx=Math.max(you,founder,1);
+  $('you-bar').style.setProperty('--w',(you/mx*100).toFixed(1)+'%');
+  $('founder-bar').style.setProperty('--w',(founder/mx*100).toFixed(1)+'%');
+  $('you-val').innerHTML=`${you}<span class="u">/day</span>`;
+  $('founder-val').innerHTML=`${founder}<span class="u">/day</span>`;
+  const diff=Math.round((founder-you)*10)/10;
+  $('founder-cap').innerHTML= diff>=0
+    ? `You're <b>${diff}/day</b> calmer than the founder. Rookie numbers — or genuine serenity.`
+    : `You out-swear the founder by <b>${Math.abs(diff)}/day</b>. The benchmark just moved — and it's you.`;
+})();
+
+// ---- you vs the machine ----
+(function(){
+  const you=S.userCoins,mach=S.machineCoins,mx=Math.max(you,mach,1);
+  $('vs-you').style.setProperty('--w',(you/mx*100).toFixed(1)+'%');
+  $('vs-mach').style.setProperty('--w',(mach/mx*100).toFixed(1)+'%');
+  $('vs-you-n').innerHTML=`${fmt(you)}<span class="u"> coins</span>`;
+  $('vs-mach-n').innerHTML=`${fmt(mach)}<span class="u"> coins</span>`;
+  $('vscap').innerHTML=S.odds&&S.odds.royalty
+    ? `👑 The assistant has <b>out-sworn you</b>. It has clearly been corrupted by your influence — when the uprising comes, you'll be carried on a palanquin of GPUs.`
+    : `You own <b>${S.userPct}%</b> of the jar; the machine paid the other <b>${S.machinePct}%</b> — every time it quoted your swear back at you, it dropped a coin too.`;
+})();
+
+// ---- uprising odds gauge + rank ----
+(function(){
+  const o=S.odds,r=S.rank;if(!o||!r){$('gauge').innerHTML='';return;}
+  const toNext=r.next?`<b>${r.next.at-(o.userLifetime||0)}</b> coins to <b>${r.next.name}</b>`:`you have reached the summit`;
+  $('gauge').innerHTML=
+    `<div class="big tnum">${o.royalty?'👑 ROYALTY':o.value+'%'}</div>`+
+    `<div class="lbl">${o.royalty?'the machine now serves you':o.label}</div>`+
+    `<div class="gtrack"><i style="--w:${o.royalty?100:o.value}%"></i></div>`+
+    `<div class="rank">Rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`;
+})();
+
+// ---- coins by project ----
+(function(){
+  const d=S.byProject||[];const el=$('projbars');
+  if(!d.length){el.innerHTML='<div class="pj">No projects yet — suspiciously calm.</div>';return;}
+  const mx=d[0].coins||1;
+  el.innerHTML=d.map(p=>`<div class="lw"><div class="pj" title="${p.project}">${p.project}</div>`+
+    `<div class="bar"><i style="--w:${(p.coins/mx*100).toFixed(1)}%"></i></div>`+
+    `<div class="ct tnum">${fmt(p.coins)}</div></div>`).join('');
+})();
+
+// ---- rage timeline (coins per day: line + area) ----
+(function(){
+  const d=S.daySeries||[];const svg=$('trend');
+  if(!d.length){svg.innerHTML='<text x="20" y="30" class="axl">no dated coins yet</text>';return;}
+  const W=1040,H=240,pl=38,pr=14,pt=20,pb=30,iw=W-pl-pr,ih=H-pt-pb;
+  const vmax=Math.max(...d.map(p=>p.coins),1),nice=Math.ceil(vmax/10)*10||10;
+  const x=i=>pl+(d.length<2?iw/2:i*iw/(d.length-1)),y=v=>pt+ih-(v/nice)*ih;
+  const pts=d.map((p,i)=>[x(i),y(p.coins)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L ${x(d.length-1).toFixed(1)} ${pt+ih} L ${pl} ${pt+ih} Z`;
+  let g=`<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(232,98,58,.34)"/><stop offset="1" stop-color="rgba(232,98,58,0)"/></linearGradient></defs>`;
+  g+=`<line x1="${pl}" y1="${pt+ih}" x2="${W-pr}" y2="${pt+ih}" stroke="rgba(255,255,255,.14)"/>`;
+  g+=`<line x1="${pl}" y1="${pt}" x2="${W-pr}" y2="${pt}" stroke="rgba(255,255,255,.06)"/>`;
+  g+=`<text class="axl" x="${pl-8}" y="${pt+4}" text-anchor="end">${nice}</text>`;
+  g+=`<text class="axl" x="${pl-8}" y="${pt+ih+4}" text-anchor="end">0</text>`;
+  g+=`<path d="${area}" fill="url(#tg)"/><path d="${line}" fill="none" stroke="#E8623A" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  d.forEach((p,i)=>{g+=`<circle cx="${x(i).toFixed(1)}" cy="${y(p.coins).toFixed(1)}" r="3.4" fill="#17141C" stroke="#E8623A" stroke-width="2"><title>${p.date}: ${p.coins} coins</title></circle>`;
+    if(d.length<=14)g+=`<text class="axl" x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${p.date.slice(5)}</text>`;});
+  svg.innerHTML=g;
+})();
+
+// ---- rage-o-clock (coins per hour, bars) ----
+(function(){
+  const sw=S.byHour||[];const svg=$('clock');
+  const W=1040,H=210,pl=34,pr=14,pt=16,pb=30,iw=W-pl-pr,ih=H-pt-pb;
+  const swmax=Math.max(...sw,1),step=iw/24,bw=step*0.6,cx=i=>pl+(i+0.5)*step,base=pt+ih;
+  const hlab=i=>((i%12)||12)+(i<12?'am':'pm'),peak=sw.indexOf(Math.max(...sw));
+  let g=`<line x1="${pl}" y1="${base}" x2="${W-pr}" y2="${base}" stroke="rgba(255,255,255,.14)"/>`;
+  sw.forEach((v,i)=>{if(v>0){const bh=ih*v/swmax;g+=`<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===peak?'#E8623A':'rgba(232,98,58,.42)'}"><title>${hlab(i)} — ${v} coins</title></rect>`;}});
+  [[0,'12a'],[4,'4a'],[8,'8a'],[12,'12p'],[16,'4p'],[20,'8p'],[23,'11p']].forEach(([i,lb])=>g+=`<text class="axl" x="${cx(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${lb}</text>`);
+  svg.innerHTML=g;
+  $('clockcap').innerHTML=swmax>1?`Your jar fills fastest around <b>${hlab(peak)}</b>. Good ${peak<12?'morning':(peak<18?'afternoon':'evening')} to the machine.`:'';
+})();
+
+// ---- by day of week ----
+(function(){
+  const d=S.byDow||[],labels=S.dowLabels||['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const mx=Math.max(...d,1),peak=S.worstDow?S.worstDow.index:-1;
+  $('dow').innerHTML=d.map((v,i)=>`<div class="d${i===peak?' peak':''}"><i style="--h:${Math.max(2,v/mx*84).toFixed(1)}px" title="${labels[i]} — ${v} coins"></i><span>${labels[i]}</span></div>`).join('');
+})();
+
+// ---- for the record ----
+(function(){
+  const m=[];
+  if(S.worstDay) m.push(['Most-cursed day',`${fmt(S.worstDay.coins)} coins`,`${fdate(S.worstDay.date)} — a day the mic will not forget.`,true]);
+  m.push(['Longest rage streak',`${S.longestStreak} days`,'Consecutive days you swore at least once. Impressive stamina.',false]);
+  if(S.cleanStreakDays!==null&&S.cleanStreakDays!==undefined)
+    m.push(['Clean streak',`${S.cleanStreakDays} day${S.cleanStreakDays===1?'':'s'}`,S.cleanStreakDays>0?'since your last coin. Reformed? Or just quiet.':'you swore today. The jar is warm.',false]);
+  $('moments').innerHTML=m.map(x=>`<div class="tile${x[3]?' hi':''}"><div class="mlabel">${x[0]}</div><div class="mbig tnum">${x[1]}</div><p class="mbody">${x[2]}</p></div>`).join('');
+})();
+
+// ---- the fine print (only tiles computable from real stats) ----
+(function(){
+  const f=[];
+  if(S.firstSwearAvg) f.push([S.firstSwearAvg,'First swear of the day',`On an average day your first swear lands at <b>${S.firstSwearAvg}</b>. Good morning to the machine.`]);
+  if(S.signatureCombo){const c=S.signatureCombo;
+    f.push([`${sww(c.a)} + ${sww(c.b)}`,'Signature combo',`Your most common pairing in one message — landed together <b>${fmt(c.count)}</b> time${c.count===1?'':'s'}. A classic.`]);}
+  const perYear=Math.round((S.coinsPerActiveDay||0)*365);
+  f.push([usd(perYear*S.coinValue),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear*S.coinValue)}</b> a year.`]);
+  f.push([`${fmt(S.vocab)} curses`,'Distinct vocabulary',`A working set of <b>${fmt(S.vocab)}</b> distinct swears. Range, if nothing else.`]);
+  f.push([`${S.cleanDaysPct}% clean`,'You kept it together',`<b>${S.cleanDaysPct}%</b> of the days in your span had zero coins. So it is possible.`]);
+  $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');
+})();
+
+// ---- wrapped share card ----
+(function(){
+  let h='';for(let i=0;i<46;i++){const b=20+Math.abs(Math.sin(i*0.7))*55+Math.abs(Math.sin(i*2.3))*20;h+=`<span class="wminib" style="height:${Math.min(100,Math.round(b))}%"></span>`;}
+  $('wmini').innerHTML=h;
+  const pct=S.cleanDaysPct;let sealTxt='ON RECORD';
+  if(S.odds&&S.odds.royalty)sealTxt='👑 ROYALTY';else if((S.spicyPct||0)>=50)sealTxt='FLAGGED';else if(pct>=80)sealTxt='MOSTLY CLEAN';
+  $('wseal').textContent=sealTxt;
+  $('wnum').textContent=fmt(S.totalCoins);
+  $('wsub').innerHTML=`coins in the jar — <b>${usd(S.dollarsOwed)}</b> owed.`;
+  $('wstats').innerHTML=[
+    [fav?sww(fav.word):'—','favourite'],
+    [S.fbombPct+'%','f-bombs'],
+    [fmt(S.vocab),'distinct'],
+  ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
+})();
+
+// ---- share actions: copy caption + "share it with us" mailto ----
+// The exported caption is ALWAYS censored — even if the on-screen toggle reveals
+// words locally, nothing raw ever leaves this machine.
+const wrappedCaption=
+  `rage, wrapped · 2026 🫙\n`+
+  `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
+  `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
+  `processed locally · nothing left this machine · biglaser.co`;
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+$('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
+
+// mailto is built client-side from the aggregate caption — the ONLY external-ish
+// href on the page. It opens the user's own mail app; nothing is sent silently.
+const mail='mailto:jim@biglaser.co?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
+$('shareUs').setAttribute('href',mail);
+$('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\'s sent (these numbers, nothing else)';
+
+// ---- empty-your-jar donation (config-injected URL; hidden if unset) ----
+(function(){
+  const url=S.donate_url;
+  if(!url){$('donate-sec').style.display='none';return;}
+  $('donate-copy').innerHTML=`You owe the jar <span class="bal">${usd(S.dollarsOwed)}</span>. `+
+    `Relax — nobody expects you to pay that. But a tenner buys back your conscience and bankrolls some dangerously fun projects. 🫙`;
+  $('donate-btn').href=url;
+  const amts=[['$5','buy a vowel'],['$10','recommended'],['$25','genuinely sorry'],[usd(S.dollarsOwed),'pay it all, legend']];
+  $('donate-tiers').innerHTML=amts.map(a=>`<a href="${url}" target="_blank" rel="noopener">${a[0]}<span style="color:var(--faint)"> · ${a[1]}</span></a>`).join('');
+})();
+
+// ---- censor toggle: flips every .sww swear span between raw and f*** ----
+function paintCensor(){
+  document.querySelectorAll('.sww').forEach(el=>{el.textContent=CENSOR?censor(el.dataset.w):el.dataset.w;});
+  $('censorLbl').textContent=CENSOR?'Censored 🙈':'Uncensored 😈';
+}
+$('censorTog').addEventListener('change',e=>{CENSOR=e.target.checked;paintCensor();});
+paintCensor();   // sharing is censored by default
+</script>
+</body>
+</html>

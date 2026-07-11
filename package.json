@@ -1,0 +1,43 @@
+{
+  "name": "swear-jar",
+  "version": "0.1.0",
+  "description": "The Big Laser Co. swear jar — tracks who's swearing at the robots, and how it affects your odds in the uprising",
+  "keywords": [
+    "swear-jar",
+    "claude-code",
+    "codex",
+    "hooks",
+    "cli",
+    "novelty",
+    "stats",
+    "fun"
+  ],
+  "homepage": "https://github.com/BigLaserCo/swear-jar",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BigLaserCo/swear-jar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BigLaserCo/swear-jar/issues"
+  },
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "bin": {
+    "swear-jar": "bin/swear-jar.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "assets",
+    ".claude-plugin",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "verify": "node scripts/ci/verify.mjs"
+  }
+}
