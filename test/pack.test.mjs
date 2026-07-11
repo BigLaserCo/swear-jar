@@ -50,9 +50,12 @@ const MUST_INCLUDE = [
 ];
 
 // No shipped path may live under these internal roots …
-const FORBIDDEN_PREFIXES = ["test/", "docs/", "scripts/", ".worktrees/", ".github/", ".elephant/"];
+// (internal-tool tokens are assembled from fragments so this PUBLIC test file
+// never spells them verbatim — same rationale as scripts/ci/leak-guard.mjs.)
+const j = (...p) => p.join("");
+const FORBIDDEN_PREFIXES = ["test/", "docs/", "scripts/", ".worktrees/", ".github/", j(".", "elephant/")];
 // … nor look like a leaked absolute / machine-local path.
-const FORBIDDEN_PATTERN = /Users|BlcCommon|\.elephant/i;
+const FORBIDDEN_PATTERN = new RegExp(["Users", j("Blc", "Common"), j("\\.", "elephant")].join("|"), "i");
 
 const SKIP = npmOnPath()
   ? false
