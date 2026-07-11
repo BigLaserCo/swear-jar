@@ -102,6 +102,26 @@ returns the filled HTML string, and `writeDashboard(records, opts)` writes the
 report and returns its path (`src/dashboard.mjs`); `computeStats(records, now)`
 produces the stats object (`src/stats.mjs`).
 
+## Leaderboard (optional)
+
+Want to see how your potty mouth ranks? `swear-jar wrapped --submit` prints a
+link to the hosted leaderboard, pre-filled with **aggregate numbers only** — total
+coins, $ owed, f-bombs %, and your **censored** top word, plus the app version and
+release hash. Nothing is uploaded until you open the link, log in, and confirm on
+the page; your transcripts never leave your machine.
+
+```bash
+swear-jar wrapped            # your shareable summary (no link)
+swear-jar wrapped --submit   # + the pre-filled leaderboard submit link
+```
+
+Entries from a published release show a **✓ verified** badge (provenance: the
+release hash is on the known-releases list). Honest caveat: verified means "came
+from a published build + a real account", **not** proof the numbers weren't
+faked — a local open-source tool can't prove that (see [SECURITY.md](SECURITY.md)).
+You can spot-check your own ledger's integrity with `swear-jar verify-ledger`
+(tamper-evident, not tamper-proof).
+
 ## Website
 
 The public landing page and a live demo report live in [`docs/`](docs/) and are
