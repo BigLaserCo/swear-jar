@@ -1,0 +1,6 @@
+{
+  "_comment": "Recognized swear-jar release-provenance hashes. Each key under `releases` is the 40-char lowercase git commit SHA of a PUBLISHED release; the value records that release's version. Real hashes are appended here by the release-stamp step at tag time (see src/version.mjs, which stamps RELEASE_HASH into the shipped build). The all-zeros placeholder below is the dev-build sentinel: it documents the format + version, but isKnownRelease() treats it as UNVERIFIED on purpose, so dev builds never earn a verified badge.",
+  "releases": {
+    "0000000000000000000000000000000000000000": { "version": "0.1.0-dev" }
+  }
+}
