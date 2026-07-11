@@ -193,21 +193,22 @@ Codex-specific details:
 - **Only word counts are stored** — never the surrounding text, same as the
   Claude side.
 
-## Superwhisper import
+## Dictation import (rage.wav)
 
-If you dictate to your AI with [Superwhisper](https://superwhisper.com/), the jar
-can also count the swears in your **historical dictations** — the voice notes you
-spoke, measured as *swears-per-dictation*.
+If you dictate to your AI, the jar can also count the swears in your **historical
+dictations** — the voice notes you spoke, measured as *swears-per-dictation*. In
+the report this lane is branded **rage.wav** (the tape).
 
 ```
-swear-jar import-superwhisper [--root <dir>]
-swear-jar report --dictation            # the dictation history, on its own
+swear-jar import-dictation [--root <dir>]   # historical rage.wav dictation → its own ledger
+swear-jar report --dictation                # the dictation history, on its own
 ```
 
-Superwhisper stores each recording as `<root>/<recording-id>/meta.json`; the
-importer auto-detects the folder (e.g. `~/Documents/superwhisper/recordings`) or
-takes `--root`. Same audited lexicon, same "word counts only, never the text"
-privacy rule; re-running imports nothing new (idempotent by recording-id).
+Each recording is stored as `<root>/<recording-id>/meta.json`; the importer
+auto-detects the folder (the literal install path is
+`~/Documents/superwhisper/recordings`) or takes `--root`. Same audited lexicon,
+same "word counts only, never the text" privacy rule; re-running imports nothing
+new (idempotent by recording-id).
 
 **It is a separate, never-summed ledger** (`~/.swear-jar/dictation.jsonl`), not
 the main jar. This is the no-double-count rule made mechanical: a dictated prompt

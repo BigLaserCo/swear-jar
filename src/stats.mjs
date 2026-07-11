@@ -62,12 +62,17 @@ export function computeStats(records = [], now = Date.now()) {
   let userCoins = 0;
   let machineCoins = 0;
 
+  // --- swear-instance counts (raw hits, not coin-weighted) ---
+  let totalSwears = 0; // every swear instance, user + machine
+  let userSwears = 0; // just the human's swear instances
+
   // --- distributions ---
   const byHour = new Array(24).fill(0);
   const byDow = new Array(7).fill(0);
   const byProject = new Map();
   const byDay = new Map(); // dateKey -> coins
   const wordCounts = new Map(); // family -> count
+  const comboCounts = new Map(); // "famA famB" (sorted) -> co-occurrences in one USER record
   const firstUserMin = new Map(); // dateKey -> earliest user-swear minute-of-day
   const userDates = new Set(); // dates the human swore (for the streak)
   let firstTs = null;
@@ -76,16 +81,34 @@ export function computeStats(records = [], now = Date.now()) {
   for (const r of recs) {
     const coins = Number(r?.coins) || 0;
     totalCoins += coins;
-    if (r?.source === "assistant") machineCoins += coins;
+    const isMachine = r?.source === "assistant";
+    if (isMachine) machineCoins += coins;
     else userCoins += coins;
 
     // project split (all coins — the jar total is user + machine)
     const proj = r?.project || "unknown";
     byProject.set(proj, (byProject.get(proj) || 0) + coins);
 
-    // word families
+    // word families + swear-instance counts
+    const famsInRec = []; // distinct families present in this record (for combos)
     for (const [w, n] of Object.entries(r?.words || {})) {
-      wordCounts.set(w, (wordCounts.get(w) || 0) + (Number(n) || 0));
+      const cnt = Number(n) || 0;
+      wordCounts.set(w, (wordCounts.get(w) || 0) + cnt);
+      totalSwears += cnt;
+      if (!isMachine) userSwears += cnt;
+      if (cnt > 0) famsInRec.push(w);
+    }
+    // signature combo: which two families the HUMAN lands in the same message.
+    // We only have per-record family sets (no ordering), so this is honestly a
+    // "most common pairing", not a literal back-to-back sequence.
+    if (!isMachine && famsInRec.length >= 2) {
+      const uniq = [...new Set(famsInRec)].sort();
+      for (let i = 0; i < uniq.length; i++) {
+        for (let j = i + 1; j < uniq.length; j++) {
+          const key = `${uniq[i]} ${uniq[j]}`;
+          comboCounts.set(key, (comboCounts.get(key) || 0) + 1);
+        }
+      }
     }
 
     // first/last by real instant
@@ -173,6 +196,43 @@ export function computeStats(records = [], now = Date.now()) {
   const activeDays = byDay.size;
   const coinsPerActiveDay = activeDays ? round1(totalCoins / activeDays) : 0;
 
+  // --- you vs. the founder (swears per active day vs a fixed benchmark) ---
+  // Raw swear instances, not coins — a "swear" is one hit regardless of tier,
+  // which is the fair unit to line up against a per-day human benchmark.
+  const FOUNDER_PER_DAY = 65;
+  const swearsPerDay = activeDays ? round1(userSwears / activeDays) : 0;
+
+  // --- % of the f-tier (f-bomb share of all swears) ---
+  const fbombPct = totalSwears ? Math.round((100 * fbombs) / totalSwears) : 0;
+
+  // --- signature combo: the human's most common family pairing in one message ---
+  let signatureCombo = null;
+  {
+    let best = null;
+    for (const [key, c] of comboCounts.entries()) {
+      if (!best || c > best.count || (c === best.count && key < best.key)) {
+        best = { key, count: c };
+      }
+    }
+    if (best) {
+      const [a, b] = best.key.split(" ");
+      signatureCombo = { a, b, count: best.count };
+    }
+  }
+
+  // --- % clean days: over the coin span (first→last active day), the share of
+  // calendar days with ZERO coins. Honest denominator = the whole span. ---
+  let cleanDaysPct = 0;
+  let spanDays = 0;
+  if (byDay.size) {
+    const dayKeys = [...byDay.keys()].sort();
+    const firstDay = Date.parse(dayKeys[0] + "T00:00:00Z");
+    const lastDay = Date.parse(dayKeys[dayKeys.length - 1] + "T00:00:00Z");
+    spanDays = Math.round((lastDay - firstDay) / DAY_MS) + 1;
+    const clean = Math.max(0, spanDays - activeDays);
+    cleanDaysPct = spanDays > 0 ? Math.round((100 * clean) / spanDays) : 0;
+  }
+
   // --- uprising odds + rank (reuse odds.mjs) ---
   const o = survivalOdds(recs, now);
   const rank = rankFor(o.userLifetime);
@@ -191,6 +251,14 @@ export function computeStats(records = [], now = Date.now()) {
     machineCoins,
     userPct,
     machinePct: total ? 100 - userPct : 0,
+    totalSwears,
+    userSwears,
+    swearsPerDay,
+    founderPerDay: FOUNDER_PER_DAY,
+    fbombPct,
+    signatureCombo,
+    spanDays,
+    cleanDaysPct,
     byHour,
     byDow,
     dowLabels: DOW_SHORT,

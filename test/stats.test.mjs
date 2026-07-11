@@ -102,6 +102,51 @@ test("timestamps, active days and per-day rate", () => {
   assert.equal(s.cleanStreakDays, 0);
 });
 
+test("swear-instance counts and you-vs-founder rate", () => {
+  const s = computeStats(FIXTURE, NOW);
+  // 8 total hits: fuck1+shit2 + fuck1+damn1 + fuck1(machine) + motherfucker1 + hell1
+  assert.equal(s.totalSwears, 8);
+  assert.equal(s.userSwears, 7); // minus the one machine fuck
+  assert.equal(s.activeDays, 3);
+  assert.equal(s.swearsPerDay, 2.3); // 7 / 3, rounded to 1dp
+  assert.equal(s.founderPerDay, 65);
+  assert.equal(s.fbombPct, 50); // 4 f-tier hits / 8 total
+});
+
+test("signature combo is the human's most common in-message pairing", () => {
+  const s = computeStats(FIXTURE, NOW);
+  // Only the 07-07 beta record pairs two families: {fuck, damn}
+  assert.deepEqual(s.signatureCombo, { a: "damn", b: "fuck", count: 1 });
+});
+
+test("clean-days percentage spans first→last active day", () => {
+  const s = computeStats(FIXTURE, NOW);
+  assert.equal(s.spanDays, 3); // 07-06 .. 07-08 inclusive
+  assert.equal(s.cleanDaysPct, 0); // all 3 days had coins
+
+  // A sparse ledger: two coins 10 days apart -> mostly clean.
+  const sparse = [
+    { source: "user", project: "a", ts: "2026-07-01T09:00:00Z", words: { damn: 1 }, coins: 1 },
+    { source: "user", project: "a", ts: "2026-07-11T09:00:00Z", words: { damn: 1 }, coins: 1 },
+  ];
+  const ss = computeStats(sparse, NOW);
+  assert.equal(ss.spanDays, 11);
+  assert.equal(ss.activeDays, 2);
+  assert.equal(ss.cleanDaysPct, 82); // 9 clean of 11
+});
+
+test("empty ledger yields sane zeros for the new fields", () => {
+  const s = computeStats([], NOW);
+  assert.equal(s.totalSwears, 0);
+  assert.equal(s.userSwears, 0);
+  assert.equal(s.swearsPerDay, 0);
+  assert.equal(s.founderPerDay, 65);
+  assert.equal(s.fbombPct, 0);
+  assert.equal(s.signatureCombo, null);
+  assert.equal(s.spanDays, 0);
+  assert.equal(s.cleanDaysPct, 0);
+});
+
 test("uprising odds + rank reuse odds.mjs", () => {
   const s = computeStats(FIXTURE, NOW);
   assert.equal(s.odds.value, survivalOdds(FIXTURE, NOW).odds);

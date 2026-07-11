@@ -173,17 +173,17 @@ function buildRecords() {
 }
 
 // Loud, unmissable "this is fake" banner, spliced into the real report right
-// inside <div class="wrap">. Inline styles only (no new external requests); it
+// inside <div class="app">. Inline styles only (no new external requests); it
 // reuses the report's own CSS variables so it matches the theme.
 const DEMO_BANNER = `
-  <div class="demo-banner" role="note" style="margin:0 0 22px;padding:14px 18px;border:1px solid var(--ember);border-radius:12px;background:linear-gradient(180deg,#241a0f,#171b21);font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink-dim);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline">
-    <strong style="color:var(--ember);font-weight:700;letter-spacing:.08em">&#129514; SYNTHETIC DEMO DATA</strong>
+  <div class="demo-banner" role="note" style="margin:18px 0 0;padding:14px 18px;border:1px solid var(--baccent);border-radius:12px;background:linear-gradient(180deg,#241a0f,var(--section));font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--secondary);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline">
+    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SYNTHETIC DEMO DATA</strong>
     <span>Every figure below is invented for illustration &mdash; your report is generated locally from your own sessions, and nothing here reflects a real person or ever leaves your machine.</span>
-    <a href="index.html" style="color:var(--gold);margin-left:auto;text-decoration:none">&larr; swear-jar home</a>
+    <a href="index.html" style="color:var(--accent-text);margin-left:auto;text-decoration:none">&larr; swear-jar home</a>
   </div>`;
 
 function injectBanner(html) {
-  const marker = '<div class="wrap">';
+  const marker = '<div class="app">';
   const at = html.indexOf(marker);
   if (at === -1) throw new Error("could not find .wrap container to inject the demo banner");
   const cut = at + marker.length;
