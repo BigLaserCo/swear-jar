@@ -200,7 +200,7 @@ dictations** — the voice notes you spoke, measured as *swears-per-dictation*. 
 the report this lane is branded **rage.wav** (the tape).
 
 ```
-swear-jar import-dictation [--root <dir>]   # alias: import-superwhisper
+swear-jar import-dictation [--root <dir>]   # historical rage.wav dictation → its own ledger
 swear-jar report --dictation                # the dictation history, on its own
 ```
 
