@@ -27,7 +27,7 @@ import { LEXICON } from "../../src/detect.mjs";
 const HERE = new URL("./", import.meta.url);
 const PLACEHOLDER_HASH = "0".repeat(40); // dev-build sentinel — always unverified
 
-export const AGENTS = ["claude", "codex", "both", "dictation"]; // DELTA 1
+export const AGENTS = ["claude", "codex", "both", "dictation", "other"]; // unified (see test/schema-parity)
 
 export const CAPS = {
   total_coins: 1_000_000,

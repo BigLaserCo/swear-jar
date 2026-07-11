@@ -12,7 +12,7 @@
 // Field set (matches the `wrapped --submit` payload):
 //   total_coins     int    0 .. 1,000,000
 //   dollars         number 0 .. 250,000        (coins * $0.25, but self-reported)
-//   swears_per_day  number 0 .. 10,000
+//   swears_per_day  number 0 .. 5,000
 //   top_word        string ≤ 24, CENSORED ONLY (an uncensored swear is rejected)
 //   fbomb_pct       number 0 .. 100
 //   active_days     int    0 .. 100,000
@@ -20,12 +20,12 @@
 //   app_version     semver-ish string ≤ 32
 //   release_hash    hex string 7..64 chars (git object hash of the release)
 
-export const AGENTS = ["claude", "codex", "superwhisper", "other"];
+export const AGENTS = ["claude", "codex", "both", "dictation", "other"];
 
 export const CAPS = {
   total_coins: 1_000_000,
   dollars: 250_000,
-  swears_per_day: 10_000,
+  swears_per_day: 5_000, // unified with leaderboard (see test/schema-parity)
   fbomb_pct: 100,
   active_days: 100_000,
   top_word_len: 24,

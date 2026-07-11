@@ -123,9 +123,13 @@ async function main() {
       // word, plus the app version + release hash for provenance). It NEVER
       // opens a browser and NEVER uploads — you paste/open the URL yourself.
       const stats = computeStats(loadRecords());
-      const agents = new Set(loadRecords().map((r) => r.agent).filter(Boolean));
+      // Map the ledger's agents onto the canonical submission enum
+      // (claude | codex | both | dictation | other — see funnel/schema.mjs).
+      const present = new Set(loadRecords().map((r) => r.agent).filter(Boolean));
+      const c = present.has("claude");
+      const x = present.has("codex");
       const agent =
-        agents.size === 1 ? [...agents][0] : agents.size ? "other" : "claude";
+        c && x ? "both" : c && present.size === 1 ? "claude" : x && present.size === 1 ? "codex" : "other";
       const top = stats.topWords[0] ? censor(stats.topWords[0].word) : "—";
       const caption =
         `I owe the swear jar ${dollars(stats.totalCoins)} — ${stats.totalCoins} coins, ` +
