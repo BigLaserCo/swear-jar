@@ -10,6 +10,9 @@
 //   (e) the privacy invariant: a transcript carrying swears AND a fake API key,
 //       scanned end-to-end, must leave the key and the message text OUT of
 //       ledger.jsonl / state.json — only word-count keys may appear.
+//   (f) leak-guard: no internal/first-party code in shipped source — no
+//       non-stdlib/non-relative imports, no repo-escaping imports, and no
+//       internal-scope tokens (see scripts/ci/leak-guard.mjs).
 //
 // NB: every secret needle below is assembled from fragments (`frag(...)`) so this
 // scanner's own source never trips its own secret scan — no self-exclusion needed.
@@ -18,6 +21,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { runGuard, formatHit } from "./leak-guard.mjs";
 
 const ROOT = path.resolve(new URL("../../", import.meta.url).pathname);
 const failures = [];
@@ -124,6 +128,16 @@ function checkNoSecrets(tracked) {
   if (!hits) ok("(d) no-secrets", `${tracked.length} tracked file(s) free of secret patterns`);
 }
 
+// ── (f) leak-guard: no internal/first-party code ─────────────────────────────
+function checkLeakGuard() {
+  const { hits, fileCount } = runGuard(ROOT);
+  if (hits.length) {
+    for (const h of hits) fail("(f) leak-guard", formatHit(h));
+  } else {
+    ok("(f) leak-guard", `${fileCount} src/bin/scripts file(s) free of internal/first-party code`);
+  }
+}
+
 // ── (e) privacy invariant ────────────────────────────────────────────────────
 async function checkPrivacy() {
   // Fake key assembled from fragments; the full value only exists at runtime.
@@ -206,6 +220,7 @@ async function main() {
   checkNoNetwork(tracked);
   checkNoDeps();
   checkNoSecrets(tracked);
+  checkLeakGuard();
   await checkPrivacy();
 
   if (failures.length) {
