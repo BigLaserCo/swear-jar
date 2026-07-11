@@ -77,7 +77,12 @@ test("agent enum is closed", () => {
 });
 
 // ── aggregation ─────────────────────────────────────────────────────────────
-const S = (h, over = {}) => ({ ...base, handle: h, verified: true, ...over });
+// dollars derives from coins ($0.25/coin) unless overridden, so a low
+// total_coins never accidentally trips the dollars>coins anomaly guard.
+const S = (h, over = {}) => {
+  const total_coins = over.total_coins ?? base.total_coins;
+  return { ...base, handle: h, verified: true, dollars: total_coins * 0.25, ...over };
+};
 
 test("dedupe keeps a handle's highest total_coins", () => {
   const boards = computeBoards([S("dup", { total_coins: 100 }), S("dup", { total_coins: 900 })]);
