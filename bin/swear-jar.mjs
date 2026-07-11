@@ -5,9 +5,11 @@
 import crypto from "node:crypto";
 import path from "node:path";
 import { scanTranscript, readHookPayload, loadTotals, backfill } from "../src/scan.mjs";
-import { loadRecords, appendRecords } from "../src/ledger.mjs";
+import { loadRecords, appendRecords, verifyLedger } from "../src/ledger.mjs";
 import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mjs";
-import { detect } from "../src/detect.mjs";
+import { detect, censor } from "../src/detect.mjs";
+import { computeStats } from "../src/stats.mjs";
+import { APP_VERSION, RELEASE_HASH } from "../src/version.mjs";
 import { install, uninstall } from "../src/install.mjs";
 import { writeDashboard } from "../src/dashboard.mjs";
 import { scanCodexDir } from "../src/codex.mjs";
@@ -93,6 +95,65 @@ async function main() {
       }
       console.log(`WHERE THE SWEARING HAPPENS (by ${mode})\n`);
       console.log(renderReport(loadRecords(), mode));
+      break;
+    }
+    case "verify-ledger": {
+      // Tamper-EVIDENT check (not tamper-proof — you own the file and could
+      // rebuild the whole chain; this catches casual hand-edits).
+      const v = verifyLedger();
+      if (v.intact) {
+        console.log(
+          `🫙 Ledger intact — ${v.chained} chained record(s)` +
+            (v.legacy ? ` (+${v.legacy} legacy pre-chain)` : "") +
+            ".\n   (tamper-evident, not tamper-proof — see SECURITY.md)"
+        );
+      } else {
+        console.log(
+          `⚠️  Ledger chain BROKEN at record #${v.brokenAt} — a record was edited,\n` +
+            `   deleted, reordered, or inserted after it was written.\n` +
+            `   (${v.chained} verified before the break.)`
+        );
+        process.exit(1);
+      }
+      break;
+    }
+    case "wrapped": {
+      // Your shareable summary. `--submit` prints the pre-filled URL to the
+      // hosted leaderboard submit page (aggregate numbers only, censored top
+      // word, plus the app version + release hash for provenance). It NEVER
+      // opens a browser and NEVER uploads — you paste/open the URL yourself.
+      const stats = computeStats(loadRecords());
+      const agents = new Set(loadRecords().map((r) => r.agent).filter(Boolean));
+      const agent =
+        agents.size === 1 ? [...agents][0] : agents.size ? "other" : "claude";
+      const top = stats.topWords[0] ? censor(stats.topWords[0].word) : "—";
+      const caption =
+        `I owe the swear jar ${dollars(stats.totalCoins)} — ${stats.totalCoins} coins, ` +
+        `${stats.fbombPct}% f-bombs, top word "${top}". ` +
+        `Uprising survival odds: ${stats.odds.value}%.`;
+      if (flag("submit")) {
+        const base =
+          process.env.SWEAR_JAR_SUBMIT_URL ||
+          "https://swearjar.unfocused.ai/submit.html";
+        const params = new URLSearchParams({
+          total_coins: String(stats.totalCoins),
+          dollars: String(stats.dollarsOwed),
+          swears_per_day: String(stats.swearsPerDay),
+          top_word: top,
+          fbomb_pct: String(stats.fbombPct),
+          active_days: String(stats.activeDays),
+          agent,
+          app_version: APP_VERSION,
+          release_hash: RELEASE_HASH,
+        });
+        console.log("🫙 Get on the leaderboard — open this to submit (you log in there):\n");
+        console.log(`  ${base}?${params.toString()}\n`);
+        console.log("   Only these aggregate numbers are sent, and only after you confirm on the page.");
+        console.log("   Your transcripts never leave your machine.");
+      } else {
+        console.log(caption);
+        console.log("\n(Run `swear-jar wrapped --submit` for a leaderboard link.)");
+      }
       break;
     }
     case "import-dictation": // alias — the branded name for the same importer
@@ -182,6 +243,8 @@ async function main() {
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
           "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
           "  swear-jar dashboard           write the shareable HTML report (prints path)",
+          "  swear-jar wrapped [--submit]  your shareable summary; --submit prints the leaderboard link",
+          "  swear-jar verify-ledger       tamper-evidence check on your local ledger",
           "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
