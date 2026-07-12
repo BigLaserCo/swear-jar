@@ -190,6 +190,36 @@ function injectBanner(html) {
   return html.slice(0, cut) + "\n" + DEMO_BANNER + html.slice(cut);
 }
 
+// SEO / social meta for the public demo page. The shared report template carries
+// none of this on purpose (a user's LOCAL report is a file, not a URL) — the
+// discovery payload is injected here, only for the hosted demo.html.
+const DEMO_TITLE = "Swear Jar — sample damage report (demo)";
+const DEMO_DESC =
+  "A fully synthetic Swear Jar damage report — the exact dashboard a real user " +
+  "gets, built from invented data. See coins, favourite words, rage-o-clock, and " +
+  "robot-uprising survival odds. 100% local, zero network.";
+const DEMO_CANON = "https://swearjar.unfocused.ai/demo.html";
+const DEMO_SEO = `<link rel="canonical" href="${DEMO_CANON}">
+<meta name="description" content="${DEMO_DESC}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Swear Jar">
+<meta property="og:title" content="${DEMO_TITLE}">
+<meta property="og:description" content="${DEMO_DESC}">
+<meta property="og:url" content="${DEMO_CANON}">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="${DEMO_TITLE}">
+<meta name="twitter:description" content="${DEMO_DESC}">
+`;
+function injectSeo(html) {
+  const withTitle = html.replace(
+    /<title>[^<]*<\/title>/,
+    `<title>${DEMO_TITLE}</title>`
+  );
+  const at = withTitle.indexOf("</head>");
+  if (at === -1) throw new Error("could not find </head> to inject demo SEO meta");
+  return withTitle.slice(0, at) + DEMO_SEO + withTitle.slice(at);
+}
+
 function main() {
   const records = buildRecords();
   const stats = computeStats(records, NOW);
@@ -199,6 +229,7 @@ function main() {
   // explicitly suppressed here. A demo regen can never inject an external URL.
   let html = renderDashboard(stats, { donateUrl: false });
   html = injectBanner(html);
+  html = injectSeo(html);
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, html, "utf8");
 

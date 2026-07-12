@@ -1,0 +1,44 @@
+# swear-jar — swearjar.unfocused.ai
+# The whole site is public, static, and safe to crawl. AI/answer-engine crawlers
+# are explicitly welcome (this is a discovery surface, not a walled garden).
+# admin.html is a debug console — it carries a noindex meta and is left out of the
+# sitemap on purpose; it is not disallowed here so a crawler can still read that tag.
+
+User-agent: *
+Allow: /
+
+# Answer-engine / AI crawlers — explicitly allowed.
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+Sitemap: https://swearjar.unfocused.ai/sitemap.xml

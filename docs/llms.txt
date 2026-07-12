@@ -1,0 +1,32 @@
+# Swear Jar (unfocused.ai)
+
+> A local swear jar for AI coding sessions. It reads your Claude Code and Codex
+> session transcripts on your own machine, tallies every curse into coins, and
+> builds a "damage report" — your total, favourite words, when you rage most, and
+> your robot-uprising survival odds. Free and MIT-licensed.
+
+Swear Jar (https://swearjar.unfocused.ai/) is a novelty developer tool from
+unfocused.ai. It installs as a hook into Claude Code / Codex and scans new
+transcript lines as you work, with a one-command backfill for your existing
+history.
+
+## Privacy stance
+
+- Runs 100% locally. No account, no server, no upload, no network calls.
+- Only word COUNTS are stored — never a transcript, never the raw text of what
+  you said. The append-only ledger and the report are built entirely on-device.
+- Shared cards and the optional public leaderboard carry aggregate numbers and
+  censored words only (f***), never a sentence you wrote.
+- Zero runtime dependencies; the source is short and worth reading.
+
+## Install (one line)
+
+- `npx swear-jar init` — guided first-run setup + history backfill.
+- Or from source: `npx github:BigLaserCo/swear-jar init`.
+
+## Links
+
+- Home: https://swearjar.unfocused.ai/
+- Live demo report: https://swearjar.unfocused.ai/demo.html
+- Source (MIT): https://github.com/BigLaserCo/swear-jar
+- Maker: https://unfocused.ai/ · TikTok https://tiktok.com/@biglaserco · YouTube https://youtube.com/@BigLaserCo
