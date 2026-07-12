@@ -30,11 +30,17 @@ export const FOUNDER_BENCHMARK = 65;
 // Fixed placeholder so a no-arg render is deterministic (CI regenerates + diffs).
 export const DEFAULT_NOW = "2026-07-10T00:00:00.000Z";
 
-// Static plausibility bounds. A row past any of these is held for review and
-// EXCLUDED from the ranked boards (a fun board, but obvious fakes don't rank).
+// Plausibility calibration (against the Founder's real usage: ~183 coins/day
+// over an 8,708-coin jar). A submission RANKS only if it clears both gates:
+//   (a) active_days >= MIN_ACTIVE_DAYS — fewer days isn't enough signal to rank
+//       (held with an honest "needs more days" state, not called a fake), and
+//   (b) total_coins <= active_days * coins_per_active_day — beyond that the
+//       coins-per-day rate isn't humanly sustainable, so it's held for review.
+// Anything held is EXCLUDED from the ranked boards (a fun board, not a ledger).
+const MIN_ACTIVE_DAYS = 7;
 const REVIEW_BOUNDS = {
   swears_per_day: 2_000, // sustained rate this high is not a human
-  coins_per_active_day: 5_000, // coins/day ceiling
+  coins_per_active_day: 200, // calibrated to the Founder's ~183 coins/day
 };
 
 const AGENT_BADGE = {
@@ -52,7 +58,8 @@ function fmtInt(n) {
   return Math.round(num(n)).toLocaleString("en-US");
 }
 function fmtMoney(n) {
-  return "$" + num(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Whole dollars, no cents — displayed $ figures round (internal math is exact).
+  return "$" + Math.round(num(n)).toLocaleString("en-US");
 }
 function fmtRate(n) {
   const v = num(n);
@@ -103,16 +110,21 @@ function dedupe(subs) {
   return [...best.values()];
 }
 
-// null == plausible; otherwise a human-readable reason.
+// null == plausible (ranks); otherwise a human-readable reason it's held.
 function anomalyReason(s) {
   const coins = num(s.total_coins);
-  const days = Math.max(num(s.active_days), 1);
+  const days = num(s.active_days);
   const spd = num(s.swears_per_day);
   const dollars = num(s.dollars);
-  if (spd > REVIEW_BOUNDS.swears_per_day) return `swears/day (${fmtInt(spd)}) is implausibly high`;
-  if (coins / days > REVIEW_BOUNDS.coins_per_active_day) {
+  // Gate (a): too few days to rank — an honest "need more data" state, not a fake.
+  if (days < MIN_ACTIVE_DAYS) {
+    return `needs ≥${MIN_ACTIVE_DAYS} days of data (only ${fmtInt(days)} so far)`;
+  }
+  // Gate (b): coins beyond active_days × ceiling isn't a sustainable human rate.
+  if (coins > days * REVIEW_BOUNDS.coins_per_active_day) {
     return `${fmtInt(coins / days)} coins per active day is implausibly high`;
   }
+  if (spd > REVIEW_BOUNDS.swears_per_day) return `swears/day (${fmtInt(spd)}) is implausibly high`;
   if (dollars > coins) return `$${fmtRate(dollars)} owed exceeds ${fmtInt(coins)} coins`;
   return null;
 }
@@ -197,11 +209,25 @@ function boardTable(rows, headline, headers) {
   return `${head}\n${sep}\n${body}`;
 }
 
-export function renderLeaderboard(submissions, { now = DEFAULT_NOW } = {}) {
+export function renderLeaderboard(submissions, { now = DEFAULT_NOW, synthetic = false } = {}) {
   const { mostOwed, fbomb, vsFounder, cleanMouth, unverified, review } = computeBoards(submissions);
   const out = [];
 
   out.push("# 🫙 Swear Jar Leaderboard");
+  out.push("");
+  // Loud banner while the board is still seeded with fake rows (the submit API
+  // goes live at launch; until real confirmed rows land, everything is a mockup).
+  if (synthetic) {
+    out.push(
+      "> 🧪 **Synthetic seed data — every row below is fake, to show the format. " +
+        "Be the first real jar.**"
+    );
+    out.push("");
+  }
+  out.push(
+    "**Updates are manual.** The maintainer refreshes this board by hand with each " +
+      "release — it is not live or continuously updated."
+  );
   out.push("");
   out.push(
     "Opt-in and **aggregate-only**. Everyone here chose to share a handful of summary numbers " +
@@ -389,10 +415,16 @@ export function applySubmission(store, submission) {
 function readSubmissions(url) {
   try {
     const data = JSON.parse(fs.readFileSync(url, "utf8"));
-    if (Array.isArray(data)) return data;
-    return Array.isArray(data?.submissions) ? data.submissions : [];
+    if (Array.isArray(data)) return { submissions: data, synthetic: false };
+    return {
+      submissions: Array.isArray(data?.submissions) ? data.submissions : [],
+      // The committed seed store is synthetic by construction (fake handles). A
+      // real rebuild snapshot sets "synthetic": false; default to true so the
+      // seed board can never silently render as if it held real people.
+      synthetic: data?.synthetic !== false,
+    };
   } catch {
-    return [];
+    return { submissions: [], synthetic: false };
   }
 }
 
@@ -407,8 +439,8 @@ function main(argv) {
   const outArg = opt("--out");
   const out = outArg ? pathToFileURL(outArg) : new URL("../../LEADERBOARD.md", import.meta.url);
 
-  const submissions = readSubmissions(src);
-  const md = renderLeaderboard(submissions, { now });
+  const { submissions, synthetic } = readSubmissions(src);
+  const md = renderLeaderboard(submissions, { now, synthetic });
   fs.writeFileSync(out, md.endsWith("\n") ? md : md + "\n");
   console.log(`leaderboard: rendered ${submissions.length} submission(s) -> ${out.pathname}`);
 }

@@ -1,5 +1,6 @@
 {
   "_comment": "SYNTHETIC seed so LEADERBOARD.md renders before any real submission. Each entry mirrors one public-safe row from the hosted funnel's /api/board.json (a handle + aggregate numbers + a verified flag — never email/PII/text). Real rows replace these once the funnel is live. Fake handles only.",
+  "synthetic": true,
   "submissions": [
     { "handle": "octocat-rage", "verified": true, "total_coins": 8087, "dollars": 2021.75, "swears_per_day": 49, "fbomb_pct": 64, "active_days": 56, "top_word": "f**k", "agent": "both", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },
     { "handle": "commitlord", "verified": true, "total_coins": 5400, "dollars": 1350.0, "swears_per_day": 38, "fbomb_pct": 71, "active_days": 40, "top_word": "s**t", "agent": "claude", "app_version": "0.1.0", "release_hash": "1111111111111111111111111111111111111111" },

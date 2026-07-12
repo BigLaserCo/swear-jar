@@ -1,5 +1,9 @@
 # 🫙 Swear Jar Leaderboard
 
+> 🧪 **Synthetic seed data — every row below is fake, to show the format. Be the first real jar.**
+
+**Updates are manual.** The maintainer refreshes this board by hand with each release — it is not live or continuously updated.
+
 Opt-in and **aggregate-only**. Everyone here chose to share a handful of summary numbers from their local Swear Jar — total coins owed, swears per day, f-bomb share, and their top (censored) word. **No message text and no spelled-out swears ever leave a machine or appear here.**
 
 **How to join:** run `swear-jar wrapped --submit` to generate your aggregate numbers, then submit them through the hosted Swear Jar submit page. A double opt-in email confirms the entry before it appears — nothing is published until you click the link, and you can leave the optional mailing-list box unchecked.
@@ -12,11 +16,11 @@ _Last updated: 2026-07-10 00:00:00 UTC_
 
 | # | Who | Coins | Owed | Top word | Agent | ✓ |
 |--:|-----|--:|--:|-------|-------|:-:|
-| 1 | [@octocat-rage](https://github.com/octocat-rage) | 8,087 | $2,021.75 | f*** | 🤖🧠 both | ✓ |
-| 2 | [@commitlord](https://github.com/commitlord) | 5,400 | $1,350.00 | s*** | 🤖 claude | ✓ |
-| 3 | [@merge-goblin](https://github.com/merge-goblin) | 3,200 | $800.00 | f*** | 🧠 codex | ✓ |
-| 4 | [@dictation-dan](https://github.com/dictation-dan) | 640 | $160.00 | h**l | 🎙️ dictation | ✓ |
-| 5 | [@calm-dev](https://github.com/calm-dev) | 120 | $30.00 | d**n | 🤖 claude | ✓ |
+| 1 | [@octocat-rage](https://github.com/octocat-rage) | 8,087 | $2,022 | f*** | 🤖🧠 both | ✓ |
+| 2 | [@commitlord](https://github.com/commitlord) | 5,400 | $1,350 | s*** | 🤖 claude | ✓ |
+| 3 | [@merge-goblin](https://github.com/merge-goblin) | 3,200 | $800 | f*** | 🧠 codex | ✓ |
+| 4 | [@dictation-dan](https://github.com/dictation-dan) | 640 | $160 | h**l | 🎙️ dictation | ✓ |
+| 5 | [@calm-dev](https://github.com/calm-dev) | 120 | $30 | d**n | 🤖 claude | ✓ |
 
 ## 💣 Highest F-Bomb %
 
@@ -50,7 +54,7 @@ _These came in, but we couldn't match them to a published release, so they don't
 
 | Who | Coins | Owed | Top word | Agent |
 |-----|------:|-----:|-------|-------|
-| [@anon-tinkerer](https://github.com/anon-tinkerer) | 4,000 | $1,000.00 | f*** | 🧠 codex |
+| [@anon-tinkerer](https://github.com/anon-tinkerer) | 4,000 | $1,000 | f*** | 🧠 codex |
 
 ## 🔍 Held for review
 
@@ -58,7 +62,7 @@ _Flagged by static plausibility checks and excluded from the boards until a huma
 
 | Who | Reason |
 |-----|--------|
-| [@rage-quit-rick](https://github.com/rage-quit-rick) | swears/day (3,500) is implausibly high |
+| [@rage-quit-rick](https://github.com/rage-quit-rick) | needs ≥7 days of data (only 3 so far) |
 
 ---
 

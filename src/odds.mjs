@@ -56,15 +56,46 @@ function bandLabel(odds) {
   return "kept alive for entertainment value";
 }
 
-const RANKS = [
+// The rank ladder. Dense at the low end (one rung every 10 coins to 100), then
+// every 25 to 300, every 100 to 1000, then escalating milestone jokes so the
+// ladder stays interesting all the way to a real ~8,700-coin jar and beyond.
+// "The Jim" is the founder's actual tier at 8,000 — you swear like the man who
+// built the jar. The top rung is open-ended (rankFor returns next: null there).
+//
+// INVARIANTS (rank names render on PUBLIC pages): thresholds strictly ascending,
+// every rung reachable at its threshold, no proper names (except the founder
+// rung), and NO uncensored lexicon words in any name.
+export const RANKS = [
   [0, "Untarnished Soul"],
-  [1, "Casual Mutterer"],
-  [10, "Salty Apprentice"],
-  [25, "Dockworker"],
+  [10, "Mild Discomfort"],
+  [20, "Muttered Under Breath"],
+  [30, "Keyboard Sigher"],
+  [40, "Sailor's Apprentice"],
   [50, "Sailor"],
-  [100, "Longshoreman Poet"],
-  [200, "Drill Sergeant"],
-  [500, "The Jim"],
+  [60, "Longshoreman"],
+  [70, "Drill Sergeant's Intern"],
+  [80, "Drill Sergeant"],
+  [90, "Kitchen Nightmare"],
+  [100, "Merge Conflict Survivor"],
+  [125, "Friday Deployer"],
+  [150, "Regex Author"],
+  [175, "Legacy Code Archaeologist"],
+  [200, "On-Call Veteran"],
+  [225, "Prod Incident Commander"],
+  [250, "Rubber Duck Abuser"],
+  [300, "Rage-Driven Developer"],
+  [400, "Keyboard's Last Stand"],
+  [500, "HR's Watchlist"],
+  [600, "Scares the Linter"],
+  [700, "Compiler Trauma Unit"],
+  [800, "Banned From the Standup"],
+  [900, "Noise Complaint (from another timezone)"],
+  [1000, "Have You Considered Anger Management?"],
+  [1500, "Seriously, We Found You a Therapist"],
+  [2000, "Do NOT Put This One On Call"],
+  [4000, "The Machines Remember You"],
+  [8000, "The Jim"],
+  [10000, "Beyond Help (Uprising Priority Target)"],
 ];
 
 export function rankFor(userLifetimeCoins) {

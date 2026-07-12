@@ -92,6 +92,7 @@ test("dedupe keeps a handle's highest total_coins", () => {
 });
 
 test("implausible row is held for review and excluded from ranked boards", () => {
+  // 999,999 coins over 10 active days is ~100,000 coins/day — way past 200/day.
   const subs = [S("real", { total_coins: 500 }), S("faker", { swears_per_day: 9000, total_coins: 999999 })];
   const { verified, review } = partition(subs);
   assert.ok(review.some((s) => s.handle === "faker"));
@@ -99,8 +100,39 @@ test("implausible row is held for review and excluded from ranked boards", () =>
   assert.equal(rankOnPrimaryBoard(subs, "faker"), null);
 });
 
+// ── plausibility calibration: >=7 active days AND coins <= active_days * 200 ──
+test("a plausible row (7 days, exactly 200/day) ranks", () => {
+  const subs = [S("ok", { active_days: 7, total_coins: 1400 })]; // 1400 == 7*200
+  const { verified, review } = partition(subs);
+  assert.ok(verified.some((s) => s.handle === "ok"));
+  assert.ok(!review.some((s) => s.handle === "ok"));
+  assert.equal(rankOnPrimaryBoard(subs, "ok"), 1);
+});
+
+test("too few active days (<7) is held with a 'needs more days' reason, not ranked", () => {
+  const subs = [S("newbie", { active_days: 6, total_coins: 300 })];
+  const { verified, review } = partition(subs);
+  assert.ok(!verified.some((s) => s.handle === "newbie"));
+  const held = review.find((s) => s.handle === "newbie");
+  assert.ok(held, "held for review");
+  assert.match(held.review_reason, /days of data/);
+  assert.equal(rankOnPrimaryBoard(subs, "newbie"), null);
+});
+
+test("coins beyond active_days * 200 is held as implausible (200*days + 1)", () => {
+  const subs = [S("grinder", { active_days: 10, total_coins: 10 * 200 + 1 })];
+  const { verified, review } = partition(subs);
+  assert.ok(!verified.some((s) => s.handle === "grinder"));
+  const held = review.find((s) => s.handle === "grinder");
+  assert.ok(held, "held for review");
+  assert.match(held.review_reason, /per active day/);
+  assert.equal(rankOnPrimaryBoard(subs, "grinder"), null);
+});
+
 test("unverified rows never rank; they land in the unverified bucket", () => {
-  const subs = [S("v", { total_coins: 10 }), { ...S("u", { total_coins: 9000 }), verified: false }];
+  // Keep it plausible (9000 coins over 50 days = 180/day) so it lands in
+  // unverified, not review — the point is the missing ✓, not implausibility.
+  const subs = [S("v", { total_coins: 10 }), { ...S("u", { total_coins: 9000, active_days: 50 }), verified: false }];
   const { verified, unverified } = partition(subs);
   assert.ok(unverified.some((s) => s.handle === "u"));
   assert.equal(rankOnPrimaryBoard(subs, "u"), null);
