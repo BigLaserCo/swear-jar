@@ -20,8 +20,11 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.join(HERE, "..", "docs");
 const PAGES = ["index.html", "demo.html", "tip.html", "wrapped.html"];
 
-// Only github.com/BigLaserCo/swear-jar links are permitted (any path/suffix).
-const ALLOWED_REF = /^https?:\/\/github\.com\/BigLaserCo\/swear-jar/i;
+// Permitted outbound links (click-throughs, NOT page-load subresources — those
+// are separately banned below): the source repo, and the Stripe payment link on
+// the tip page (the one page whose whole job is to send you to checkout).
+const ALLOWED_REF =
+  /^https?:\/\/(github\.com\/BigLaserCo\/swear-jar|(buy|donate)\.stripe\.com\/)/i;
 
 function readPage(name) {
   return fs.readFileSync(path.join(DOCS, name), "utf8");
