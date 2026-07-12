@@ -7,7 +7,10 @@ description: Operate the local swear jar — the running tally of every time the
 
 A novelty jar that drops a coin every time somebody swears at the robots. All
 data is **local word-counts only** — a JSONL ledger at `~/.swear-jar/`, no AI
-calls, no network. Two hooks (this plugin's) already feed it in the background.
+calls, and **the CLI makes no network requests of its own** (the only things
+online are pages the user chooses to open — hosted wrapped, tip, leaderboard —
+carrying only aggregate numbers). Two hooks (this plugin's) already feed it in
+the background.
 
 ## Run the CLI
 

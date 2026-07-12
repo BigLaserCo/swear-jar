@@ -6,22 +6,19 @@ running tally of your **Robot Uprising Survival Odds**.
 
 Zero dependencies. One JSONL ledger. No AI calls.
 
-## The origin story
+## Built by AI
 
-This whole thing exists because a computer crash ate a ten-minute dictation
-mid-thought. While digging for the corpse, I found out Superwhisper had been
-quietly saving **every recording and its transcription, locally, the whole
-time** — months of raw, unfiltered me-talking-to-AI. An absolute f\*\*\*ing gold
-mine. So I asked an AI to analyze how I talk to AI. I did not ask it to count
-the swearing. **It counted the swearing.** Out of everything in there, *that*
-was what it decided I most needed to know about myself.
+Swear Jar is an AI-built application: specified and directed by a human, written
+almost entirely by AI, and not every line has been read by human eyes. Treat it
+accordingly — it's a toy. The source is short and MIT-licensed; read it yourself.
 
-Fine. Jar's over there.
+**Why does this exist?** A crashed dictation, a lucky discovery, and an AI that
+wouldn't stop counting — [the origin story](https://swearjar.unfocused.ai/#origin).
 
 ## Install
 
 ```bash
-git clone git@github.com:your-org/swear-jar.git ~/Code/swear-jar
+git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
 node ~/Code/swear-jar/bin/swear-jar.mjs init
 ```
 
@@ -84,7 +81,7 @@ dashboard".
 The original path, no plugin system involved:
 
 ```
-git clone git@github.com:BigLaserCo/swear-jar.git ~/Code/swear-jar
+git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
 node ~/Code/swear-jar/bin/swear-jar.mjs install
 ```
 
@@ -161,6 +158,11 @@ coins, $ owed, f-bombs %, and your **censored** top word, plus the app version a
 release hash. Nothing is uploaded until you open the link, log in, and confirm on
 the page; your transcripts never leave your machine.
 
+**Status:** the submit page goes live at launch, and [`LEADERBOARD.md`](LEADERBOARD.md)
+currently shows **synthetic seed rows** (fake handles, to demonstrate the format).
+The board is **updated manually** — the maintainer refreshes it by hand with each
+release. It is not live or continuously updated.
+
 ```bash
 swear-jar wrapped            # your shareable summary (no link)
 swear-jar wrapped --submit   # + the pre-filled leaderboard submit link
@@ -175,11 +177,10 @@ You can spot-check your own ledger's integrity with `swear-jar verify-ledger`
 
 ## Website
 
-The public landing page and a live demo report live in [`docs/`](docs/) and are
-served by **GitHub Pages** (Settings → Pages → *Deploy from a branch* → `main`,
-folder `/docs`). Turning Pages on is a one-time repo-settings action for the repo
-owner; once the repo is public and Pages is enabled, the site goes live at the
-Pages URL.
+The public landing page and a live demo report live in [`docs/`](docs/) as plain
+static files. The site is served at **<https://swearjar.unfocused.ai>** and
+deployed with `scripts/deploy-site.sh` (which rsyncs `docs/` to the droplet and
+reloads **Caddy**) — no build step, no framework, no GitHub Pages.
 
 - `docs/index.html` — the landing page. Self-contained: inline CSS/JS, zero
   external requests (the only outbound links point at this repo on GitHub).
@@ -187,11 +188,10 @@ Pages URL.
   engine from fake data (a loud "synthetic demo" banner says so). Regenerate with
   `node scripts/site/buildDemo.mjs` — it is deterministic (fixed seed, same bytes
   every run) and reads **no** real ledger, `~/.swear-jar`, or `~/.claude` data.
-- `docs/.nojekyll` — tells Pages to serve the files verbatim (skip the Jekyll build).
 
-Both pages make zero network requests and carry no uncensored language; the
-`docs/*` invariant is enforced by `test/site.test.mjs` (part of `npm test` and the
-CI gate).
+Both pages make zero network requests of their own and carry no uncensored
+language; the `docs/*` invariant is enforced by `test/site.test.mjs` (part of
+`npm test` and the CI gate).
 
 ## The Uprising Odds
 

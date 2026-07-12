@@ -201,14 +201,15 @@
         <a class="btn ghost" href="demo.html">See a demo report &rarr;</a>
       </div>
       <p class="mono" style="font-size:12px;color:var(--faint);margin:0">
-        No account. No server. No network of any kind. Just a JSONL file on your disk.</p>
+        No account. No server. The app makes zero network requests &mdash; the only
+        things online are pages you choose to open. Just a JSONL file on your disk.</p>
     </div>
 
     <aside aria-label="Sample verdict from the demo report">
       <span class="stamp">&#9873; the damage report</span>
       <div class="wcard">
         <div class="wtop"><span class="wbrand">&#129514; rage, wrapped</span><span class="wtape">rage.wav &middot; 2026</span></div>
-        <div class="wnum tnum"><span class="c">$</span>358.75</div>
+        <div class="wnum tnum"><span class="c">$</span>359</div>
         <div class="wsub">owed to the jar &mdash; from the demo.</div>
         <div class="wmini" aria-hidden="true"></div>
         <div class="wrows">
@@ -230,14 +231,15 @@
     <h2>The origin story</h2>
     <p class="sub">Every jar has a first coin. This one showed up uninvited.</p>
     <div class="origin">
-      <p>This whole thing exists because a computer crash ate a ten-minute
-        dictation mid-thought. While digging for the corpse, I found out
-        Superwhisper had been quietly saving <b>every recording and its
-        transcription, locally, the whole time</b> &mdash; months of raw,
-        unfiltered me-talking-to-AI. An absolute f***ing gold mine.</p>
-      <p>So I asked an AI to analyze how I talk to AI. I did not ask it to count
-        the swearing. <b>It counted the swearing.</b> Out of everything in there,
-        <em>that</em> was what it decided I most needed to know about myself.</p>
+      <p>A computer crash ate a ten-minute dictation mid-thought. While I was
+        hunting for anything that might bring it back, I found the feature that
+        saved me: <b>Superwhisper keeps your recording history on your own
+        machine, by design.</b> And there it all was &mdash; months of me talking
+        to an AI, raw and unfiltered. An absolute f***ing gold mine.</p>
+      <p>So I did the obvious thing: I asked an AI to analyze how I talk to AI. I
+        did not ask it to count the swearing. <b>It counted the swearing.</b> Out
+        of everything in those transcripts, <em>that</em> was what it decided I
+        most needed to know about myself.</p>
       <p class="kicker">Fine. Jar&rsquo;s over there.</p>
     </div>
   </section>
@@ -354,7 +356,7 @@ node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
   <!-- ── pricing tiers ────────────────────────────────────────────────── -->
   <section>
     <p class="sec-eyebrow">The tariff</p>
-    <h2>Every coin is $0.25. Not all coins are equal.</h2>
+    <h2>Every coin is 25&cent;. Not all coins are equal.</h2>
     <p class="sub">The audited lexicon prices swears by grade &mdash; a muttered &ldquo;dang&rdquo; costs a fraction
       of a full artisanal compound. Slurs are deliberately excluded; this is general profanity only.</p>
     <div class="tiers">
@@ -364,7 +366,7 @@ node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
       <div class="tier"><div class="v">5&cent;&times;</div><div class="n">Artisanal</div><div class="ex">the choicest compounds</div></div>
     </div>
     <p class="mono" style="font-size:11.5px;color:var(--faint);margin-top:14px">
-      (&cent;&times; = coins per hit &times; $0.25. A single artisanal compound is $1.25 in the jar.)</p>
+      (&cent;&times; = coins per hit &times; 25&cent;. A single artisanal compound is five coins &mdash; a buck and a quarter in the jar.)</p>
   </section>
 
   <!-- ── closing ──────────────────────────────────────────────────────── -->
@@ -381,7 +383,10 @@ node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
   </section>
 
   <footer>
-    <span><b>&#129514; swear-jar</b> &mdash; from unfocused.ai. UNLICENSED / private preview.</span>
+    <span><b>&#129514; swear-jar</b> &mdash; from unfocused.ai. MIT-licensed &middot; private preview.</span>
+    <span>An AI-built application: specified and directed by a human, written almost entirely by AI, and not every
+      line has been read by human eyes. Treat it accordingly &mdash; it&rsquo;s a toy. The source is short and
+      MIT-licensed; <a href="https://github.com/BigLaserCo/swear-jar">read it yourself</a>.</span>
     <span><a href="demo.html">Demo report</a> &middot; <a href="tip.html">Tip the jar</a> &middot; <a href="https://github.com/BigLaserCo/swear-jar">Source on GitHub</a></span>
   </footer>
 

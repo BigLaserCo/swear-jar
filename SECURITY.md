@@ -1,5 +1,10 @@
 # Security & Privacy
 
+> **Note.** Swear Jar is an AI-built application: specified and directed by a
+> human, written almost entirely by AI, and not every line has been read by
+> human eyes. Treat it accordingly — it's a toy. The source is short and
+> MIT-licensed; read it yourself.
+
 swear-jar is a local novelty tool: it counts how often you (and your AI) swear
 while you work, and shows you the tally. It is built to be **boring and
 trustworthy** — no network, no dependencies, no data leaving your machine. This
@@ -63,8 +68,9 @@ build red, so a regression can't ship. Run the whole gate yourself with
 | **Tamper-EVIDENT ledger.** Casual, silent edits to your local ledger are detectable. | Each row carries `h = sha256(previousRowHash + the row's own fields)`, chaining every row to the one before it. `verifyLedger()` in `src/ledger.mjs` re-walks the chain and reports the first row whose hash no longer recomputes. This is **tamper-evident, not tamper-proof**: anyone who owns the file can rebuild the whole chain — the point is to make casual hand-edits *visible*, not to stop a determined editor. |
 | **No install-time code execution.** | Dependencies are zero (enforced by **(c)**), so `npm install` fetches nothing and runs no third-party lifecycle scripts. The package's own `package.json` declares **no** `install` / `postinstall` / `prepare` script — only `test` and `verify`. |
 
-The whole shipped program is **about 1,600 lines of Node standard-library
-JavaScript** across `bin/` and `src/` — small enough to read in a sitting.
+The whole shipped program is **about 2,600 lines of Node standard-library
+JavaScript** (~1,900 excluding comments and blanks) across `bin/` and `src/` —
+small enough to read in a sitting.
 
 ## Verify it yourself in 60 seconds
 
@@ -74,8 +80,14 @@ You don't have to trust the table above — confirm it directly:
    ```sh
    grep -rnE 'fetch|http|net\.connect|child_process' src bin
    ```
-   The only match is a *comment* in `src/dashboard.mjs` stating it never
-   fetches anything — there are no call sites.
+   Every hit falls into exactly two classes, and none is a network call site:
+   `https://…` URL *strings* (the hosted-page and tip links the CLI prints or
+   your browser opens — printing a URL is not a request), and one real
+   `node:child_process` import in `src/open.mjs`, which spawns your OS's
+   "open this in the browser" helper (`open`/`start`/`xdg-open`) — a local
+   program launch, no socket, no data sent. There are **zero**
+   `fetch`/`http.request`/`net.connect` call sites; verify check **(b)
+   no-network** fails the build if one ever appears.
 
 2. **It works with the network off.** Turn off Wi-Fi / pull the cable and run
    any command (`swear-jar status`, `swear-jar backfill`). Everything still
@@ -88,7 +100,7 @@ You don't have to trust the table above — confirm it directly:
    You'll see family counts, the metadata fields above, and a per-row hash —
    no message text, no secrets.
 
-4. **Read the source.** It's ~1,600 lines of plain stdlib JavaScript in `bin/`
+4. **Read the source.** It's ~2,600 lines of plain stdlib JavaScript in `bin/`
    and `src/`. No build step, no minification, no dependencies to audit.
 
 5. **Run the gate.**
@@ -101,5 +113,11 @@ You don't have to trust the table above — confirm it directly:
 ## Reporting a security issue
 
 Found something — a leak, an unexpected write, a way to make it phone home?
-Please report it privately to **jim@biglaser.co** rather than opening a public
-issue, and allow a little time for a fix before disclosure. Thank you.
+Please report it **privately** rather than opening a public issue, and allow a
+little time for a fix before disclosure:
+
+- **GitHub private vulnerability reporting** — the *"Report a vulnerability"*
+  button on this repo's **Security** tab, or
+- **<https://setupyour.ai/contact>**
+
+Thank you.

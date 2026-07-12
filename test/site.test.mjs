@@ -1,4 +1,4 @@
-// Invariants for the public site under docs/ (GitHub Pages).
+// Invariants for the public site under docs/ (served at swearjar.unfocused.ai via Caddy).
 //
 // Two hard guarantees, enforced on every build:
 //   1. Zero external requests. The only http(s) references allowed anywhere in
@@ -44,7 +44,7 @@ test("the site pages exist and .nojekyll is present", () => {
   for (const p of PAGES) {
     assert.ok(fs.existsSync(path.join(DOCS, p)), `${p} exists`);
   }
-  assert.ok(fs.existsSync(path.join(DOCS, ".nojekyll")), "docs/.nojekyll exists (Pages serves verbatim)");
+  assert.ok(fs.existsSync(path.join(DOCS, ".nojekyll")), "docs/.nojekyll exists (harmless static-serve marker)");
 });
 
 for (const name of PAGES) {

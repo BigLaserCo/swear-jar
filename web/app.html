@@ -349,7 +349,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (n) => Number(n || 0).toLocaleString("en-US");
-  const usd = (d) => "$" + Number(d || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const usd = (d) => "$" + Math.round(Number(d || 0)).toLocaleString("en-US");   // whole dollars, no cents
+  const cents = (d) => Math.round(Number(d || 0) * 100) + "¢";                    // sub-dollar coin price
 
   $("verstamp").textContent = `v${APP_VERSION}`;
 
@@ -530,7 +531,7 @@
     $("herosub").innerHTML = S.totalCoins
       ? `You dropped <span class="accent">${fmt(S.totalCoins)}</span> coins in the jar across ` +
         `<span class="accent">${fmt(S.activeDays)}</span> active day${S.activeDays === 1 ? "" : "s"} — about ` +
-        `<span class="accent">${fmt(S.coinsPerActiveDay)}</span> a day. At ${usd(S.coinValue)} a coin, it adds up.`
+        `<span class="accent">${fmt(S.coinsPerActiveDay)}</span> a day. At ${cents(S.coinValue)} a coin, it adds up.`
       : `The jar is empty. Suspiciously polite. Either you are a saint or you picked the wrong folder.`;
     const cap = 120;
     const inJar = (S.totalCoins % cap) || (S.totalCoins ? cap : 0);

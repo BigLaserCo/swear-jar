@@ -1,8 +1,11 @@
 # Installing swear-jar
 
 Every path below pulls **zero dependencies** and runs **no install scripts** —
-swear-jar is one small Node ESM package (stdlib only), a single local ledger, and
-no network calls, ever. Requires **Node ≥ 20**.
+swear-jar is one small Node ESM package (stdlib only) and a single local ledger.
+**The CLI itself makes zero network requests and never uploads anything**; the
+only things online are pages you deliberately open in your browser (your hosted
+wrapped report, the tip page, the opt-in leaderboard submit), and those carry
+only the disclosed aggregate numbers — never your words. Requires **Node ≥ 20**.
 
 After any install, run **`init` first** — the guided first-run wizard. It wires
 the hooks, finds and backfills your entire Claude Code (and optional Codex /
@@ -56,6 +59,8 @@ Power-user alternative: run `swear-jar install` then `swear-jar backfill` by
 hand. Check the jar any time with `swear-jar status`.
 
 ## c) Claude Code plugin — one marketplace, one install
+
+Works once the repo is public:
 
 ```
 /plugin marketplace add BigLaserCo/swear-jar
