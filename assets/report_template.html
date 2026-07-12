@@ -324,7 +324,7 @@
           <div class="wmini" id="wmini"></div>
         </div>
         <div class="wstats" id="wstats"></div>
-        <div class="wfoot">processed locally · nothing left this machine · biglaser.co</div>
+        <div class="wfoot">processed locally · nothing left this machine · swearjar.unfocused.ai</div>
       </div>
       <div class="share-actions">
         <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
@@ -362,6 +362,7 @@
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
     <div><b>Status.</b> Swear Jar is UNLICENSED / private preview — not yet released. Your numbers are yours to keep.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
+    <div><b>Made by Jim — Big Laser Co.</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -572,6 +573,8 @@ $('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\
   $('donate-btn').href=url;
   const amts=[['$5','buy a vowel'],['$10','recommended'],['$25','genuinely sorry'],[usd(S.dollarsOwed),'pay it all, legend']];
   $('donate-tiers').innerHTML=amts.map(a=>`<a href="${url}" target="_blank" rel="noopener">${a[0]}<span style="color:var(--faint)"> · ${a[1]}</span></a>`).join('');
+  // credit + tip travel together: the footer byline links the same jar.
+  const ct=$('credit-tip'); ct.href=url; ct.style.display='inline';
 })();
 
 // ---- see it in lights (config-injected hosted wrapped URL; hidden if unset) ----
