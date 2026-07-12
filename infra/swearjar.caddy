@@ -4,6 +4,11 @@
 # Access logs capture the /wrapped?<aggregate-params> hits (the simple, no-Worker
 # data path). Install: scp to /etc/caddy/conf.d/swearjar.caddy, then
 # `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`.
+# Bare domain + www → the app (until unfocused.ai hosts its own umbrella page).
+unfocused.ai, www.unfocused.ai {
+    redir https://swearjar.unfocused.ai{uri} permanent
+}
+
 swearjar.unfocused.ai {
     encode zstd gzip
     root * /var/www/swearjar
