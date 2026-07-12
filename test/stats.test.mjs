@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { computeStats } from "../src/stats.mjs";
-import { survivalOdds } from "../src/odds.mjs";
+import { survivalOdds, rankFor } from "../src/odds.mjs";
 
 const NOW = Date.parse("2026-07-09T12:00:00Z"); // a Thursday
 
@@ -149,10 +149,13 @@ test("empty ledger yields sane zeros for the new fields", () => {
 
 test("uprising odds + rank reuse odds.mjs", () => {
   const s = computeStats(FIXTURE, NOW);
-  assert.equal(s.odds.value, survivalOdds(FIXTURE, NOW).odds);
+  const o = survivalOdds(FIXTURE, NOW);
+  assert.equal(s.odds.value, o.odds);
   assert.equal(s.odds.royalty, false);
-  assert.equal(s.rank.current, "Salty Apprentice");
-  assert.deepEqual(s.rank.next, { name: "Dockworker", at: 25 });
+  // stats delegates rank to odds.mjs's rankFor(userLifetime) — assert that
+  // reuse directly so the ladder can evolve without breaking this test.
+  assert.deepEqual(s.rank, rankFor(o.userLifetime));
+  assert.ok(typeof s.rank.current === "string" && s.rank.current.length > 0);
 });
 
 test("machine out-swearing the human flips odds to royalty", () => {

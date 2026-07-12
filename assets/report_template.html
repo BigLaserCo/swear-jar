@@ -360,7 +360,7 @@
   <footer>
     <div><b>How this works.</b> Swear Jar read your AI coding session transcripts on this computer, tallied the swears into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. No account, no server, no upload, no network. Open the source and check.</div>
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
-    <div><b>Status.</b> Swear Jar is UNLICENSED / private preview — not yet released. Your numbers are yours to keep.</div>
+    <div><b>Status.</b> Swear Jar is MIT-licensed / private preview — not yet released. Your numbers are yours to keep.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
     <div><b>Made by Jim — unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
   </footer>
@@ -371,7 +371,8 @@
 const S = /*__DATA__*/{};
 const $=(id)=>document.getElementById(id);
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
-const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd=(d)=>'$'+Math.round(Number(d||0)).toLocaleString('en-US');   // whole dollars, no cents
+const cents=(d)=>Math.round(Number(d||0)*100)+'¢';                     // sub-dollar coin price
 const coinUsd=(coins)=>usd((coins||0)*S.coinValue);
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
@@ -394,7 +395,7 @@ const fav=S.topWords&&S.topWords[0];
 $('heronum').textContent=fmt(Math.round(S.dollarsOwed));
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 $('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
-  `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${usd(S.coinValue)} a coin, the mic heard all of it.`;
+  `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${cents(S.coinValue)} a coin, the mic heard all of it.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span><b>${fmt(S.activeDays)}</b> active days</span>`+

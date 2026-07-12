@@ -5,8 +5,10 @@ import { survivalOdds, rankFor } from "./odds.mjs";
 
 export const COIN_VALUE = 0.25;
 
+// User-facing dollar amounts show WHOLE dollars (no cents) — "$2,022", never
+// "$2,021.75". Internal math stays exact ($0.25/coin); only the display rounds.
 export function dollars(coins) {
-  return `$${(coins * COIN_VALUE).toFixed(2)}`;
+  return `$${Math.round(coins * COIN_VALUE).toLocaleString("en-US")}`;
 }
 
 export function renderJar(coins) {

@@ -214,7 +214,7 @@ test("init --yes scans every found source, writes the report, and is idempotent"
   await runInit({ yes: true, noHooks: true, claudeRoot, codexRoot, superwhisperRoot, output: c2.stream });
   assert.equal(loadRecords().length, 2, "no new jar records on re-run");
   assert.equal(loadDictationRecords().length, 1, "no new dictation records on re-run");
-  assert.match(c2.text(), /Jar so far: \$1\.50 — re-running is safe/); // 6 coins * $0.25
+  assert.match(c2.text(), /Jar so far: \$2 — re-running is safe/); // 6 coins * $0.25 = $1.50, displayed whole ($2)
 });
 
 // ── milestone-3 closing beat: hosted-vs-local + the open gate ─────────────────
