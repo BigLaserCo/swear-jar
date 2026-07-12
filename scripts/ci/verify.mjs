@@ -17,6 +17,10 @@
 //       (specs, plans, agent notes) live in the gitignored internal/ tier and
 //       must never be tracked. Fails on any tracked path under internal/ or
 //       any tracked file with an internal-doc basename.
+//   (h) claims guard: public copy must be 100% accurate. Fails on phrasings
+//       audited FALSE or banned by editorial decision (stale hosting claims,
+//       operator email, placeholder org, disrespectful third-party framing,
+//       cents in displayed dollar amounts in generated public artifacts).
 //
 // NB: every secret needle below is assembled from fragments (`frag(...)`) so this
 // scanner's own source never trips its own secret scan — no self-exclusion needed.
@@ -202,6 +206,42 @@ function checkInternalDocs(tracked) {
   if (!hits) ok("(g) internal-docs", `${tracked.length} tracked file(s) free of internal-tier docs`);
 }
 
+// ── (h) claims guard: no audited-false or banned phrasings in public copy ────
+// Each entry: [label, regex, why]. Needles that must never ship are assembled
+// with frag() so this file can't trip its own scan. Scope: every tracked file
+// (the whole tree is the public tier).
+const BANNED_CLAIMS = [
+  ["operator email", new RegExp(frag("jim", "@", "biglaser", "\\.co")), "no personal emails on public surfaces — use the contact page"],
+  ["placeholder org", /github\.com[:/]your-org\//, "install commands must reference the real repo"],
+  ["stale hosting claim", /served by \*{0,2}GitHub Pages|deploy from a branch/i, "site is served at swearjar.unfocused.ai via Caddy, not Pages"],
+  ["sneaky third-party framing", /quietly sav|secretly (sav|stor|record)|sneak\w* (sav|stor|record)/i, "third-party local storage is a documented feature — never frame it as covert"],
+];
+// Generated public artifacts must show whole dollars (editorial: no cents).
+const DOLLAR_CENTS = /\$\d[\d,]*\.\d/;
+const WHOLE_DOLLAR_FILES = ["LEADERBOARD.md", "docs/demo.html", "docs/index.html"];
+// Self-exclusion: this file necessarily contains the banned patterns it hunts
+// (same rationale as leak-guard's SELF_EXCLUDE).
+const CLAIMS_SELF_EXCLUDE = new Set(["scripts/ci/verify.mjs"]);
+function checkClaims(tracked) {
+  let hits = 0;
+  for (const f of tracked) {
+    if (CLAIMS_SELF_EXCLUDE.has(f)) continue;
+    const text = readText(f);
+    if (text == null) continue;
+    for (const [name, re, why] of BANNED_CLAIMS) {
+      if (re.test(text)) { fail("(h) claims", `${name} in ${f} — ${why}`); hits++; }
+    }
+  }
+  for (const f of WHOLE_DOLLAR_FILES) {
+    const text = readText(f);
+    if (text != null && DOLLAR_CENTS.test(text)) {
+      fail("(h) claims", `cents in a displayed dollar amount in ${f} — public $ figures are whole dollars`);
+      hits++;
+    }
+  }
+  if (!hits) ok("(h) claims", `${tracked.length} tracked file(s) free of banned/false claims`);
+}
+
 // ── (e) privacy invariant ────────────────────────────────────────────────────
 async function checkPrivacy() {
   // Fake key assembled from fragments; the full value only exists at runtime.
@@ -286,6 +326,7 @@ async function main() {
   checkNoSecrets(tracked);
   checkLeakGuard();
   checkInternalDocs(tracked);
+  checkClaims(tracked);
   await checkPrivacy();
 
   if (failures.length) {

@@ -141,7 +141,9 @@ export function formatHit(h) {
 }
 
 // ── read the real tracked source (one read per file) ─────────────────────────
-const SCANNED_PREFIXES = ["bin/", "src/", "scripts/"];
+// funnel/ (the submission Worker) and web/ (the browser app) ship publicly too,
+// so they get the same internal-code scan as bin/src/scripts.
+const SCANNED_PREFIXES = ["bin/", "src/", "scripts/", "funnel/", "web/"];
 // This scanner's own source is skipped — it necessarily contains the patterns
 // and denylist it hunts (see the SELF-EXCLUSION note in the header).
 const SELF_EXCLUDE = new Set(["scripts/ci/leak-guard.mjs"]);
