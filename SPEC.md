@@ -268,3 +268,74 @@ README reads clean top-to-bottom (init present, no duplicate sections).
 - Leaderboard/funnel changes — none.
 - New metrics or report sections — none (origin footer line only).
 - Windows path candidates for Superwhisper — typed-path fallback covers it.
+
+---
+
+# SPEC ADDENDUM — Milestone 2: monetization-v1 (auto-open + tip jar)
+
+Status: approved (Jim, 2026-07-11) · Implements: "run the command → the report
+opens in your face → the tip link is on it", and every door ends with a
+"don't forget to tip" line.
+
+## A. Single source of truth for the tip link
+
+- New `src/donate.mjs`: `export const DONATE_URL` =
+  `https://swearjar.biglaser.co/tip.html` (env override
+  `SWEAR_JAR_DONATE_URL`). Everything (CLI lines, report button, skill copy)
+  imports this — never a second literal.
+- New `docs/tip.html` — the indirection page ("the jar takes real money"),
+  inline-styled, zero scripts/fonts/requests like the rest of docs/*. Its
+  single button href is the ONLY place the real payment target lives —
+  temporarily `https://github.com/BigLaserCo/swear-jar` (passes the docs
+  link invariant) until Jim drops in his Buy-Me-a-Coffee URL at launch
+  (marked `TODO(launch-tip-target)`). Swapping it later requires NO CLI
+  release — that's the point of the indirection.
+- `docs/index.html`: nav + footer gain a RELATIVE `tip.html` link (relative
+  links pass `site.test.mjs` untouched) plus a one-line "the jar takes real
+  money" blurb near the CTA.
+
+## B. Donate is default-ON in the report
+
+- `writeDashboard`/`renderDashboard`: `donateUrl` now DEFAULTS to
+  `DONATE_URL`. `--donate-url <url>` still overrides; new `--no-donate`
+  (and `donateUrl: false`) hides the section (the old default).
+- `test/dashboard.test.mjs`: flip the "hidden by default" test → shown by
+  default with DONATE_URL, custom override works, `--no-donate` hides.
+
+## C. Auto-open the report ("click to see it" → it's just open)
+
+- New `src/open.mjs`: `openCommandFor(platform)` (darwin `open`, win32
+  `start`, else `xdg-open`) + `openInBrowser(path)` — fire-and-forget
+  detached spawn, errors swallowed (opening is a courtesy, never a failure).
+- `init` and `dashboard` auto-open the written report WHEN
+  `process.stdout.isTTY` && no `--no-open` && `!process.env.SWEAR_JAR_NO_OPEN`.
+  The path is ALWAYS printed either way. Non-TTY (Claude skill runs, CI,
+  pipes) never opens — mechanically, not by convention.
+- Copy updates everywhere "never opens/launches a browser" is promised for
+  init/dashboard: new truth is "opens your report in a real terminal; pass
+  --no-open (or SWEAR_JAR_NO_OPEN=1) to just print the path". The
+  `wrapped --submit` NEVER-opens promise is UNCHANGED (that link uploads on
+  confirm; opening it must stay the user's deliberate act).
+- Unit tests: command selection per platform; the TTY/flag/env gate (test the
+  decision function, not a real spawn).
+
+## D. Every door ends with the tip line
+
+- `init` summary, `status`, and `wrapped` (no-submit form) each end with ONE
+  line, e.g.:
+  `🫙 The jar takes real money too — empty yours: <DONATE_URL>`
+  (exact copy may vary per command voice; one line, always the DONATE_URL).
+- `skills/swear-jar/SKILL.md`: First run / Launch step 5 and the command
+  table: relay the report path + ALWAYS relay the tip line verbatim; note the
+  CLI won't auto-open under Claude (non-TTY) so the path relay matters.
+- README + docs/INSTALL.md: dashboard/init copy updated for auto-open +
+  `--no-open`; a short "Tip the founder" line with the tip URL.
+
+## E. Invariants (unchanged unless stated)
+
+- docs/* zero-request invariant stays; tip.html carries no scripts and only
+  GitHub-or-relative refs until Jim swaps the target himself.
+- The report stays fully local/offline; the donate button is an <a href> a
+  human clicks — no fetch, no tracking, no auto-request anywhere.
+- Leaderboard submit flow untouched.
+- Zero new dependencies; hooks (`scan`) untouched and never open anything.
