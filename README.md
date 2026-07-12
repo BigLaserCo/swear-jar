@@ -27,8 +27,9 @@ node ~/Code/swear-jar/bin/swear-jar.mjs init
 
 `init` is the recommended first step: a guided first-run wizard that wires the
 hooks, finds and backfills your Claude Code / Codex / dictation history, writes
-your damage report, and prints the path — zero to the "you owe $X,XXX" moment in
-one command. It's safe to re-run; nothing double-counts.
+your damage report, and opens it (the path is always printed; pass `--no-open`
+or set `SWEAR_JAR_NO_OPEN=1` to just print) — zero to the "you owe $X,XXX"
+moment in one command. It's safe to re-run; nothing double-counts.
 
 Prefer to drive it by hand? The power-user path is the two underlying steps —
 `install` to wire the hooks, then `backfill` to retro-scan your history:
@@ -108,11 +109,14 @@ swear-jar install|uninstall   wire/unwire the Claude Code hooks
 swear-jar dashboard           build the local HTML damage report
 ```
 
-`swear-jar dashboard` folds your ledger into a single self-contained HTML page
-and writes it to `~/.swear-jar/report.html`, then **prints the path** — it
-never opens a browser for you (open the file yourself when you want it). The
-page is 100% local and offline: no CDN, no fonts, no remote images, no network
-of any kind. Everything is inlined.
+`swear-jar dashboard` folds your ledger into a single self-contained HTML page,
+writes it to `~/.swear-jar/report.html`, **prints the path**, and — in a real
+terminal — **opens your report for you**. Pass `--no-open` (or set
+`SWEAR_JAR_NO_OPEN=1`) to just print the path; non-interactive runs (CI, pipes,
+Claude driving the CLI) never auto-open. The page is 100% local and offline: no
+CDN, no fonts, no remote images. Everything is inlined, and nothing on it makes
+a request — the only link out is the donate button, which goes nowhere unless
+you click it.
 
 What it shows: the hero **$ owed to the jar**, the **you-vs-machine** split, the
 **Robot Uprising** odds gauge + your rank, **coins by project**, a rage-o-clock
@@ -120,13 +124,22 @@ What it shows: the hero **$ owed to the jar**, the **you-vs-machine** split, the
 Swears are **censored by default** (`f***`) — a toggle reveals them locally, and
 the share card carries only aggregate numbers, never a word of what you said.
 
-An optional "empty your jar" donate button stays hidden unless you pass a
-donate URL when rendering — there is no payment link baked in.
+The "empty your jar" donate section is **on by default** and points at the tip
+jar (see [Tip the founder](#tip-the-founder)). Point it somewhere else with
+`--donate-url <url>`, or hide it entirely with `--no-donate`. It's a plain
+link a human clicks — the page never makes a request on its own.
 
 The renderer is exported for embedding: `renderDashboard(stats, { donateUrl })`
-returns the filled HTML string, and `writeDashboard(records, opts)` writes the
+returns the filled HTML string (`donateUrl` defaults to the tip-jar URL; pass
+`false` to hide the section), and `writeDashboard(records, opts)` writes the
 report and returns its path (`src/dashboard.mjs`); `computeStats(records, now)`
 produces the stats object (`src/stats.mjs`).
+
+## Tip the founder
+
+The jar takes real money too — empty yours:
+**<https://swearjar.unfocused.ai/tip.html>**. Every command signs off with the
+same reminder; that page is where the coins go.
 
 ## Leaderboard (optional)
 

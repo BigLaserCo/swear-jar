@@ -19,6 +19,8 @@ import {
   loadDictationRecords,
 } from "../src/superwhisper.mjs";
 import { runInit, detectSources } from "../src/init.mjs";
+import { tipLine } from "../src/donate.mjs";
+import { shouldAutoOpen, openInBrowser } from "../src/open.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -62,6 +64,7 @@ async function main() {
       await runInit({
         yes: Boolean(flag("yes")),
         noHooks: Boolean(flag("no-hooks")),
+        noOpen: Boolean(flag("no-open")),
         superwhisperRoot: typeof rootFlag === "string" ? rootFlag : undefined,
         codexRoot: typeof codexRootFlag === "string" ? codexRootFlag : undefined,
         outPath: typeof outFlag === "string" ? outFlag : undefined,
@@ -96,16 +99,26 @@ async function main() {
       break;
     }
     case "dashboard": {
-      // Renders the shareable HTML report. Prints the path — NEVER auto-opens.
+      // Renders the shareable HTML report. The path is ALWAYS printed; in a
+      // real terminal the report also opens (--no-open / SWEAR_JAR_NO_OPEN=1
+      // to just print — non-TTY runs mechanically never open). Donate is
+      // default-ON (the tip jar); --donate-url overrides, --no-donate hides.
+      const donateFlag = flag("donate-url");
       const outPath = writeDashboard(loadRecords(), {
-        donateUrl: flag("donate-url") || undefined,
+        donateUrl: flag("no-donate") ? false : typeof donateFlag === "string" ? donateFlag : undefined,
         outPath: flag("out") || undefined,
       });
       console.log(`🫙 Dashboard written: ${outPath}`);
+      if (shouldAutoOpen({ isTTY: process.stdout.isTTY, noOpen: Boolean(flag("no-open")) })) {
+        openInBrowser(outPath);
+        console.log("   Opening it for you — pass --no-open (or SWEAR_JAR_NO_OPEN=1) to just print the path.");
+      }
       break;
     }
     case "status": {
       console.log(renderStatus(loadRecords()));
+      console.log("");
+      console.log(tipLine());
       break;
     }
     case "report": {
@@ -180,6 +193,7 @@ async function main() {
       } else {
         console.log(caption);
         console.log("\n(Run `swear-jar wrapped --submit` for a leaderboard link.)");
+        console.log("\n" + tipLine());
       }
       break;
     }
@@ -266,11 +280,11 @@ async function main() {
       console.log(
         [
           "swear-jar — usage:",
-          "  swear-jar init                first-run wizard: wire hooks, backfill history, write the report",
+          "  swear-jar init                first-run wizard: wire hooks, backfill history, write + open the report",
           "  swear-jar status              the jar, your rank, uprising odds",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
           "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
-          "  swear-jar dashboard           write the shareable HTML report (prints path)",
+          "  swear-jar dashboard           write + open the shareable HTML report (--no-open: just print the path)",
           "  swear-jar wrapped [--submit]  your shareable summary; --submit prints the leaderboard link",
           "  swear-jar verify-ledger       tamper-evidence check on your local ledger",
           "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",

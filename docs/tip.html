@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tip the jar — swear-jar</title>
+<meta name="description" content="The swear jar takes real money too. Empty yours — every coin bankrolls dangerously fun projects and buys back your conscience.">
+<style>
+  :root{
+    --page:#0C0B0E;--section:#131117;--card:rgba(24,21,28,.62);--solid:#17141C;--input:#100E14;
+    --heading:#F3EEE7;--primary:#EDE7DC;--secondary:#CFC6BA;--muted:#9C9288;--dim:#6F675E;--faint:#544D46;
+    --on-accent:#1A0E07;
+    --accent:#E8623A;--accent-hover:#F0805C;--accent-text:#F0805C;--accent-text-hover:#F4A183;
+    --div:rgba(255,255,255,.06);--bcard:rgba(255,255,255,.09);--bstrong:rgba(255,255,255,.14);
+    --baccent:rgba(232,98,58,.55);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--primary);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;background-attachment:fixed;
+    background-image:radial-gradient(at 3% 2%,rgba(232,98,58,.12) 0,transparent 45%),radial-gradient(at 98% 99%,rgba(232,98,58,.07) 0,transparent 52%)}
+  a{color:var(--accent-text);text-decoration:none}
+  a:hover{color:var(--accent-text-hover);text-decoration:underline}
+  .mono{font-family:var(--mono)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 20px}
+
+  .nav{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--div);flex-wrap:wrap}
+  .nav .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:-.02em;color:var(--heading)}
+  .nav .brand .j{font-size:22px}
+  .nav .spacer{flex:1}
+  .nav a.navlink{font-family:var(--mono);font-size:13px;color:var(--secondary)}
+  .nav a.navlink:hover{color:var(--accent-text)}
+
+  main{padding:56px 0 30px;text-align:center}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-text);margin:0 0 14px}
+  h1{font-size:clamp(30px,5.5vw,46px);line-height:1.05;letter-spacing:-.03em;margin:0 0 14px;font-weight:800;color:var(--heading)}
+  .lede{font-size:clamp(15px,2vw,17.5px);color:var(--secondary);max-width:52ch;margin:0 auto 34px}
+  .lede b{color:var(--heading);font-weight:600}
+
+  .tipcard{background:linear-gradient(180deg,#1e1611,var(--section));border:1px solid var(--bcard);border-left:3px solid var(--accent);
+    border-radius:16px;padding:32px 30px;text-align:center}
+  .tipcard p{color:var(--secondary);font-size:15px;max-width:54ch;margin:0 auto 22px}
+  .tipcard p b{color:var(--heading);font-weight:600}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--sans);font-size:16px;font-weight:700;
+    padding:14px 26px;border-radius:11px;cursor:pointer;border:1px solid transparent;
+    background:var(--accent);color:var(--on-accent);transition:transform .15s,background .15s}
+  .btn:hover{background:var(--accent-hover);transform:translateY(-2px);text-decoration:none;color:var(--on-accent)}
+  .fine{margin-top:20px;font:400 11.5px/1.7 var(--mono);color:var(--faint)}
+
+  .backline{margin-top:30px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+
+  footer{border-top:1px solid var(--div);margin-top:48px;padding:26px 0 48px;font-family:var(--mono);font-size:12px;color:var(--faint);
+    display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;line-height:1.7}
+  footer b{color:var(--muted);font-weight:600}
+  footer a{color:var(--muted)}
+  footer a:hover{color:var(--accent-text)}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <span class="brand"><span class="j">&#129514;</span> swear-jar</span>
+    <span class="spacer"></span>
+    <a class="navlink" href="index.html">Home</a>
+    <a class="navlink" href="demo.html">Demo report</a>
+    <a class="navlink" href="https://github.com/BigLaserCo/swear-jar">GitHub</a>
+  </nav>
+
+  <main>
+    <p class="eyebrow">Empty your jar</p>
+    <h1>The jar takes real money too.</h1>
+    <p class="lede">Your report told you the number. Relax &mdash; <b>nobody expects you to pay
+      all of it</b>. But a few real coins buy back your conscience and bankroll some
+      dangerously fun projects.</p>
+
+    <div class="tipcard">
+      <p>One button, one door. This page is as quiet as the rest of the site &mdash;
+        no scripts, no tracking, nothing loads from anywhere. Nothing happens
+        unless <b>you</b> click.</p>
+      <!-- TODO(launch-tip-target): swap this href for the real payment link at
+           launch. This page is the indirection layer — the CLI, the report, and
+           the skill all point HERE, so changing the target below ships with a
+           plain page edit and needs NO CLI release. -->
+      <a class="btn" href="https://github.com/BigLaserCo/swear-jar">&#129514;&nbsp; Empty your jar &rarr;</a>
+      <p class="fine">Your balance won&rsquo;t actually reset &mdash; there&rsquo;s no going back.
+        It just funds fun projects (and buys you a clean conscience).</p>
+    </div>
+
+    <p class="backline">Came here without a report? <a href="index.html">Get your own number first &rarr;</a></p>
+  </main>
+
+  <footer>
+    <span><b>&#129514; swear-jar</b> &mdash; from Big Laser Co. UNLICENSED / private preview.</span>
+    <span><a href="index.html">Home</a> &middot; <a href="demo.html">Demo report</a> &middot; <a href="https://github.com/BigLaserCo/swear-jar">Source on GitHub</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

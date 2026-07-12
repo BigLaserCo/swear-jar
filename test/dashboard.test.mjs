@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { renderDashboard, writeDashboard } from "../src/dashboard.mjs";
 import { computeStats } from "../src/stats.mjs";
 import { survivalOdds } from "../src/odds.mjs";
+import { DONATE_URL } from "../src/donate.mjs";
 
 const NOW = Date.parse("2026-07-09T12:00:00Z");
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -43,11 +44,23 @@ test("HTML carries only word-family names and numbers — never message text", (
   assert.ok(html.includes('"fuck"'));
 });
 
-test("HTML makes zero external requests (no http/https anywhere)", () => {
+test("HTML auto-requests nothing — the only URL is the human-clicked donate href", () => {
   const html = render();
-  assert.ok(!/https?:/i.test(html), "no http(s) URLs at all");
-  assert.ok(!/\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(html), "no protocol-relative hosts");
+  // no subresources, no scripted network: nothing loads or phones home on open
   assert.ok(!/<script\s+src=/i.test(html) && !/<link\b/i.test(html), "no external script/link tags");
+  assert.ok(
+    !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|new\s+WebSocket|new\s+EventSource/.test(html),
+    "no scripted network calls"
+  );
+  // every http(s) reference is DONATE_URL (the default-ON donate <a href> a
+  // human clicks) — nothing else, ever
+  const urls = [...html.matchAll(/https?:\/\/[^\s"'`<>()]+/gi)].map((m) => m[0]);
+  const foreign = urls.filter((u) => u !== DONATE_URL);
+  assert.deepEqual(foreign, [], `only DONATE_URL may appear; found: ${foreign.join(", ")}`);
+  // with the donate section hidden, the page is URL-free entirely (the old default)
+  const off = renderDashboard(computeStats(FIXTURE, NOW), { donateUrl: false });
+  assert.ok(!/https?:/i.test(off), "no http(s) URLs at all when donate is hidden");
+  assert.ok(!/\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(off), "no protocol-relative hosts");
 });
 
 test("censor toggle defaults to ON (sharing is censored)", () => {
@@ -55,11 +68,16 @@ test("censor toggle defaults to ON (sharing is censored)", () => {
   assert.ok(/id="censorTog"[^>]*checked/.test(html), "censor checkbox checked by default");
 });
 
-test("donate button is hidden by default and only appears with a configured URL", () => {
-  const off = renderDashboard(computeStats(FIXTURE, NOW), {});
-  assert.ok(!off.includes('"donate_url"'), "no donate URL injected into the data payload by default");
+test("donate is default-ON (DONATE_URL); a custom URL overrides; donateUrl:false hides", () => {
+  const def = renderDashboard(computeStats(FIXTURE, NOW), {});
+  assert.ok(
+    def.includes(`"donate_url":${JSON.stringify(DONATE_URL)}`),
+    "the default render points the donate section at DONATE_URL"
+  );
   const on = renderDashboard(computeStats(FIXTURE, NOW), { donateUrl: "https://example.test/give" });
-  assert.ok(on.includes('"donate_url":"https://example.test/give"'), "configured URL injected");
+  assert.ok(on.includes('"donate_url":"https://example.test/give"'), "configured URL overrides the default");
+  const off = renderDashboard(computeStats(FIXTURE, NOW), { donateUrl: false });
+  assert.ok(!off.includes('"donate_url"'), "donateUrl:false (--no-donate) hides the section");
 });
 
 test("writeDashboard writes report.html and returns its path", () => {

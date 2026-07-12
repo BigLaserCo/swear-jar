@@ -3,13 +3,15 @@
 // Turns the pure stats object (src/stats.mjs) into the self-contained
 // assets/report_template.html. The template is 100% local: zero external
 // requests, everything inlined. This module ONLY injects data — it never
-// fetches anything and NEVER opens a browser (it returns/prints a path).
+// fetches anything and never launches anything (it returns/prints a path;
+// the auto-open courtesy lives in the CLI via src/open.mjs, not here).
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeStats } from "./stats.mjs";
 import { dataDir } from "./ledger.mjs";
+import { DONATE_URL } from "./donate.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = path.join(HERE, "..", "assets", "report_template.html");
@@ -32,13 +34,16 @@ export function loadTemplate(templatePath = TEMPLATE_PATH) {
   return fs.readFileSync(templatePath, "utf8");
 }
 
-// stats -> filled HTML string. donateUrl defaults UNSET (the donate button
-// stays hidden) — never hardcode a personal payment link.
+// stats -> filled HTML string. donateUrl now DEFAULTS ON (DONATE_URL — the tip
+// jar): pass a string to point elsewhere, or `false` to hide the section (the
+// pre-monetization default). It renders as an <a href> a human clicks — the
+// page still auto-requests nothing.
 export function renderDashboard(stats, opts = {}) {
   const { donateUrl, templatePath } = opts;
   const template = loadTemplate(templatePath);
   const payload = { ...stats };
-  if (donateUrl) payload.donate_url = donateUrl;
+  const donate = donateUrl === false ? null : donateUrl === undefined ? DONATE_URL : donateUrl;
+  if (donate) payload.donate_url = donate;
   const json = safeJson(payload);
   // Use a replacer function so `$` sequences in the JSON aren't treated as
   // String.replace special patterns.

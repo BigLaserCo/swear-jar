@@ -22,14 +22,16 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/swear-jar.mjs" <subcommand>
 | first-time setup / "launch the jar"| `... init`  (or `init --detect` for JSON) — see **First run / Launch** below |
 | the jar, rank, uprising odds       | `... status`                                                   |
 | retro-scan ALL past history        | `... backfill`  (add `--codex` to also fold in Codex rollouts) |
-| the shareable HTML report          | `... dashboard`  → **print the path it returns, do not open a browser** |
+| the shareable HTML report          | `... dashboard`  → **relay the path it prints** (it only auto-opens in a real terminal — under Claude it runs non-TTY and will NOT open, so the path relay is how the user finds it; never open a browser yourself) |
 | a shareable one-line "wrapped" recap | `... wrapped`  (add `--submit` to print the leaderboard link — never opens a browser) |
 | where the swearing happens         | `... report --by project`  (also: `source`, `word`, `hour`, `agent`) |
 | log an IRL swear (honor system)    | `... confess`  (add `--coins N` for more than one)             |
 
-Run the command, then relay its output. On a fresh machine start with the
-**First run / Launch** flow below; the first `init` (or `backfill`) is the fun
-moment — it prints the instant "you owe $X,XXX" tally.
+Run the command, then relay its output. `init`, `status`, and `wrapped` sign
+off with a one-line `🫙 The jar takes real money too…` tip — **always relay
+that line verbatim**. On a fresh machine start with the **First run / Launch**
+flow below; the first `init` (or `backfill`) is the fun moment — it prints the
+instant "you owe $X,XXX" tally.
 
 ## First run / Launch
 
@@ -91,7 +93,10 @@ $X,XXX" in a single question.
    re-running adds nothing.
 
 5. **Relay the payoff** — the jar balance / coins / uprising odds it prints,
-   plus the report path. **Print the path; never open a browser.**
+   the report path, **and the closing 🫙 tip line, verbatim**. The CLI only
+   auto-opens the report in a real terminal; under Claude it runs non-TTY and
+   will NOT auto-open, so relaying the path is how the user finds their report.
+   Never open a browser yourself.
 
 ## Rules
 

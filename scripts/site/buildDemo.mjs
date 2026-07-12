@@ -193,7 +193,11 @@ function injectBanner(html) {
 function main() {
   const records = buildRecords();
   const stats = computeStats(records, NOW);
-  let html = renderDashboard(stats, {});
+  // Donate is default-ON since monetization-v1 and points at the hosted tip
+  // page — but the public demo must stay zero-external-request (site.test.mjs
+  // allows only github.com/BigLaserCo/swear-jar refs), so the section is
+  // explicitly suppressed here. A demo regen can never inject an external URL.
+  let html = renderDashboard(stats, { donateUrl: false });
   html = injectBanner(html);
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, html, "utf8");

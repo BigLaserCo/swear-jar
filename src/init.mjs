@@ -12,10 +12,13 @@
 //    the rage.wav dictation numbers but reads them from loadDictationRecords()
 //    and NEVER sums them into the jar balance (which comes only from
 //    loadRecords() / ledger.jsonl). The two never touch.
-//  - We NEVER launch a browser (invariant 4): the wizard prints the report
-//    path and stops. Ctrl-C mid-run is safe because every ledger is append-only
-//    and uuid-deduped, so no cleanup handler is needed (adding one would risk
-//    corrupting a torn write, not prevent it).
+//  - Auto-open is a TTY-only courtesy (monetization-v1): in a real terminal
+//    the finished report opens for you (src/open.mjs); the path is ALWAYS
+//    printed, and --no-open / SWEAR_JAR_NO_OPEN=1 — or any non-TTY run (the
+//    Claude skill, CI, a pipe) — means we only print. Ctrl-C mid-run is safe
+//    because every ledger is append-only and uuid-deduped, so no cleanup
+//    handler is needed (adding one would risk corrupting a torn write, not
+//    prevent it).
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,6 +37,8 @@ import { writeDashboard } from "./dashboard.mjs";
 import { computeStats } from "./stats.mjs";
 import { loadRecords } from "./ledger.mjs";
 import { dollars } from "./render.mjs";
+import { shouldAutoOpen, openInBrowser } from "./open.mjs";
+import { tipLine } from "./donate.mjs";
 
 // Display-only mirror of superwhisper.mjs CANDIDATE_ROOTS: the "usual spots" the
 // wizard/skill names when nothing is found. superwhisper.mjs owns the
@@ -233,7 +238,8 @@ async function resolveSuperwhisper(rl, det, write) {
 
 // Print the closing "damage" payoff (SPEC §3). Jar numbers come from the main
 // ledger only; rage.wav is reported from its OWN ledger and never summed in.
-function printDamage(write, records, reportPath) {
+// The path is ALWAYS printed; `willOpen` only changes the parenthetical.
+function printDamage(write, records, reportPath, willOpen) {
   const stats = computeStats(records);
   const dict = loadDictationRecords();
   const dictSwears = dict.reduce(
@@ -253,7 +259,11 @@ function printDamage(write, records, reportPath) {
   }
   write(`   Uprising odds: ${stats.odds.value}%  — rank: ${stats.rank.current}`);
   write("");
-  write(`   Full report:   ${reportPath}   (open it yourself — we never launch a browser)`);
+  write(
+    willOpen
+      ? `   Full report:   ${reportPath}   (opening it for you now — --no-open or SWEAR_JAR_NO_OPEN=1 to just print)`
+      : `   Full report:   ${reportPath}   (auto-opens in a real terminal — --no-open or SWEAR_JAR_NO_OPEN=1 to always just print)`
+  );
 }
 
 // runInit — the wizard. Interactive when stdin is a TTY (and no --yes); otherwise
@@ -389,11 +399,17 @@ export async function runInit(opts = {}) {
     importSuperwhisper(swRoot);
   }
 
-  // ── close on the payoff + the report path (never a browser) ─────────────────
+  // ── close on the payoff + the report path (+ the TTY-only open courtesy) ────
   const records = loadRecords();
   const reportPath = writeDashboard(records, { outPath: opts.outPath || undefined });
+  // Gate on the OUTPUT stream's TTY: real terminal → open; the Claude skill,
+  // CI, pipes, and test streams are non-TTY and mechanically never open.
+  const willOpen = shouldAutoOpen({ isTTY: out.isTTY, noOpen: Boolean(opts.noOpen) });
   write("");
-  printDamage(write, records, reportPath);
+  printDamage(write, records, reportPath, willOpen);
+  if (willOpen) openInBrowser(reportPath);
+  write("");
+  write(tipLine());
 
   return { reportPath, detection: det };
 }

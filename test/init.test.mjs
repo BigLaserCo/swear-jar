@@ -201,7 +201,10 @@ test("init --yes scans every found source, writes the report, and is idempotent"
   const t1 = c1.text();
   assert.match(t1, /The damage/);
   assert.match(t1, /rage\.wav:/); // dictation reported in the summary text
-  assert.match(t1, /we never launch a browser/);
+  // non-TTY (PassThrough) run: the path is printed with the "didn't open" form…
+  assert.match(t1, /auto-opens in a real terminal/);
+  // …and the summary closes on the tip line (SPEC monetization-v1 D)
+  assert.match(t1, /The jar takes real money too/);
 
   // Second run: dedup means nothing is double-counted.
   const c2 = collector();

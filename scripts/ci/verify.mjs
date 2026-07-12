@@ -86,6 +86,12 @@ const NET_PATTERNS = [
   ],
 ];
 const NETWORK_OK = /NETWORK-OK/;
+// src/open.mjs is the ONE sanctioned process-spawn site: it shells out to the
+// OS "open this file" helper (open / start / xdg-open) on the user's OWN
+// report path — a local courtesy, not a network path (SPEC monetization-v1 C).
+// It is allowlisted for the child_process token ONLY; every other network
+// smell (fetch/http/net/WebSocket/…) is still enforced on it like any file.
+const SPAWN_ALLOW = { "src/open.mjs": new Set(["child_process"]) };
 function checkNoNetwork(tracked) {
   let hits = 0;
   // src/ + bin/ — zero tolerance, whole-file test.
@@ -94,6 +100,7 @@ function checkNoNetwork(tracked) {
     const text = readText(f);
     if (text == null) continue;
     for (const [name, re] of NET_PATTERNS) {
+      if (SPAWN_ALLOW[f]?.has(name)) continue;
       if (re.test(text)) { fail("(b) no-network", `"${name}" found in ${f}`); hits++; }
     }
   }

@@ -6,8 +6,10 @@ no network calls, ever. Requires **Node ≥ 20**.
 
 After any install, run **`init` first** — the guided first-run wizard. It wires
 the hooks, finds and backfills your entire Claude Code (and optional Codex /
-dictation) history in one pass, writes your report, and gives you the instant
-"you owe $X,XXX" moment. It's resumable and safe to re-run (records dedup by
+dictation) history in one pass, writes your report, and opens it — the instant
+"you owe $X,XXX" moment, in your face. The path is always printed; auto-open
+only happens in a real terminal, and `--no-open` (or `SWEAR_JAR_NO_OPEN=1`)
+means it just prints. It's resumable and safe to re-run (records dedup by
 message id). Prefer to drive it by hand? **`backfill`** is the power-user
 alternative — it just retro-scans your history, no wizard.
 
@@ -103,3 +105,10 @@ For a global install, follow up with `npm rm -g swear-jar`. For the plugin, use
 Everything stays local: one append-only ledger at `~/.swear-jar/ledger.jsonl`
 (override with `SWEAR_JAR_HOME`). Only word **counts** are ever written — never
 your prompts, transcripts, or any secret that passed through a session.
+
+---
+
+## Tip the founder
+
+The jar takes real money too — empty yours:
+<https://swearjar.unfocused.ai/tip.html>
