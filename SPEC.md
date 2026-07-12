@@ -437,3 +437,19 @@ Cross-repo handoff (do NOT build in this repo):
 4. Public copy update: privacy page states the model exactly — "the tool
    sends nothing; opening the hosted report shares these named aggregate
    numbers."
+
+## 7. Milestone-3 decisions LOCKED (Jim, plan approval 2026-07-12)
+
+- **Domain:** every hosted surface lives at **swearjar.unfocused.ai**
+  (`/wrapped`, `/submit.html`, `/tip.html`, scoreboard). Re-point the code
+  defaults that say swearjar.biglaser.co (SWEAR_JAR_SUBMIT_URL default,
+  DONATE_URL). Closed-source Worker: private `unfocused-ai` repo.
+- **Open behavior:** §2's ask-beat is REPLACED — always auto-open the hosted
+  wrapped page after a real-TTY run (no question). URL params are the whole
+  transfer (no POST); ~1.1KB worst case. Escape hatches stand: `--local`,
+  `SWEAR_JAR_LOCAL_ONLY=1`, `--no-open`; empty ledger opens local; non-TTY
+  never opens and prints local path + hosted URL. One disclosure line naming
+  the payload fields prints before opening. A light "just for fun, no
+  warranty" terms note lives on the hosted site.
+- **Tip target:** Stripe Payment Link (existing storefront Stripe account),
+  reached only through our tip.html indirection.
