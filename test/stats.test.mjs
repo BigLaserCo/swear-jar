@@ -147,6 +147,41 @@ test("empty ledger yields sane zeros for the new fields", () => {
   assert.equal(s.cleanDaysPct, 0);
 });
 
+test("gold star: more polite instances than swear instances flips goldStar on", () => {
+  // 1 swear instance (damn), 3 polite instances → manners win.
+  const mannered = [
+    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 1 }, coins: 1, polite: { please: 2, thanks: 1 } },
+  ];
+  const s = computeStats(mannered, NOW);
+  assert.equal(s.politeTotal, 3);
+  assert.equal(s.totalSwears, 1);
+  assert.equal(s.goldStar, true);
+});
+
+test("gold star stays OFF when swears meet or beat manners (instances, not coins)", () => {
+  // The base FIXTURE has 8 swear instances and no polite fields → not a star.
+  assert.equal(computeStats(FIXTURE, NOW).goldStar, false);
+  assert.equal(computeStats(FIXTURE, NOW).politeTotal, 0);
+  // A tie is NOT a gold star (strictly greater required).
+  const tie = [
+    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 2 }, coins: 2, polite: { please: 2 } },
+  ];
+  assert.equal(computeStats(tie, NOW).goldStar, false);
+  // Manners must be non-zero — an all-clean empty jar is not a star.
+  assert.equal(computeStats([], NOW).goldStar, false);
+});
+
+test("gold star is backward-compatible with pre-Gold-Star ledgers (no polite field)", () => {
+  // Old records simply lack `polite`; they contribute 0 manners and never crash.
+  const legacy = [
+    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { fuck: 1 }, coins: 3 },
+    { source: "user", project: "a", ts: "2026-07-08T10:00:00Z", words: { shit: 1 }, coins: 2 },
+  ];
+  const s = computeStats(legacy, NOW);
+  assert.equal(s.politeTotal, 0);
+  assert.equal(s.goldStar, false);
+});
+
 test("uprising odds + rank reuse odds.mjs", () => {
   const s = computeStats(FIXTURE, NOW);
   const o = survivalOdds(FIXTURE, NOW);

@@ -66,6 +66,9 @@ export function computeStats(records = [], now = Date.now()) {
   let totalSwears = 0; // every swear instance, user + machine
   let userSwears = 0; // just the human's swear instances
 
+  // --- manners (Gold Star gag): polite-word instances across all records ---
+  let politeTotal = 0;
+
   // --- distributions ---
   const byHour = new Array(24).fill(0);
   const byDow = new Array(7).fill(0);
@@ -98,6 +101,10 @@ export function computeStats(records = [], now = Date.now()) {
       if (!isMachine) userSwears += cnt;
       if (cnt > 0) famsInRec.push(w);
     }
+    // manners tally — pre-Gold-Star records have no `polite` field (→ 0), so
+    // old ledgers keep working. Counts only; never any text.
+    for (const n of Object.values(r?.polite || {})) politeTotal += Number(n) || 0;
+
     // signature combo: which two families the HUMAN lands in the same message.
     // We only have per-record family sets (no ordering), so this is honestly a
     // "most common pairing", not a literal back-to-back sequence.
@@ -240,6 +247,12 @@ export function computeStats(records = [], now = Date.now()) {
   const total = userCoins + machineCoins;
   const userPct = total ? Math.round((100 * userCoins) / total) : 0;
 
+  // --- Gold Star: more manners than swears. The fair, honest unit is INSTANCES
+  // vs INSTANCES (one "please" vs one swear-hit), NOT coin-weighted — a mild
+  // "damn" is one swear, not three, when weighed against a "thank you". Needs at
+  // least one polite word so an all-clean empty jar isn't a star by default. ---
+  const goldStar = politeTotal > 0 && politeTotal > totalSwears;
+
   return {
     app: "Swear Jar",
     generatedAt: new Date(now).toISOString(),
@@ -253,6 +266,8 @@ export function computeStats(records = [], now = Date.now()) {
     machinePct: total ? 100 - userPct : 0,
     totalSwears,
     userSwears,
+    politeTotal,
+    goldStar,
     swearsPerDay,
     founderPerDay: FOUNDER_PER_DAY,
     fbombPct,

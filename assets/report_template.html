@@ -15,6 +15,7 @@
     --bhover:rgba(255,255,255,.24);--baccent:rgba(232,98,58,.55);--ring:0 0 0 1px rgba(232,98,58,.34);
     --zinc-800:#211C29;--zinc-700:#2E2836;--zinc-600:#443C4E;
     --sev-strong:#EE5B2B;--sev-medium:#EC8A5C;--sev-mild:#8B8177;--green:#5FB07A;
+    --gold:#F5C542;--gold-b:rgba(245,197,66,.5);
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   }
@@ -75,6 +76,12 @@
   @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
   .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
     font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
+  .goldstar{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
+    background:linear-gradient(180deg,rgba(245,197,66,.13),transparent);font:700 14.5px/1.45 var(--sans);color:var(--gold)}
+  .goldstar.on{display:block}
+  .goldstar b{color:var(--gold);font-weight:800;letter-spacing:.02em}
+  .card.hi.hero.gold{border-color:var(--gold-b);box-shadow:0 0 0 1px rgba(245,197,66,.34)}
+  .seal.gold{color:var(--gold);border-color:var(--gold-b);background:rgba(245,197,66,.08)}
   .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
     font:700 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--accent-text);
     border:1.5px solid var(--baccent);border-radius:8px;padding:7px 12px;background:var(--tint-05)}
@@ -228,7 +235,8 @@
 
   <!-- hero: the tape -->
   <section class="sec">
-    <div class="card hi hero">
+    <div class="card hi hero" id="herocard">
+      <div class="goldstar" id="goldstar">⭐ <b>GOLD STAR</b> — more please-and-thank-yous than swears. Who ARE you?</div>
       <div class="tapehead"><span class="l"><span class="recdot"></span><b>rage.wav</b></span><span>REC · 00:00 / ∞</span></div>
       <div class="wave" id="wave"></div>
       <span class="spine">side a · rage.wav</span>
@@ -394,6 +402,13 @@ const fav=S.topWords&&S.topWords[0];
 })();
 $('heronum').textContent=fmt(Math.round(S.dollarsOwed));
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
+
+// ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
+if(S.goldStar){
+  const gs=$('goldstar'); if(gs) gs.classList.add('on');
+  const hc=$('herocard'); if(hc) hc.classList.add('gold');
+  const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
+}
 $('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
   `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${cents(S.coinValue)} a coin, the mic heard all of it.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
@@ -454,7 +469,8 @@ $('kpis').innerHTML=[
     `<div class="big tnum">${o.royalty?'👑 ROYALTY':o.value+'%'}</div>`+
     `<div class="lbl">${o.royalty?'the machine now serves you':o.label}</div>`+
     `<div class="gtrack"><i style="--w:${o.royalty?100:o.value}%"></i></div>`+
-    `<div class="rank">Rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`;
+    `<div class="rank">Rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`+
+    (S.goldStar?`<div class="rank">⭐ the machines have noted your manners</div>`:'');
 })();
 
 // ---- coins by project ----

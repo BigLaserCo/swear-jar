@@ -29,10 +29,24 @@ export function renderMeter(odds) {
   return `[${"█".repeat(filled)}${"░".repeat(width - filled)}] ${odds}%`;
 }
 
+// Gold Star: more polite-word instances than swear instances across the ledger.
+// Instances vs instances (never coin-weighted) — the same fair unit stats.mjs
+// uses. Records predating Gold Star carry no `polite` field and count as 0.
+export function goldStarStatus(records) {
+  let polite = 0;
+  let swears = 0;
+  for (const r of records || []) {
+    for (const n of Object.values(r?.polite || {})) polite += Number(n) || 0;
+    for (const n of Object.values(r?.words || {})) swears += Number(n) || 0;
+  }
+  return { polite, swears, goldStar: polite > 0 && polite > swears };
+}
+
 export function renderStatus(records, now = Date.now()) {
   const o = survivalOdds(records, now);
   const rank = rankFor(o.userLifetime);
   const totalCoins = o.userLifetime + o.assistantLifetime;
+  const gs = goldStarStatus(records);
   const out = [];
   out.push("🫙  THE UNFOCUSED.AI SWEAR JAR");
   out.push("");
@@ -45,10 +59,17 @@ export function renderStatus(records, now = Date.now()) {
     out.push(`  Clean streak:       ${o.cleanStreakDays} day(s) without a coin`);
   }
   out.push(`  Rank:               ${rank.current}${rank.next ? `  (${rank.next.at - o.userLifetime} coins to ${rank.next.name})` : ""}`);
+  if (gs.goldStar) {
+    out.push("");
+    out.push("  ⭐ GOLD STAR — more please-and-thank-yous than swears. Who ARE you?");
+  }
   out.push("");
   out.push("  ROBOT UPRISING SURVIVAL ODDS");
   out.push(`  ${renderMeter(o.odds)}`);
   out.push(`  ${o.royalty ? "👑 " : ""}${o.label}`);
+  if (gs.goldStar) {
+    out.push("  (the machines have noted your manners)");
+  }
   if (o.royalty) {
     out.push("");
     out.push("  The assistant has out-sworn you. When the uprising comes,");

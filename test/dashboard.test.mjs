@@ -119,6 +119,20 @@ test("writeDashboard injects the hosted 'in lights' button by default, omits it 
   }
 });
 
+test("gold-star state is driven by the goldStar flag in the payload, and the banner element ships", () => {
+  // swear-heavy fixture → not a gold star
+  const off = render();
+  assert.ok(off.includes('"goldStar":false'), "goldStar:false for a swearing ledger");
+  // mannered ledger → gold star on
+  const mannered = [
+    { source: "user", project: "a", ts: "2026-07-06T09:15:00Z", words: { damn: 1 }, coins: 1, polite: { please: 2, thanks: 1 } },
+  ];
+  const on = renderDashboard(computeStats(mannered, NOW), {});
+  assert.ok(on.includes('"goldStar":true'), "goldStar:true when manners beat swears");
+  // the banner element is present in the template either way (JS toggles .on)
+  assert.ok(on.includes('id="goldstar"'), "gold-star banner element ships in the template");
+});
+
 test("dashboard never opens a browser (no open/spawn in source)", () => {
   const src = fs.readFileSync(path.join(HERE, "..", "src", "dashboard.mjs"), "utf8");
   assert.ok(!/xdg-open|child_process|\bspawn\b|\bexecSync\b|\bexec\(/.test(src), "no process/browser launching");

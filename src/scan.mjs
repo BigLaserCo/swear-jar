@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { detect } from "./detect.mjs";
+import { detect, detectPolite } from "./detect.mjs";
 import {
   loadRecords,
   seenUuids,
@@ -124,6 +124,12 @@ export function scanTranscript(transcriptPath, hook = {}) {
     if (text.includes("\u{1FAD9} Swear jar")) continue;
     const { words, coins } = detect(text);
     if (!coins) continue;
+    // Manners on the same message, for the Gold Star gag. Counts only (never the
+    // text) — same privacy rule as `words`. Attached ONLY when present so the
+    // ledger stays lean and pre-Gold-Star records (no `polite` field) keep
+    // working unchanged. A message with NO swears still records nothing: this is
+    // a SWEAR jar, so politeness is only noted alongside a coin.
+    const polite = detectPolite(text).words;
     const cwd = entry.cwd || hook.cwd || "";
     added.push({
       v: 1,
@@ -138,6 +144,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
       transcript: transcriptPath,
       words,
       coins,
+      ...(Object.keys(polite).length ? { polite } : {}),
     });
     seen.add(entry.uuid);
   }

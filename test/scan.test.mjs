@@ -57,6 +57,29 @@ test("scan records user and assistant swears with source + project", () => {
   assert.equal(bySource.assistant.words.shit, 1);
 });
 
+test("polite words are recorded (counts only) alongside a swear record", () => {
+  const home = freshHome();
+  const t = path.join(home, "polite.jsonl");
+  fs.writeFileSync(
+    t,
+    // a swearing-but-mannered message: gets a record, and a `polite` count map
+    line(userMsg("p1", "please fix this fucking bug, thanks so much")) +
+      // swear-only message: record has NO polite field (stays lean / old-compat)
+      line(userMsg("p2", "this is complete shit")) +
+      // polite-only message: still produces NO record — this is a SWEAR jar
+      line(userMsg("p3", "thank you, that was lovely and kind"))
+  );
+  const { added } = scanTranscript(t, {});
+  assert.equal(added.length, 2, "only the two swearing messages are recorded");
+  const byUuid = Object.fromEntries(added.map((r) => [r.uuid, r]));
+  assert.deepEqual(byUuid.p1.polite, { please: 1, thanks: 1 });
+  assert.equal(byUuid.p1.words.fuck, 1);
+  assert.ok(!("polite" in byUuid.p2), "swear-only record carries no polite field");
+  // privacy: only count keys, never the raw text, land on disk
+  const raw = fs.readFileSync(path.join(home, "ledger.jsonl"), "utf8");
+  assert.ok(!raw.includes("lovely") && !raw.includes("bug"), "no message text in the ledger");
+});
+
 test("re-scan of the same transcript adds nothing (uuid dedup)", () => {
   const home = freshHome();
   const t = path.join(home, "transcript.jsonl");
