@@ -362,7 +362,7 @@
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
     <div><b>Status.</b> Swear Jar is UNLICENSED / private preview — not yet released. Your numbers are yours to keep.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
-    <div><b>Made by Jim — Big Laser Co.</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
+    <div><b>Made by Jim — unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -553,14 +553,14 @@ const wrappedCaption=
   `rage, wrapped · 2026 🫙\n`+
   `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
   `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
-  `processed locally · nothing left this machine · biglaser.co`;
+  `processed locally · nothing left this machine · swearjar.unfocused.ai`;
 
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
 
 // mailto is built client-side from the aggregate caption — the ONLY external-ish
 // href on the page. It opens the user's own mail app; nothing is sent silently.
-const mail='mailto:jim@biglaser.co?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
+const mail='mailto:jim@unfocused.ai?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
 $('shareUs').setAttribute('href',mail);
 $('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\'s sent (these numbers, nothing else)';
 

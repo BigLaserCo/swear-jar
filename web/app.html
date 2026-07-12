@@ -318,7 +318,7 @@
       the modules under <span class="mono">src/</span> are served verbatim from the same repo you can read on GitHub.</div>
     <div><b>What "sharing" sends.</b> Nothing, until you copy the caption yourself — and the caption carries only the
       numbers on this page (your balance, counts, censored top word), never a single line of what you actually typed.</div>
-    <div class="uf"><b>Swear Jar — from Big Laser Co.</b> · honest, local-first stats — your data never leaves your machine.</div>
+    <div class="uf"><b>Swear Jar — from unfocused.ai</b> · honest, local-first stats — your data never leaves your machine.</div>
   </footer>
 </div>
 <div class="toast" id="toast"></div>
@@ -333,13 +333,13 @@
   import { validate } from "../funnel/schema.mjs";
 
   // ── CONFIG — deliberate placeholders ─────────────────────────────────────
-  // Both stay null until the biglaser.co accounts + leaderboard funnel are
+  // Both stay null until the unfocused.ai accounts + leaderboard funnel are
   // live. While null, the upload button is a disabled no-op and this page makes
   // ZERO network requests. When configured, uploads POST buildSubmission() —
   // the funnel/schema.mjs field set — to `${API_BASE}/submit` after login.
   const CONFIG = {
     API_BASE: null,      // e.g. "…/api" — leaderboard submit endpoint (unset)
-    ACCOUNTS_BASE: null, // e.g. "…"     — biglaser.co login (unset)
+    ACCOUNTS_BASE: null, // e.g. "…"     — unfocused.ai login (unset)
   };
 
   const $ = (id) => document.getElementById(id);
@@ -645,7 +645,7 @@
         const res = await fetch(`${CONFIG.API_BASE}/submit`, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          credentials: "include", // biglaser.co session cookie, once accounts exist
+          credentials: "include", // unfocused.ai session cookie, once accounts exist
           body: JSON.stringify(checked.value),
         });
         toast(res.ok ? "Score submitted — see you on the board" : `Upload refused (${res.status})`);

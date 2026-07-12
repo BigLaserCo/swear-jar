@@ -384,5 +384,5 @@ test("web/app.html offers all three folder doors and the hidden-folder hint", ()
   assert.ok(/webkitGetAsEntry/.test(html), "drag-and-drop directory walk");
   assert.ok(/Cmd\+Shift\+\./.test(html), "macOS hidden-folder (Cmd+Shift+.) hint");
   assert.ok(/censored by default|Censored/i.test(html), "censor-by-default toggle present");
-  assert.ok(/Big Laser Co/i.test(html), "Big Laser Co branding present");
+  assert.ok(/unfocused\.ai/i.test(html), "unfocused.ai branding present");
 });

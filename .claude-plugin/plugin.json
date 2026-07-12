@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "description": "Drops a coin in the jar every time you (or the machine) swear in a Claude Code or Codex session, and tracks your Robot Uprising Survival Odds. Zero deps, one local ledger, no AI calls.",
   "author": {
-    "name": "Big Laser Co.",
+    "name": "unfocused.ai",
     "url": "https://github.com/BigLaserCo/swear-jar"
   },
   "homepage": "https://github.com/BigLaserCo/swear-jar",

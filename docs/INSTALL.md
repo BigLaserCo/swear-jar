@@ -59,7 +59,7 @@ hand. Check the jar any time with `swear-jar status`.
 
 ```
 /plugin marketplace add BigLaserCo/swear-jar
-/plugin install swear-jar@biglaser
+/plugin install swear-jar@unfocused
 ```
 
 The plugin ships the same `bin/` and registers the `UserPromptSubmit` + `Stop`
@@ -99,7 +99,7 @@ swear-jar uninstall        # or: node bin/swear-jar.mjs uninstall
 ```
 
 For a global install, follow up with `npm rm -g swear-jar`. For the plugin, use
-`/plugin uninstall swear-jar@biglaser`.
+`/plugin uninstall swear-jar@unfocused`.
 
 ---
 

@@ -330,7 +330,7 @@
           <div class="wmini" id="wmini"></div>
         </div>
         <div class="wstats" id="wstats"></div>
-        <div class="wfoot">processed locally · nothing left this machine · biglaser.co</div>
+        <div class="wfoot">processed locally · nothing left this machine · swearjar.unfocused.ai</div>
       </div>
       <div class="share-actions">
         <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
@@ -547,14 +547,14 @@ const wrappedCaption=
   `rage, wrapped · 2026 🫙\n`+
   `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
   `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
-  `processed locally · nothing left this machine · biglaser.co`;
+  `processed locally · nothing left this machine · swearjar.unfocused.ai`;
 
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
 
 // mailto is built client-side from the aggregate caption — the ONLY external-ish
 // href on the page. It opens the user's own mail app; nothing is sent silently.
-const mail='mailto:jim@biglaser.co?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
+const mail='mailto:jim@unfocused.ai?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
 $('shareUs').setAttribute('href',mail);
 $('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\'s sent (these numbers, nothing else)';
 

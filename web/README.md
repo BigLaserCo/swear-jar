@@ -62,7 +62,7 @@ Serve this repo's files **as-is** (any static host / CDN) with the repo
 layout intact — `app.html` resolves `./browser-scan.mjs`,
 `../src/*.mjs`, and `../funnel/schema.mjs` relatively, so `web/`, `src/`,
 and `funnel/` must be siblings, exactly like the repo. No build step, no
-bundler, no dependencies. Planned home: **biglaser.co**.
+bundler, no dependencies. Planned home: **unfocused.ai**.
 
 Local dev is any static server from the repo root, e.g.:
 
@@ -88,6 +88,6 @@ network request at all. The payload builder is already wired: it assembles
 the `funnel/schema.mjs` field set (`total_coins`, `dollars`,
 `swears_per_day`, censored `top_word`, `fbomb_pct`, `active_days`, `agent`,
 `app_version`, `release_hash`) and schema-validates it locally. When the
-biglaser.co accounts + leaderboard funnel go live, setting the two CONFIG
+unfocused.ai accounts + leaderboard funnel go live, setting the two CONFIG
 values is the only change — and even then, only those aggregate numbers are
 sent, never transcripts.

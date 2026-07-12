@@ -1,10 +1,10 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "biglaser",
+  "name": "unfocused",
   "owner": {
-    "name": "Big Laser Co."
+    "name": "unfocused.ai"
   },
-  "description": "Big Laser Co. Claude Code plugins.",
+  "description": "unfocused.ai Claude Code plugins.",
   "plugins": [
     {
       "name": "swear-jar",
@@ -12,7 +12,7 @@
       "description": "Drops a coin in the jar every time you (or the machine) swear, and tracks your Robot Uprising Survival Odds. Zero deps, local ledger, no AI calls.",
       "version": "0.1.0",
       "author": {
-        "name": "Big Laser Co."
+        "name": "unfocused.ai"
       },
       "homepage": "https://github.com/BigLaserCo/swear-jar",
       "keywords": ["swear-jar", "novelty", "hooks", "fun", "stats"]

@@ -1,4 +1,4 @@
-// Browser-side scanning layer for the hosted Swear Jar (biglaser.co).
+// Browser-side scanning layer for the hosted Swear Jar (unfocused.ai).
 //
 // This is the ONE piece the npm package's src/ can't share verbatim: the CLI's
 // src/scan.mjs does its filtering INSIDE a node:fs read loop (byte offsets, an

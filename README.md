@@ -1,6 +1,6 @@
 # 🫙 swear-jar
 
-The Big Laser Co. swear jar. It listens to your Claude Code sessions, drops a
+The unfocused.ai swear jar. It listens to your Claude Code sessions, drops a
 coin in the jar every time somebody swears (you *or* the machine), and keeps a
 running tally of your **Robot Uprising Survival Odds**.
 
@@ -69,7 +69,7 @@ simply records nothing until Node is available.
 
 ```
 /plugin marketplace add BigLaserCo/swear-jar
-/plugin install swear-jar@biglaser
+/plugin install swear-jar@unfocused
 ```
 
 Done. The plugin ships both hooks (`UserPromptSubmit` + `Stop`) and a

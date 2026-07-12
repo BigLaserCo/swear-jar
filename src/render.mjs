@@ -32,7 +32,7 @@ export function renderStatus(records, now = Date.now()) {
   const rank = rankFor(o.userLifetime);
   const totalCoins = o.userLifetime + o.assistantLifetime;
   const out = [];
-  out.push("🫙  THE BIG LASER CO. SWEAR JAR");
+  out.push("🫙  THE UNFOCUSED.AI SWEAR JAR");
   out.push("");
   out.push(renderJar(totalCoins));
   out.push("");
