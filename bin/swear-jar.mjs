@@ -18,6 +18,7 @@ import {
   defaultSuperwhisperRoot,
   loadDictationRecords,
 } from "../src/superwhisper.mjs";
+import { runInit, detectSources } from "../src/init.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -44,6 +45,28 @@ async function main() {
         console.error(`[swear-jar] scan skipped: ${err?.message || err}`);
       }
       process.exit(0);
+    }
+    case "setup": // alias — same first-run wizard
+    case "init": {
+      // First-run wizard: detect the user's files, wire hooks, backfill, and
+      // write the report — composing existing modules only (see src/init.mjs).
+      if (flag("detect")) {
+        // Machine-readable contract for the plugin skill (WP2). JSON to stdout,
+        // exit 0 — nothing else is printed on this path.
+        console.log(JSON.stringify(detectSources(), null, 2));
+        break;
+      }
+      const rootFlag = flag("root"); // in `init`, --root is the dictation path
+      const codexRootFlag = flag("codex-root");
+      const outFlag = flag("out");
+      await runInit({
+        yes: Boolean(flag("yes")),
+        noHooks: Boolean(flag("no-hooks")),
+        superwhisperRoot: typeof rootFlag === "string" ? rootFlag : undefined,
+        codexRoot: typeof codexRootFlag === "string" ? codexRootFlag : undefined,
+        outPath: typeof outFlag === "string" ? outFlag : undefined,
+      });
+      break;
     }
     case "backfill": {
       // Retro-scan every past transcript. Resumable (byte offsets) and safe to
@@ -243,6 +266,7 @@ async function main() {
       console.log(
         [
           "swear-jar — usage:",
+          "  swear-jar init                first-run wizard: wire hooks, backfill history, write the report",
           "  swear-jar status              the jar, your rank, uprising odds",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
           "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
