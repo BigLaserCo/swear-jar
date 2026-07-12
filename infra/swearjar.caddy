@@ -1,0 +1,33 @@
+# swear-jar — the open-source landing + demo (static docs/, no build, no server).
+# Deployed from github.com/BigLaserCo/swear-jar docs/ → /var/www/swearjar on the
+# droplet. Caddy serves files directly; TLS auto-issued via ACME on first hit.
+# Access logs capture the /wrapped?<aggregate-params> hits (the simple, no-Worker
+# data path). Install: scp to /etc/caddy/conf.d/swearjar.caddy, then
+# `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`.
+swearjar.unfocused.ai {
+    encode zstd gzip
+    root * /var/www/swearjar
+
+    # Pretty URLs: /submit → submit.html, /wrapped → wrapped.html, dir → index.html
+    try_files {path} {path}.html {path}/index.html /index.html
+    file_server
+
+    # Never cache the HTML shell so a fresh deploy shows on the next request.
+    @html not path /assets/*
+    header @html Cache-Control "no-store, must-revalidate"
+
+    # Log the aggregate-carrying wrapped hits (JSON) to stderr → journald (the
+    # systemd sandbox blocks a custom /var/log file; journald is the v1 metrics
+    # source: `journalctl -u caddy | grep swearjar.unfocused.ai`).
+    log {
+        output stderr
+        format json
+    }
+
+    handle_errors {
+        @5xx expression `{err.status_code} >= 500`
+        handle @5xx {
+            respond "swearjar.unfocused.ai is briefly offline — try again in a minute." 502
+        }
+    }
+}
