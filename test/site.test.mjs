@@ -18,7 +18,7 @@ import { detect } from "../src/detect.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DOCS = path.join(HERE, "..", "docs");
-const PAGES = ["index.html", "demo.html", "tip.html"];
+const PAGES = ["index.html", "demo.html", "tip.html", "wrapped.html"];
 
 // Only github.com/BigLaserCo/swear-jar links are permitted (any path/suffix).
 const ALLOWED_REF = /^https?:\/\/github\.com\/BigLaserCo\/swear-jar/i;
