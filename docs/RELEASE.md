@@ -23,7 +23,7 @@ known hash. The stamp step ties the built app to an entry the board trusts.
    { "<full-sha>": { "version": "0.1.0", "published": "<ISO date>" } }
    ```
 
-4. `npm publish` (maintainer only — requires `private: false`, a Jim-only
+4. `npm publish` (maintainer only — requires `private: false`, a maintainer
    decision at go-public) and tag the release.
 
 A dev build keeps the placeholder hash, which the board treats as **unverified**

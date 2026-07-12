@@ -13,6 +13,10 @@
 //   (f) leak-guard: no internal/first-party code in shipped source — no
 //       non-stdlib/non-relative imports, no repo-escaping imports, and no
 //       internal-scope tokens (see scripts/ci/leak-guard.mjs).
+//   (g) internal-docs guard: this is a public-facing tree — candid dev docs
+//       (specs, plans, agent notes) live in the gitignored internal/ tier and
+//       must never be tracked. Fails on any tracked path under internal/ or
+//       any tracked file with an internal-doc basename.
 //
 // NB: every secret needle below is assembled from fragments (`frag(...)`) so this
 // scanner's own source never trips its own secret scan — no self-exclusion needed.
@@ -175,6 +179,29 @@ function checkLeakGuard() {
   }
 }
 
+// ── (g) internal-docs guard: the tracked tree is the PUBLIC tier ─────────────
+// Candid development docs live in internal/ (gitignored). These basenames are
+// internal-tier by definition; tracking one means the tiers got crossed.
+const INTERNAL_DOC_NAMES = new Set([
+  "SPEC.md", "WEBSITE-PLAN.md", "PLAN.md", "TODO.md", "ACTIVE_TODO.md",
+  "PROGRESS.md", "NOTES.md", "AGENT_NOTES.md", "HANDOFF.md",
+  "CLAUDE.md", "CLAUDE.local.md", "AGENTS.md",
+]);
+function checkInternalDocs(tracked) {
+  let hits = 0;
+  for (const f of tracked) {
+    const base = f.split("/").pop();
+    if (f.startsWith("internal/")) {
+      fail("(g) internal-docs", `${f} is tracked — internal/ is the private tier and must stay untracked`);
+      hits++;
+    } else if (INTERNAL_DOC_NAMES.has(base) || /^SPEC-.*\.md$/.test(base)) {
+      fail("(g) internal-docs", `${f} is an internal-tier doc name — move it to internal/ (gitignored)`);
+      hits++;
+    }
+  }
+  if (!hits) ok("(g) internal-docs", `${tracked.length} tracked file(s) free of internal-tier docs`);
+}
+
 // ── (e) privacy invariant ────────────────────────────────────────────────────
 async function checkPrivacy() {
   // Fake key assembled from fragments; the full value only exists at runtime.
@@ -258,6 +285,7 @@ async function main() {
   checkNoDeps();
   checkNoSecrets(tracked);
   checkLeakGuard();
+  checkInternalDocs(tracked);
   await checkPrivacy();
 
   if (failures.length) {

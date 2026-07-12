@@ -3,6 +3,10 @@ node_modules/
 # scratch worktrees / sibling agent checkouts (never part of this branch)
 .worktrees/
 
+# internal tier — candid dev docs live here, never tracked, never published
+internal/
+CLAUDE.local.md
+
 # Python reference build artifacts (the reference lives on main, not this branch)
 __pycache__/
 *.pyc
