@@ -347,6 +347,16 @@
     </div>
   </section>
 
+  <!-- see it in lights / join the board (hidden unless a hosted URL is configured) -->
+  <section class="sec" id="lights-sec">
+    <div class="donate">
+      <h3>🫙 See your damage in lights</h3>
+      <p id="lights-copy"></p>
+      <a class="give" id="lights-btn" href="#" target="_blank" rel="noopener">Put it up in lights &rarr;</a>
+      <div class="fine-note">Opens your wrapped report on the web. The link carries only the aggregate numbers on this page &mdash; coins, counts, a censored top word, distributions &mdash; never a word you said.</div>
+    </div>
+  </section>
+
   <footer>
     <div><b>How this works.</b> Swear Jar read your AI coding session transcripts on this computer, tallied the swears into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. No account, no server, no upload, no network. Open the source and check.</div>
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
@@ -562,6 +572,17 @@ $('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\
   $('donate-btn').href=url;
   const amts=[['$5','buy a vowel'],['$10','recommended'],['$25','genuinely sorry'],[usd(S.dollarsOwed),'pay it all, legend']];
   $('donate-tiers').innerHTML=amts.map(a=>`<a href="${url}" target="_blank" rel="noopener">${a[0]}<span style="color:var(--faint)"> · ${a[1]}</span></a>`).join('');
+})();
+
+// ---- see it in lights (config-injected hosted wrapped URL; hidden if unset) ----
+// The URL is BUILT by the CLI and injected as data; clicking it is the user's
+// deliberate act. Nothing is requested on load — this only wires an <a href>.
+(function(){
+  const url=S.hosted_wrapped_url;
+  if(!url){$('lights-sec').style.display='none';return;}
+  $('lights-copy').innerHTML=`Put your <span class="bal">${usd(S.dollarsOwed)}</span> up on the global board and see how you rank. `+
+    `Only the aggregate numbers on this page travel in the link — your transcripts never leave this machine. 🫙`;
+  $('lights-btn').href=url;
 })();
 
 // ---- censor toggle: flips every .sww swear span between raw and f*** ----

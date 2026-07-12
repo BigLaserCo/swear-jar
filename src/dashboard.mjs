@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { computeStats } from "./stats.mjs";
 import { dataDir } from "./ledger.mjs";
 import { DONATE_URL } from "./donate.mjs";
+import { hostedWrappedUrl } from "./hosted.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = path.join(HERE, "..", "assets", "report_template.html");
@@ -34,16 +35,18 @@ export function loadTemplate(templatePath = TEMPLATE_PATH) {
   return fs.readFileSync(templatePath, "utf8");
 }
 
-// stats -> filled HTML string. donateUrl now DEFAULTS ON (DONATE_URL — the tip
-// jar): pass a string to point elsewhere, or `false` to hide the section (the
-// pre-monetization default). It renders as an <a href> a human clicks — the
-// page still auto-requests nothing.
+// stats -> filled HTML string. donateUrl DEFAULTS ON (DONATE_URL — the tip jar);
+// pass a string to point elsewhere, or `false` to hide the section. hostedUrl
+// (milestone 3) is the "see it in lights / join the board" button — inject a
+// string to show it, omit or pass `false` to hide it (local-only). BOTH render
+// as an <a href> a human clicks — the page still auto-requests nothing.
 export function renderDashboard(stats, opts = {}) {
-  const { donateUrl, templatePath } = opts;
+  const { donateUrl, templatePath, hostedUrl } = opts;
   const template = loadTemplate(templatePath);
   const payload = { ...stats };
   const donate = donateUrl === false ? null : donateUrl === undefined ? DONATE_URL : donateUrl;
   if (donate) payload.donate_url = donate;
+  if (typeof hostedUrl === "string" && hostedUrl) payload.hosted_wrapped_url = hostedUrl;
   const json = safeJson(payload);
   // Use a replacer function so `$` sequences in the JSON aren't treated as
   // String.replace special patterns.
@@ -51,9 +54,24 @@ export function renderDashboard(stats, opts = {}) {
 }
 
 // records -> report.html on disk. Returns the path. Does NOT open a browser.
+// By default the report carries the "in lights" button (covers a user who chose
+// local first); pass `hostedUrl: false` (or `localOnly: true`) to omit it, or a
+// string to override. Building the URL is pure — no request is ever made here.
 export function writeDashboard(records, opts = {}) {
   const stats = computeStats(records, opts.now);
-  const html = renderDashboard(stats, opts);
+  let hostedUrl = opts.hostedUrl;
+  if (hostedUrl === undefined) {
+    if (opts.localOnly || records.length === 0) {
+      hostedUrl = false;
+    } else {
+      try {
+        hostedUrl = hostedWrappedUrl(stats, records);
+      } catch {
+        hostedUrl = false; // a URL hiccup never blocks writing the local report
+      }
+    }
+  }
+  const html = renderDashboard(stats, { ...opts, hostedUrl });
   const outPath = opts.outPath || path.join(dataDir(), "report.html");
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, html, "utf8");

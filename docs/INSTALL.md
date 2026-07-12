@@ -6,12 +6,15 @@ no network calls, ever. Requires **Node ≥ 20**.
 
 After any install, run **`init` first** — the guided first-run wizard. It wires
 the hooks, finds and backfills your entire Claude Code (and optional Codex /
-dictation) history in one pass, writes your report, and opens it — the instant
-"you owe $X,XXX" moment, in your face. The path is always printed; auto-open
-only happens in a real terminal, and `--no-open` (or `SWEAR_JAR_NO_OPEN=1`)
-means it just prints. It's resumable and safe to re-run (records dedup by
-message id). Prefer to drive it by hand? **`backfill`** is the power-user
-alternative — it just retro-scans your history, no wizard.
+dictation) history in one pass, writes your local report, and — in a real
+terminal — opens your **wrapped report** on swearjar.unfocused.ai, whose URL
+carries only the aggregate numbers (never your words; a disclosure line names
+every field first). That's the instant "you owe $X,XXX" moment. The local path
+is always printed; `--local` (or `SWEAR_JAR_LOCAL_ONLY=1`) keeps everything on
+your machine, and `--no-open` (or `SWEAR_JAR_NO_OPEN=1`) opens nothing and just
+prints both. It's resumable and safe to re-run (records dedup by message id).
+Prefer to drive it by hand? **`backfill`** is the power-user alternative — it
+just retro-scans your history, no wizard.
 
 ---
 

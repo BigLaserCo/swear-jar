@@ -22,7 +22,7 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/swear-jar.mjs" <subcommand>
 | first-time setup / "launch the jar"| `... init`  (or `init --detect` for JSON) — see **First run / Launch** below |
 | the jar, rank, uprising odds       | `... status`                                                   |
 | retro-scan ALL past history        | `... backfill`  (add `--codex` to also fold in Codex rollouts) |
-| the shareable HTML report          | `... dashboard`  → **relay the path it prints** (it only auto-opens in a real terminal — under Claude it runs non-TTY and will NOT open, so the path relay is how the user finds it; never open a browser yourself) |
+| the shareable HTML report          | `... dashboard`  → **relay the local path AND the hosted wrapped URL it prints** (in a real terminal it opens the hosted wrapped page; under Claude it runs non-TTY and opens NOTHING, so it just prints both — relay both; add `--local` to keep it on the machine; never open a browser yourself) |
 | a shareable one-line "wrapped" recap | `... wrapped`  (add `--submit` to print the leaderboard link — never opens a browser) |
 | where the swearing happens         | `... report --by project`  (also: `source`, `word`, `hour`, `agent`) |
 | log an IRL swear (honor system)    | `... confess`  (add `--coins N` for more than one)             |
@@ -93,10 +93,16 @@ $X,XXX" in a single question.
    re-running adds nothing.
 
 5. **Relay the payoff** — the jar balance / coins / uprising odds it prints,
-   the report path, **and the closing 🫙 tip line, verbatim**. The CLI only
-   auto-opens the report in a real terminal; under Claude it runs non-TTY and
-   will NOT auto-open, so relaying the path is how the user finds their report.
-   Never open a browser yourself.
+   the local report path, the **hosted wrapped URL** (opens their wrapped report
+   on the web, carrying only the aggregate numbers — coins, $, swears/day,
+   censored top word, f-bomb %, active days, families, distributions, odds,
+   streak; never their words), **and the closing 🫙 tip line, verbatim**. In a
+   real terminal the CLI opens the hosted wrapped page for the user; under Claude
+   it runs non-TTY and opens NOTHING — it prints BOTH the local path and the
+   hosted URL, so relay both. The user can pass `--local` (or set
+   `SWEAR_JAR_LOCAL_ONLY=1`) to keep everything on their machine. The tool itself
+   never makes a network request — it only builds the URL and hands it to the
+   browser. Never open a browser yourself, never un-censor.
 
 ## Rules
 

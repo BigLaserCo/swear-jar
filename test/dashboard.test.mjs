@@ -44,23 +44,33 @@ test("HTML carries only word-family names and numbers — never message text", (
   assert.ok(html.includes('"fuck"'));
 });
 
-test("HTML auto-requests nothing — the only URL is the human-clicked donate href", () => {
-  const html = render();
+test("HTML auto-requests nothing — the only URLs are the human-clicked donate + lights hrefs", () => {
+  const HOSTED = "https://swearjar.unfocused.ai/wrapped?tc=1";
+  const html = renderDashboard(computeStats(FIXTURE, NOW), { hostedUrl: HOSTED });
   // no subresources, no scripted network: nothing loads or phones home on open
   assert.ok(!/<script\s+src=/i.test(html) && !/<link\b/i.test(html), "no external script/link tags");
   assert.ok(
     !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|new\s+WebSocket|new\s+EventSource/.test(html),
     "no scripted network calls"
   );
-  // every http(s) reference is DONATE_URL (the default-ON donate <a href> a
-  // human clicks) — nothing else, ever
+  // every http(s) reference is one of exactly two human-clicked <a href>s:
+  // DONATE_URL (the tip jar) and the hosted wrapped URL (see it in lights)
   const urls = [...html.matchAll(/https?:\/\/[^\s"'`<>()]+/gi)].map((m) => m[0]);
-  const foreign = urls.filter((u) => u !== DONATE_URL);
-  assert.deepEqual(foreign, [], `only DONATE_URL may appear; found: ${foreign.join(", ")}`);
-  // with the donate section hidden, the page is URL-free entirely (the old default)
+  const allowed = new Set([DONATE_URL, HOSTED]);
+  const foreign = urls.filter((u) => !allowed.has(u));
+  assert.deepEqual(foreign, [], `only donate_url + hosted_wrapped_url may appear; found: ${foreign.join(", ")}`);
+  // with both sections hidden, the page is URL-free entirely (the old default)
   const off = renderDashboard(computeStats(FIXTURE, NOW), { donateUrl: false });
-  assert.ok(!/https?:/i.test(off), "no http(s) URLs at all when donate is hidden");
+  assert.ok(!/https?:/i.test(off), "no http(s) URLs at all when donate + lights are hidden");
   assert.ok(!/\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(off), "no protocol-relative hosts");
+});
+
+test("hosted 'in lights' button injects only when a hosted URL is provided", () => {
+  const HOSTED = "https://swearjar.unfocused.ai/wrapped?tc=42";
+  const on = renderDashboard(computeStats(FIXTURE, NOW), { hostedUrl: HOSTED });
+  assert.ok(on.includes(`"hosted_wrapped_url":${JSON.stringify(HOSTED)}`), "hosted URL injected as data");
+  const off = renderDashboard(computeStats(FIXTURE, NOW), {});
+  assert.ok(!off.includes('"hosted_wrapped_url"'), "no hosted URL by default in renderDashboard");
 });
 
 test("censor toggle defaults to ON (sharing is censored)", () => {
@@ -84,12 +94,26 @@ test("writeDashboard writes report.html and returns its path", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "swearjar-dash-"));
   try {
     const out = path.join(dir, "report.html");
-    const returned = writeDashboard(FIXTURE, { now: NOW, outPath: out });
+    // hostedUrl:false keeps the equality check deterministic (the default path
+    // injects a computed hosted URL — exercised in the allowlist test above).
+    const returned = writeDashboard(FIXTURE, { now: NOW, outPath: out, hostedUrl: false });
     assert.equal(returned, out);
     assert.ok(fs.existsSync(out), "report.html written");
     const html = fs.readFileSync(out, "utf8");
-    assert.equal(html, renderDashboard(computeStats(FIXTURE, NOW), {}));
+    assert.equal(html, renderDashboard(computeStats(FIXTURE, NOW), { hostedUrl: false }));
     assert.ok(html.startsWith("<!doctype html>"));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("writeDashboard injects the hosted 'in lights' button by default, omits it when local-only", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "swearjar-dash2-"));
+  try {
+    const def = fs.readFileSync(writeDashboard(FIXTURE, { now: NOW, outPath: path.join(dir, "a.html") }), "utf8");
+    assert.match(def, /"hosted_wrapped_url":"https:\/\/swearjar\.unfocused\.ai\/wrapped\?/, "default carries the hosted button");
+    const loc = fs.readFileSync(writeDashboard(FIXTURE, { now: NOW, outPath: path.join(dir, "b.html"), localOnly: true }), "utf8");
+    assert.ok(!loc.includes('"hosted_wrapped_url"'), "local-only omits the hosted button");
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }

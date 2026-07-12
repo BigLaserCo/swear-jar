@@ -201,8 +201,11 @@ test("init --yes scans every found source, writes the report, and is idempotent"
   const t1 = c1.text();
   assert.match(t1, /The damage/);
   assert.match(t1, /rage\.wav:/); // dictation reported in the summary text
-  // non-TTY (PassThrough) run: the path is printed with the "didn't open" form…
-  assert.match(t1, /auto-opens in a real terminal/);
+  // non-TTY (PassThrough) run (SPEC m3): opens NOTHING and prints BOTH the local
+  // path and the hosted wrapped URL so the skill can relay them.
+  assert.match(t1, /Full report:/);
+  assert.match(t1, /swearjar\.unfocused\.ai\/wrapped\?/, "hosted wrapped URL printed for the skill");
+  assert.match(t1, /Never your words/, "the disclosure line names the payload before the URL");
   // …and the summary closes on the tip line (SPEC monetization-v1 D)
   assert.match(t1, /The jar takes real money too/);
 
@@ -212,6 +215,106 @@ test("init --yes scans every found source, writes the report, and is idempotent"
   assert.equal(loadRecords().length, 2, "no new jar records on re-run");
   assert.equal(loadDictationRecords().length, 1, "no new dictation records on re-run");
   assert.match(c2.text(), /Jar so far: \$1\.50 — re-running is safe/); // 6 coins * $0.25
+});
+
+// ── milestone-3 closing beat: hosted-vs-local + the open gate ─────────────────
+// A spy for openFn — records what (if anything) the closing beat would open,
+// without ever spawning a real browser.
+function openSpy() {
+  const calls = [];
+  return { fn: (target) => calls.push(target), calls };
+}
+
+test("closing beat: a real TTY opens the HOSTED wrapped URL (never the local file)", async () => {
+  const home = freshHome();
+  const claudeRoot = claudeFixture(1);
+  const c = collector();
+  const spy = openSpy();
+  const res = await runInit({
+    yes: true,
+    noHooks: true,
+    claudeRoot,
+    codexRoot: "/nope",
+    superwhisperRoot: "/nope",
+    output: c.stream,
+    isTTY: true, // force the open gate on without a real terminal
+    openFn: spy.fn,
+  });
+  assert.equal(spy.calls.length, 1, "exactly one open call");
+  assert.match(spy.calls[0], /^https:\/\/swearjar\.unfocused\.ai\/wrapped\?/, "opened the HOSTED url");
+  assert.equal(spy.calls[0], res.hostedUrl);
+  assert.notEqual(spy.calls[0], res.reportPath, "did NOT open the local file");
+  const t = c.text();
+  assert.match(t, /Never your words/, "disclosure printed before opening");
+  assert.match(t, /Local copy:/, "local report path still printed");
+});
+
+test("closing beat: --local opens the LOCAL file and never builds a hosted URL", async () => {
+  freshHome();
+  const claudeRoot = claudeFixture(1);
+  const c = collector();
+  const spy = openSpy();
+  const res = await runInit({
+    yes: true,
+    noHooks: true,
+    localOnly: true,
+    claudeRoot,
+    codexRoot: "/nope",
+    superwhisperRoot: "/nope",
+    output: c.stream,
+    isTTY: true,
+    openFn: spy.fn,
+  });
+  assert.equal(spy.calls.length, 1);
+  assert.equal(spy.calls[0], res.reportPath, "opened the LOCAL report");
+  assert.equal(res.hostedUrl, null, "no hosted URL when local-only");
+  // the tip line legitimately points at unfocused.ai; assert no hosted WRAPPED url
+  assert.doesNotMatch(c.text(), /unfocused\.ai\/wrapped/, "no hosted wrapped URL in local-only output");
+});
+
+test("closing beat: SWEAR_JAR_LOCAL_ONLY=1 is honored like --local", async () => {
+  freshHome();
+  process.env.SWEAR_JAR_LOCAL_ONLY = "1";
+  try {
+    const claudeRoot = claudeFixture(1);
+    const c = collector();
+    const spy = openSpy();
+    const res = await runInit({
+      yes: true,
+      noHooks: true,
+      claudeRoot,
+      codexRoot: "/nope",
+      superwhisperRoot: "/nope",
+      output: c.stream,
+      isTTY: true,
+      openFn: spy.fn,
+    });
+    assert.equal(res.hostedUrl, null);
+    assert.equal(spy.calls[0], res.reportPath);
+  } finally {
+    delete process.env.SWEAR_JAR_LOCAL_ONLY;
+  }
+});
+
+test("closing beat: non-TTY opens NOTHING and prints both local path + hosted URL", async () => {
+  freshHome();
+  const claudeRoot = claudeFixture(1);
+  const c = collector();
+  const spy = openSpy();
+  const res = await runInit({
+    yes: true,
+    noHooks: true,
+    claudeRoot,
+    codexRoot: "/nope",
+    superwhisperRoot: "/nope",
+    output: c.stream,
+    isTTY: false,
+    openFn: spy.fn,
+  });
+  assert.equal(spy.calls.length, 0, "nothing is opened in a non-TTY run");
+  const t = c.text();
+  assert.match(t, new RegExp(res.reportPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.ok(res.hostedUrl && t.includes(res.hostedUrl), "the hosted URL is printed for relay");
 });
 
 test("init --yes names the supplying flag for each missing source", async () => {

@@ -21,6 +21,7 @@ import {
 import { runInit, detectSources } from "../src/init.mjs";
 import { tipLine } from "../src/donate.mjs";
 import { shouldAutoOpen, openInBrowser } from "../src/open.mjs";
+import { agentForRecords, resolveClosing, hostedWrappedUrl, disclosureLine } from "../src/hosted.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -65,6 +66,8 @@ async function main() {
         yes: Boolean(flag("yes")),
         noHooks: Boolean(flag("no-hooks")),
         noOpen: Boolean(flag("no-open")),
+        localOnly: Boolean(flag("local")),
+        hosted: Boolean(flag("hosted")),
         superwhisperRoot: typeof rootFlag === "string" ? rootFlag : undefined,
         codexRoot: typeof codexRootFlag === "string" ? codexRootFlag : undefined,
         outPath: typeof outFlag === "string" ? outFlag : undefined,
@@ -99,19 +102,42 @@ async function main() {
       break;
     }
     case "dashboard": {
-      // Renders the shareable HTML report. The path is ALWAYS printed; in a
-      // real terminal the report also opens (--no-open / SWEAR_JAR_NO_OPEN=1
-      // to just print — non-TTY runs mechanically never open). Donate is
-      // default-ON (the tip jar); --donate-url overrides, --no-donate hides.
+      // Renders the shareable HTML report and closes on the same hosted-vs-local
+      // decision as `init` (SPEC m3): the LOCAL report is ALWAYS written and its
+      // path printed; in a real terminal the HOSTED wrapped report opens by
+      // default (disclosure line first). --local / SWEAR_JAR_LOCAL_ONLY keeps it
+      // on your machine, --hosted forces hosted, --no-open / non-TTY opens
+      // nothing and prints both. Donate is default-ON (--donate-url overrides,
+      // --no-donate hides).
       const donateFlag = flag("donate-url");
-      const outPath = writeDashboard(loadRecords(), {
+      const localOnly = Boolean(flag("local")) || Boolean(process.env.SWEAR_JAR_LOCAL_ONLY);
+      const records = loadRecords();
+      const stats = computeStats(records);
+      const outPath = writeDashboard(records, {
         donateUrl: flag("no-donate") ? false : typeof donateFlag === "string" ? donateFlag : undefined,
         outPath: flag("out") || undefined,
+        hostedUrl: localOnly ? false : undefined,
+        localOnly,
       });
       console.log(`🫙 Dashboard written: ${outPath}`);
-      if (shouldAutoOpen({ isTTY: process.stdout.isTTY, noOpen: Boolean(flag("no-open")) })) {
+      const canOpen = shouldAutoOpen({ isTTY: process.stdout.isTTY, noOpen: Boolean(flag("no-open")) });
+      const plan = resolveClosing({
+        canOpen,
+        localOnly,
+        forceHosted: Boolean(flag("hosted")),
+        ledgerEmpty: records.length === 0,
+      });
+      const hostedUrl = plan.hostedApplicable ? hostedWrappedUrl(stats, records) : null;
+      if (plan.mode === "open-hosted") {
+        console.log(disclosureLine());
+        console.log(`   ${hostedUrl}`);
+        openInBrowser(hostedUrl);
+      } else if (plan.mode === "open-local") {
         openInBrowser(outPath);
         console.log("   Opening it for you — pass --no-open (or SWEAR_JAR_NO_OPEN=1) to just print the path.");
+      } else if (hostedUrl) {
+        console.log(disclosureLine(undefined, { opening: false }));
+        console.log(`   ${hostedUrl}`);
       }
       break;
     }
@@ -161,11 +187,8 @@ async function main() {
       const stats = computeStats(loadRecords());
       // Map the ledger's agents onto the canonical submission enum
       // (claude | codex | both | dictation | other — see funnel/schema.mjs).
-      const present = new Set(loadRecords().map((r) => r.agent).filter(Boolean));
-      const c = present.has("claude");
-      const x = present.has("codex");
-      const agent =
-        c && x ? "both" : c && present.size === 1 ? "claude" : x && present.size === 1 ? "codex" : "other";
+      // Shared with the hosted payload (src/hosted.mjs) so the two never drift.
+      const agent = agentForRecords(loadRecords());
       const top = stats.topWords[0] ? censor(stats.topWords[0].word) : "—";
       const caption =
         `I owe the swear jar ${dollars(stats.totalCoins)} — ${stats.totalCoins} coins, ` +
@@ -174,7 +197,7 @@ async function main() {
       if (flag("submit")) {
         const base =
           process.env.SWEAR_JAR_SUBMIT_URL ||
-          "https://swearjar.biglaser.co/submit.html";
+          "https://swearjar.unfocused.ai/submit.html";
         const params = new URLSearchParams({
           total_coins: String(stats.totalCoins),
           dollars: String(stats.dollarsOwed),
@@ -280,11 +303,11 @@ async function main() {
       console.log(
         [
           "swear-jar — usage:",
-          "  swear-jar init                first-run wizard: wire hooks, backfill history, write + open the report",
+          "  swear-jar init                first-run wizard: wire hooks, backfill history, write report + open your wrapped (--local: keep it on your machine)",
           "  swear-jar status              the jar, your rank, uprising odds",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
           "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
-          "  swear-jar dashboard           write + open the shareable HTML report (--no-open: just print the path)",
+          "  swear-jar dashboard           write the local report + open your hosted wrapped (--local: local file only · --no-open: just print)",
           "  swear-jar wrapped [--submit]  your shareable summary; --submit prints the leaderboard link",
           "  swear-jar verify-ledger       tamper-evidence check on your local ledger",
           "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",

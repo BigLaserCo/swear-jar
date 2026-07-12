@@ -289,10 +289,12 @@ node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
       <div class="step">
         <div class="step-head"><span class="step-num">3</span><h3>Get your damage report</h3></div>
         <p>Fold the ledger into a single self-contained HTML page &mdash; the tape, the coins, the
-          you-vs-machine split, and the uprising gauge. Run it in a real terminal and <b>your report
-          opens right in your face</b> (the path is always printed; <span class="mono">--no-open</span> to just print).</p>
+          you-vs-machine split, and the uprising gauge. It&rsquo;s always written locally; in a real terminal it
+          also <b>opens your wrapped report</b> on swearjar.unfocused.ai, whose URL carries only the aggregate
+          numbers (never your words &mdash; a disclosure line names every field first). <span class="mono">--local</span>
+          keeps it on your machine; <span class="mono">--no-open</span> just prints both.</p>
         <div class="snip">
-          <pre class="code">node bin/swear-jar.mjs dashboard <span class="cm"># writes ~/.swear-jar/report.html, prints the path</span></pre>
+          <pre class="code">node bin/swear-jar.mjs dashboard <span class="cm"># writes ~/.swear-jar/report.html, opens your wrapped</span></pre>
           <button class="copy" type="button">Copy</button>
         </div>
       </div>
@@ -308,12 +310,12 @@ node ~/Code/swear-jar/bin/swear-jar.mjs install</pre>
       <p class="sub" style="color:var(--secondary)">The jar reads transcripts you already have, counts the
         swears, and writes numbers. That&rsquo;s the whole design &mdash; and you can check it, because it&rsquo;s tiny.</p>
       <ul class="plist">
-        <li><span class="ck">&#10003;</span><span><b>100% local.</b> Everything runs on your computer. No account, no server, no upload &mdash; ever.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>100% local by default.</b> The jar, the ledger, and your report all live on your computer. No account, no server.</span></li>
         <li><span class="ck">&#10003;</span><span><b>Word counts only.</b> The ledger stores <code>{ "f***": 3 }</code>&mdash;style tallies, never the message text.</span></li>
         <li><span class="ck">&#10003;</span><span><b>Never your sentences.</b> What you actually typed is counted and thrown away on the spot.</span></li>
         <li><span class="ck">&#10003;</span><span><b>Zero dependencies.</b> No packages, no supply chain, nothing to audit but our own code.</span></li>
-        <li><span class="ck">&#10003;</span><span><b>Zero network.</b> No fetch, no sockets, no telemetry. The CI gate fails the build if any appears.</span></li>
-        <li><span class="ck">&#10003;</span><span><b>Sharing sends numbers.</b> The share card carries your balance &mdash; not one word of what you said.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>The tool sends nothing.</b> No fetch, no sockets, no telemetry &mdash; the CI gate fails the build if any appears. It only ever <em>opens</em> a page.</span></li>
+        <li><span class="ck">&#10003;</span><span><b>Sharing is opening a page.</b> When you open your wrapped report on swearjar.unfocused.ai, its URL carries only named aggregate numbers &mdash; coins, counts, a censored top word, distributions &mdash; never a word you said. <span class="mono">--local</span> keeps even that on your machine.</span></li>
       </ul>
       <p class="readline">Don&rsquo;t take our word for it: the whole thing is <b>~1,600 lines of dependency-free,
         standard-library Node</b>. Read every line before you trust it &mdash; that&rsquo;s the point of keeping it small.

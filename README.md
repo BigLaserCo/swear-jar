@@ -27,9 +27,17 @@ node ~/Code/swear-jar/bin/swear-jar.mjs init
 
 `init` is the recommended first step: a guided first-run wizard that wires the
 hooks, finds and backfills your Claude Code / Codex / dictation history, writes
-your damage report, and opens it (the path is always printed; pass `--no-open`
-or set `SWEAR_JAR_NO_OPEN=1` to just print) — zero to the "you owe $X,XXX"
-moment in one command. It's safe to re-run; nothing double-counts.
+your local damage report, and — in a real terminal — opens your **wrapped
+report** on `swearjar.unfocused.ai` (the local path is always printed too).
+That hosted page is the (disclosed) collection moment: the tool builds a URL
+carrying only the aggregate numbers — coins, $, swears/day, a censored top
+word, f-bomb %, active days, families, distributions, odds, streak — and opens
+it; **it never uploads anything and never makes a network request itself**
+(opening the page is the whole transfer, and the source is public so you can
+check). Pass `--local` (or set `SWEAR_JAR_LOCAL_ONLY=1`) to keep everything on
+your machine, or `--no-open` / `SWEAR_JAR_NO_OPEN=1` to open nothing and just
+print both paths. Zero to the "you owe $X,XXX" moment in one command, and it's
+safe to re-run; nothing double-counts.
 
 Prefer to drive it by hand? The power-user path is the two underlying steps —
 `install` to wire the hooks, then `backfill` to retro-scan your history:
@@ -95,7 +103,7 @@ and suspenders, no double charge.
 ## Commands
 
 ```
-swear-jar init                first-run wizard: detect sources, wire hooks, backfill
+swear-jar init                first-run wizard: detect sources, wire hooks, backfill, open your wrapped (--local to keep it on your machine)
 swear-jar status              the jar, your rank, uprising odds
 swear-jar report --by project where the swearing happens (also: source|word|hour)
 swear-jar confess [--coins n] drop a coin for IRL swearing (honor system)
@@ -106,23 +114,27 @@ swear-jar install|uninstall   wire/unwire the Claude Code hooks
 ## Dashboard
 
 ```
-swear-jar dashboard           build the local HTML damage report
+swear-jar dashboard           build the local report + open your hosted wrapped (--local: local file only)
 ```
 
 `swear-jar dashboard` folds your ledger into a single self-contained HTML page,
 writes it to `~/.swear-jar/report.html`, **prints the path**, and — in a real
-terminal — **opens your report for you**. Pass `--no-open` (or set
-`SWEAR_JAR_NO_OPEN=1`) to just print the path; non-interactive runs (CI, pipes,
-Claude driving the CLI) never auto-open. The page is 100% local and offline: no
-CDN, no fonts, no remote images. Everything is inlined, and nothing on it makes
-a request — the only link out is the donate button, which goes nowhere unless
-you click it.
+terminal — **opens your hosted wrapped report** on `swearjar.unfocused.ai`
+(carrying only the aggregate numbers, never your words; a disclosure line names
+every field first). Pass `--local` (or `SWEAR_JAR_LOCAL_ONLY=1`) to open the
+local file instead and never build a hosted URL; `--no-open` (or
+`SWEAR_JAR_NO_OPEN=1`) to open nothing and print both; non-interactive runs (CI,
+pipes, Claude driving the CLI) never auto-open. The local page is 100% local and
+offline: no CDN, no fonts, no remote images. Everything is inlined, and nothing
+on it makes a request — the links out (the donate button and the "see it in
+lights" button) go nowhere unless you click them.
 
 What it shows: the hero **$ owed to the jar**, the **you-vs-machine** split, the
 **Robot Uprising** odds gauge + your rank, **coins by project**, a rage-o-clock
 (coins by hour), a per-day trend, day-of-week, and your most-used families.
 Swears are **censored by default** (`f***`) — a toggle reveals them locally, and
-the share card carries only aggregate numbers, never a word of what you said.
+both the share card and the hosted wrapped link carry only aggregate numbers,
+never a word of what you said.
 
 The "empty your jar" donate section is **on by default** and points at the tip
 jar (see [Tip the founder](#tip-the-founder)). Point it somewhere else with

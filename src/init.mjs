@@ -12,13 +12,19 @@
 //    the rage.wav dictation numbers but reads them from loadDictationRecords()
 //    and NEVER sums them into the jar balance (which comes only from
 //    loadRecords() / ledger.jsonl). The two never touch.
-//  - Auto-open is a TTY-only courtesy (monetization-v1): in a real terminal
-//    the finished report opens for you (src/open.mjs); the path is ALWAYS
-//    printed, and --no-open / SWEAR_JAR_NO_OPEN=1 — or any non-TTY run (the
-//    Claude skill, CI, a pipe) — means we only print. Ctrl-C mid-run is safe
-//    because every ledger is append-only and uuid-deduped, so no cleanup
-//    handler is needed (adding one would risk corrupting a torn write, not
-//    prevent it).
+//  - Auto-open the HOSTED wrapped report (milestone 3): in a real terminal the
+//    closing beat opens `<HOSTED_BASE>/wrapped?<aggregate-params>` — the
+//    disclosed collection moment — after printing ONE line that names every
+//    field the URL carries. The LOCAL report is ALWAYS still written and its
+//    path printed. Escape hatches: --local / SWEAR_JAR_LOCAL_ONLY=1 (never
+//    hosted, open the local file), an empty ledger (nothing to share → local),
+//    --no-open / SWEAR_JAR_NO_OPEN=1 or any non-TTY run (the Claude skill, CI, a
+//    pipe → open nothing, print BOTH the local path and the hosted URL). The
+//    client NEVER makes a request: it builds a URL and hands it to
+//    src/open.mjs's openInBrowser — the one sanctioned spawn site. Ctrl-C
+//    mid-run is safe because every ledger is append-only and uuid-deduped, so no
+//    cleanup handler is needed (adding one would risk corrupting a torn write,
+//    not prevent it).
 
 import fs from "node:fs";
 import path from "node:path";
@@ -39,6 +45,7 @@ import { loadRecords } from "./ledger.mjs";
 import { dollars } from "./render.mjs";
 import { shouldAutoOpen, openInBrowser } from "./open.mjs";
 import { tipLine } from "./donate.mjs";
+import { resolveClosing, hostedWrappedUrl, disclosureLine } from "./hosted.mjs";
 
 // Display-only mirror of superwhisper.mjs CANDIDATE_ROOTS: the "usual spots" the
 // wizard/skill names when nothing is found. superwhisper.mjs owns the
@@ -238,9 +245,9 @@ async function resolveSuperwhisper(rl, det, write) {
 
 // Print the closing "damage" payoff (SPEC §3). Jar numbers come from the main
 // ledger only; rage.wav is reported from its OWN ledger and never summed in.
-// The path is ALWAYS printed; `willOpen` only changes the parenthetical.
-function printDamage(write, records, reportPath, willOpen) {
-  const stats = computeStats(records);
+// The report path + hosted-vs-local decision is handled by the caller's closing
+// beat (see runInit), not here.
+function printDamage(write, stats) {
   const dict = loadDictationRecords();
   const dictSwears = dict.reduce(
     (n, r) => n + Object.values(r.words || {}).reduce((a, b) => a + (Number(b) || 0), 0),
@@ -258,12 +265,6 @@ function printDamage(write, records, reportPath, willOpen) {
     );
   }
   write(`   Uprising odds: ${stats.odds.value}%  — rank: ${stats.rank.current}`);
-  write("");
-  write(
-    willOpen
-      ? `   Full report:   ${reportPath}   (opening it for you now — --no-open or SWEAR_JAR_NO_OPEN=1 to just print)`
-      : `   Full report:   ${reportPath}   (auto-opens in a real terminal — --no-open or SWEAR_JAR_NO_OPEN=1 to always just print)`
-  );
 }
 
 // runInit — the wizard. Interactive when stdin is a TTY (and no --yes); otherwise
@@ -399,17 +400,55 @@ export async function runInit(opts = {}) {
     importSuperwhisper(swRoot);
   }
 
-  // ── close on the payoff + the report path (+ the TTY-only open courtesy) ────
+  // ── close on the payoff, then the hosted-vs-local open decision ─────────────
   const records = loadRecords();
-  const reportPath = writeDashboard(records, { outPath: opts.outPath || undefined });
-  // Gate on the OUTPUT stream's TTY: real terminal → open; the Claude skill,
-  // CI, pipes, and test streams are non-TTY and mechanically never open.
-  const willOpen = shouldAutoOpen({ isTTY: out.isTTY, noOpen: Boolean(opts.noOpen) });
+  const stats = computeStats(records);
+  const env = opts.env || process.env;
+  const localOnly = Boolean(opts.localOnly) || Boolean(env.SWEAR_JAR_LOCAL_ONLY);
+  // The LOCAL report is ALWAYS written; localOnly just hides its "in lights"
+  // button so a local-only user never gets a hosted URL in front of them.
+  const reportPath = writeDashboard(records, {
+    outPath: opts.outPath || undefined,
+    hostedUrl: localOnly ? false : undefined,
+    localOnly,
+  });
+
+  // Compose the ONE open gate (src/open.mjs) with the pure closing decision
+  // (src/hosted.mjs). Gate on the OUTPUT stream's TTY: real terminal → open;
+  // the Claude skill, CI, pipes, and test streams are non-TTY and never open.
+  const isTTY = opts.isTTY ?? out.isTTY;
+  const canOpen = shouldAutoOpen({ isTTY, noOpen: Boolean(opts.noOpen), env });
+  const plan = resolveClosing({
+    canOpen,
+    localOnly,
+    forceHosted: Boolean(opts.hosted),
+    ledgerEmpty: records.length === 0,
+  });
+  const openFn = opts.openFn || openInBrowser;
+  const hostedUrl = plan.hostedApplicable ? hostedWrappedUrl(stats, records) : null;
+
   write("");
-  printDamage(write, records, reportPath, willOpen);
-  if (willOpen) openInBrowser(reportPath);
+  printDamage(write, stats);
+  write("");
+  if (plan.mode === "open-hosted") {
+    write(disclosureLine());
+    write(`   Wrapped:     ${hostedUrl}`);
+    write(`   Local copy:  ${reportPath}`);
+    openFn(hostedUrl);
+  } else if (plan.mode === "open-local") {
+    write(`   Full report: ${reportPath}   (opened locally)`);
+    openFn(reportPath);
+  } else {
+    // non-TTY / --no-open: open nothing, print BOTH so the skill can relay them.
+    write(`   Full report: ${reportPath}`);
+    if (hostedUrl) {
+      write("");
+      write(disclosureLine(undefined, { opening: false }));
+      write(`   Wrapped:     ${hostedUrl}`);
+    }
+  }
   write("");
   write(tipLine());
 
-  return { reportPath, detection: det };
+  return { reportPath, hostedUrl, plan, detection: det };
 }

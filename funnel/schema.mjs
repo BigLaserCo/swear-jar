@@ -31,6 +31,11 @@ export const CAPS = {
   top_word_len: 24,
   app_version_len: 32,
   release_hash_len: 64,
+  // ── milestone-3 hosted-wrapped extension (validateWrapped) ──────────────────
+  families_max: 12, // at most 12 censored family keys travel in the payload
+  count: 1_000_000, // ceiling for any single bucket/family count
+  odds: 100, // Robot Uprising Survival Odds — a 0..100 percentage
+  streak_days: 100_000, // longest consecutive-swear-day run
 };
 
 const APP_VERSION_RE = /^\d+\.\d+\.\d+(?:[-+.][0-9A-Za-z.+-]+)?$/;
@@ -176,4 +181,170 @@ export function validate(stats) {
 
   if (errors.length) return { ok: false, errors };
   return { ok: true, value };
+}
+
+// ── milestone-3: the hosted-wrapped payload ──────────────────────────────────
+// The hosted wrapped page is the (disclosed) collection moment: the client
+// builds a URL carrying these AGGREGATE numbers and opens it. This schema is the
+// privacy contract — it composes the untouched `validate()` above with the
+// report aggregates, and (like validate) returns a NEW object holding ONLY the
+// known fields. Unknown fields (project names/paths, cwd, session ids, per-day
+// series, raw text) are never read here, so they can never travel — the DROP is
+// the exclusion mechanism, tested end-to-end. `families` keys must already be
+// censored (an uncensored swear key is rejected, same rule as top_word).
+
+function checkIntArray(errors, field, v, len, cap) {
+  if (!Array.isArray(v) || v.length !== len) {
+    errors.push(err(field, `must be an array of exactly ${len} integers`));
+    return undefined;
+  }
+  const out = [];
+  for (let i = 0; i < len; i++) {
+    const n = toNumber(v[i]);
+    if (!Number.isInteger(n) || n < 0 || n > cap) {
+      errors.push(err(field, `[${i}] must be an integer in 0..${cap}`));
+      return undefined;
+    }
+    out.push(n);
+  }
+  return out;
+}
+
+function checkFamilies(errors, v) {
+  if (v === null || typeof v !== "object" || Array.isArray(v)) {
+    errors.push(err("families", "must be an object of censored-word -> count"));
+    return undefined;
+  }
+  const entries = Object.entries(v);
+  if (entries.length > CAPS.families_max) {
+    errors.push(err("families", `at most ${CAPS.families_max} families allowed`));
+    return undefined;
+  }
+  const out = {};
+  for (const [rawKey, rawCount] of entries) {
+    const key = String(rawKey).trim();
+    if (!key || key.length > CAPS.top_word_len) {
+      errors.push(err("families", `key "${rawKey}" is empty or longer than ${CAPS.top_word_len}`));
+      return undefined;
+    }
+    if (isUncensoredSwear(key)) {
+      errors.push(err("families", `key "${rawKey}" must be censored (uncensored words are rejected)`));
+      return undefined;
+    }
+    const n = toNumber(rawCount);
+    if (!Number.isInteger(n) || n < 0 || n > CAPS.count) {
+      errors.push(err("families", `count for "${rawKey}" must be an integer in 0..${CAPS.count}`));
+      return undefined;
+    }
+    out[key] = n;
+  }
+  return out;
+}
+
+// validateWrapped(stats) -> { ok, value } | { ok, errors } — the base submit
+// fields PLUS the six report aggregates, each schema-capped. `value` carries
+// ONLY the known fields (base + families/by_hour/by_dow/user_vs_machine/odds/
+// streak_days); everything else is dropped.
+export function validateWrapped(stats) {
+  const base = validate(stats);
+  const errors = base.ok ? [] : [...base.errors];
+  const value = base.ok ? { ...base.value } : {};
+  const s = stats && typeof stats === "object" && !Array.isArray(stats) ? stats : {};
+
+  const families = checkFamilies(errors, s.families);
+  if (families !== undefined) value.families = families;
+
+  const byHour = checkIntArray(errors, "by_hour", s.by_hour, 24, CAPS.count);
+  if (byHour !== undefined) value.by_hour = byHour;
+
+  const byDow = checkIntArray(errors, "by_dow", s.by_dow, 7, CAPS.count);
+  if (byDow !== undefined) value.by_dow = byDow;
+
+  const uvm = checkIntArray(errors, "user_vs_machine", s.user_vs_machine, 2, CAPS.count);
+  if (uvm !== undefined) value.user_vs_machine = uvm;
+
+  const odds = checkNumber(errors, "odds", s.odds, { cap: CAPS.odds, integer: true });
+  if (odds !== undefined) value.odds = odds;
+
+  const streak = checkNumber(errors, "streak_days", s.streak_days, {
+    cap: CAPS.streak_days,
+    integer: true,
+  });
+  if (streak !== undefined) value.streak_days = streak;
+
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, value };
+}
+
+// ── the compact wire format (shared with the hosted Worker) ──────────────────
+// Short keys + unreserved separators (".", "-") so a full worst-case payload
+// stays ~1.1KB and (with the client's underscore-masked censoring) needs no
+// percent-encoding. encode/decode are exact inverses through validateWrapped:
+// decodeWrappedParams parses the query into a raw object; validateWrapped then
+// caps + coerces it (the Worker validates untrusted input the same way).
+const WIRE = {
+  total_coins: "tc",
+  dollars: "d",
+  swears_per_day: "spd",
+  top_word: "tw",
+  fbomb_pct: "fb",
+  active_days: "ad",
+  agent: "ag",
+  app_version: "av",
+  release_hash: "rh",
+  odds: "o",
+  streak_days: "sd",
+};
+
+export function encodeWrappedParams(value) {
+  const p = new URLSearchParams();
+  for (const [field, key] of Object.entries(WIRE)) {
+    p.set(key, String(value[field]));
+  }
+  p.set("bh", (value.by_hour || []).join("."));
+  p.set("bd", (value.by_dow || []).join("."));
+  p.set("uvm", (value.user_vs_machine || []).join("."));
+  p.set(
+    "fam",
+    Object.entries(value.families || {})
+      .map(([k, c]) => `${k}-${c}`)
+      .join(".")
+  );
+  return p.toString();
+}
+
+export function decodeWrappedParams(input) {
+  const p =
+    input instanceof URLSearchParams
+      ? input
+      : new URLSearchParams(String(input || "").replace(/^\?/, ""));
+  const ints = (key) => {
+    const raw = p.get(key);
+    return raw ? raw.split(".").map(Number) : [];
+  };
+  const families = {};
+  const famStr = p.get("fam");
+  if (famStr) {
+    for (const pair of famStr.split(".")) {
+      const i = pair.lastIndexOf("-");
+      if (i > 0) families[pair.slice(0, i)] = Number(pair.slice(i + 1));
+    }
+  }
+  return {
+    total_coins: Number(p.get(WIRE.total_coins)),
+    dollars: Number(p.get(WIRE.dollars)),
+    swears_per_day: Number(p.get(WIRE.swears_per_day)),
+    top_word: p.get(WIRE.top_word) || "",
+    fbomb_pct: Number(p.get(WIRE.fbomb_pct)),
+    active_days: Number(p.get(WIRE.active_days)),
+    agent: p.get(WIRE.agent) || "",
+    app_version: p.get(WIRE.app_version) || "",
+    release_hash: p.get(WIRE.release_hash) || "",
+    odds: Number(p.get(WIRE.odds)),
+    streak_days: Number(p.get(WIRE.streak_days)),
+    by_hour: ints("bh"),
+    by_dow: ints("bd"),
+    user_vs_machine: ints("uvm"),
+    families,
+  };
 }
