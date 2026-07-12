@@ -339,3 +339,101 @@ opens in your face → the tip link is on it", and every door ends with a
   human clicks — no fetch, no tracking, no auto-request anywhere.
 - Leaderboard submit flow untouched.
 - Zero new dependencies; hooks (`scan`) untouched and never open anything.
+
+---
+
+# SPEC ADDENDUM — Milestone 3: hosted wrapped + aggregate metrics (the pivot)
+
+Status: approved direction (Jim, 2026-07-11) · IMPLEMENT AFTER milestone 2
+lands (it rewires the same end-of-init flow). Client work lives in this repo;
+the collection service is CLOSED SOURCE in the private `unfocused-ai` repo.
+
+## 0. The pivot, stated plainly
+
+Jim wants the users' aggregate swear data — effectively their generated
+report's numbers, nothing identifiable — collected so we can compute global
+aggregates. Source code stays public.
+
+## 1. Design principle — NO stealth telemetry (and why)
+
+The client is public source with CI-enforced zero-network; a hidden phone-home
+is (a) impossible to hide (anyone reads the code), (b) instantly fatal to the
+trust story the whole brand stands on, and (c) blocked by our own gates.
+Jim's own conclusion is the architecture: **the collection moment is opening
+our website.** The client's only job is to BUILD the report URL and open it
+with the user's go-ahead; the server does all metrics. Nothing in the client
+is hidden — the honesty IS the moat.
+
+## 2. The flow (client side — this repo)
+
+- `init` / `dashboard` still always write the LOCAL report (nothing changes
+  about local).
+- In a TTY, the closing beat becomes ONE choice (default = hosted):
+
+  ```
+  🫙 Put your damage up in lights?
+     [Enter] open your wrapped report on <HOSTED_BASE>  — sends only the
+             aggregate numbers below, never your words or transcripts
+     [l]     keep it local only (opens the file instead)
+  ```
+
+  Enter → auto-open `<HOSTED_BASE>/wrapped?<payload>`; `l` → open the local
+  file (milestone-2 behavior). Flags/env: `--local` / `SWEAR_JAR_LOCAL_ONLY=1`
+  (never offer hosted), `--hosted` (skip the ask). Non-TTY: never opens,
+  prints BOTH the local path and the hosted URL so the skill can relay them.
+- The local report gets a "see it in lights / join the board" button carrying
+  the same URL (covers people who chose local first).
+- The disclosure line above the choice lists the payload fields by name —
+  short, honest, on-brand.
+
+## 3. The payload (extend `funnel/schema.mjs` — stays PUBLIC)
+
+Existing submit fields (total_coins, dollars, swears_per_day, censored
+top_word, fbomb_pct, active_days, agent, app_version, release_hash) PLUS the
+report aggregates, all schema-capped:
+
+- `families`: censored family → count map (word COUNTS only, already censored)
+- `by_hour`: 24 ints · `by_dow`: 7 ints · `user_vs_machine`: 2 ints
+- `odds`: 0–100 · `streak_days`: int
+- **EXCLUDED, deliberately:** project names/paths (identifiable — repo names),
+  cwd, session ids, per-day time series beyond `active_days`, anything
+  uncensored. The schema is the privacy contract; test it.
+
+URL budget ≤ 2KB; payload schema-validated on both ends (public schema file
+is the shared contract).
+
+## 4. The service (CLOSED source — `unfocused-ai` repo, NOT here)
+
+Cross-repo handoff (do NOT build in this repo):
+- Hosted wrapped page at the swear-jar site: renders the same wrapped report
+  from the URL payload; on load the Worker stores the payload row
+  (schema-validate, rate-limit, cap) and folds global aggregates. Page
+  footer discloses collection in one sentence.
+- No account needed to be counted; the existing unfocused-ai accounts Worker
+  (magic link) gates only the leaderboard high-score claim.
+- Do not store IP alongside rows (truncate for abuse-limiting only, short TTL).
+- `funnel/worker.mjs` + `wrangler.toml.example` MIGRATE out of this public
+  repo into unfocused-ai (Jim: "that part is closed source"); this repo keeps
+  only `funnel/schema.mjs` (the client imports it, and the public schema is
+  the honesty artifact). Remove funnel/README serving instructions from the
+  public repo at migration time.
+
+## 5. Money (ties into milestone 2)
+
+- Tip target = **Stripe Payment Link** (the Stripe account already runs
+  biglaser.co's storefront checkout). `docs/tip.html`'s button points at the
+  payment link the moment Jim mints one — still a one-line swap on one page.
+- The hosted wrapped page carries the same credit + tip footer as everything
+  else: the credit and the money travel together.
+
+## 6. Sequencing
+
+1. Milestone 2 lands (in flight).
+2. This repo: schema extension + hostedWrappedUrl builder + end-of-init
+   choice + report button + tests (client never POSTs anything — it only
+   builds URLs and opens pages).
+3. unfocused-ai repo (separate session/queue): wrapped page + collection
+   Worker + funnel migration + aggregates.
+4. Public copy update: privacy page states the model exactly — "the tool
+   sends nothing; opening the hosted report shares these named aggregate
+   numbers."
