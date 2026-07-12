@@ -11,3 +11,6 @@ CLAUDE.local.md
 __pycache__/
 *.pyc
 docs/_myreport.html
+
+# machine-local release-queue state (operator tooling) — never tracked
+.elephant/
