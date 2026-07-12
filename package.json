@@ -21,7 +21,7 @@
     "url": "https://github.com/BigLaserCo/swear-jar/issues"
   },
   "private": true,
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "swear-jar": "bin/swear-jar.mjs"

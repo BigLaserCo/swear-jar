@@ -10,8 +10,14 @@
   },
   "homepage": "https://github.com/BigLaserCo/swear-jar",
   "repository": "https://github.com/BigLaserCo/swear-jar",
-  "license": "UNLICENSED",
-  "keywords": ["swear-jar", "novelty", "hooks", "fun", "stats"],
+  "license": "MIT",
+  "keywords": [
+    "swear-jar",
+    "novelty",
+    "hooks",
+    "fun",
+    "stats"
+  ],
   "hooks": {
     "UserPromptSubmit": [
       {

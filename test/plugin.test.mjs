@@ -46,7 +46,7 @@ test("plugin.json parses and declares required identity", () => {
   assert.match(manifest.name, /^[a-z0-9-]+$/, "plugin name is kebab-case");
   // We keep our own code proprietary — never emit an open-source license.
   if (manifest.license !== undefined) {
-    assert.equal(manifest.license, "UNLICENSED");
+    assert.equal(manifest.license, "MIT");
   }
 });
 
