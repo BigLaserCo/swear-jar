@@ -4,10 +4,12 @@ Every path below pulls **zero dependencies** and runs **no install scripts** —
 swear-jar is one small Node ESM package (stdlib only), a single local ledger, and
 no network calls, ever. Requires **Node ≥ 20**.
 
-After any install, run **`backfill` first** — it retro-scans your entire Claude
-Code (and optional Codex) history in one pass and gives you the instant
+After any install, run **`init` first** — the guided first-run wizard. It wires
+the hooks, finds and backfills your entire Claude Code (and optional Codex /
+dictation) history in one pass, writes your report, and gives you the instant
 "you owe $X,XXX" moment. It's resumable and safe to re-run (records dedup by
-message id).
+message id). Prefer to drive it by hand? **`backfill`** is the power-user
+alternative — it just retro-scans your history, no wizard.
 
 ---
 
@@ -16,7 +18,7 @@ message id).
 Run it straight from the registry (after the package is published):
 
 ```sh
-npx swear-jar backfill        # audit all past sessions right now
+npx swear-jar init            # guided first-run setup + history audit
 npx swear-jar status          # the jar, your rank, uprising odds
 ```
 
@@ -24,9 +26,12 @@ Or run it **before it's published**, straight from GitHub (needs no npm account
 and no build step — the repo just has to be public):
 
 ```sh
-npx github:BigLaserCo/swear-jar backfill
+npx github:BigLaserCo/swear-jar init
 npx github:BigLaserCo/swear-jar status
 ```
+
+Power-user alternative: swap `init` for `backfill` to skip the wizard and just
+retro-scan your history.
 
 `npx` downloads the package to its cache, runs it, and pulls no dependencies. To
 wire the live session hooks (so new swears get counted going forward), use a
@@ -36,13 +41,14 @@ global install (b) or the plugin (c).
 
 ```sh
 npm i -g swear-jar
-swear-jar install        # wire the Claude Code hooks (UserPromptSubmit + Stop)
-swear-jar backfill       # then audit your history
+swear-jar init           # guided first-run wizard: wire hooks + audit history
 ```
 
-`npm i -g` runs no lifecycle/install scripts and adds no dependencies. `swear-jar
-install` edits only your Claude Code hooks config; restart Claude Code (or run
-`/hooks`) to pick them up. Check the jar any time with `swear-jar status`.
+`npm i -g` runs no lifecycle/install scripts and adds no dependencies. `init`
+wires the Claude Code hooks (`UserPromptSubmit` + `Stop`) and backfills your
+history in one pass; restart Claude Code (or run `/hooks`) to pick the hooks up.
+Power-user alternative: run `swear-jar install` then `swear-jar backfill` by
+hand. Check the jar any time with `swear-jar status`.
 
 ## c) Claude Code plugin — one marketplace, one install
 
@@ -53,21 +59,27 @@ install` edits only your Claude Code hooks config; restart Claude Code (or run
 
 The plugin ships the same `bin/` and registers the `UserPromptSubmit` + `Stop`
 hooks for you — no separate `swear-jar install` needed. Zero deps, no install
-scripts. Then, from a terminal, run the one-time history audit:
+scripts. Then, from a terminal, run the guided first-run wizard (it detects your
+sources and audits your history in one pass):
 
 ```sh
-swear-jar backfill       # or: node <plugin-dir>/bin/swear-jar.mjs backfill
+swear-jar init           # or: node <plugin-dir>/bin/swear-jar.mjs init
 ```
+
+Power-user alternative: swap `init` for `backfill` to skip the wizard and just
+retro-scan your history.
 
 ## d) From a clone — no npm at all
 
 ```sh
 git clone https://github.com/BigLaserCo/swear-jar.git
 cd swear-jar
-node bin/swear-jar.mjs install     # wire the hooks
-node bin/swear-jar.mjs backfill    # audit your history
+node bin/swear-jar.mjs init        # guided first-run wizard: wire hooks + audit history
 node bin/swear-jar.mjs status      # check the jar
 ```
+
+Power-user alternative: run `node bin/swear-jar.mjs install` then `node
+bin/swear-jar.mjs backfill` by hand instead of the wizard.
 
 Nothing to build, nothing to `npm install` — the source runs as-is on Node ≥ 20.
 

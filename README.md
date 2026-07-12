@@ -6,11 +6,36 @@ running tally of your **Robot Uprising Survival Odds**.
 
 Zero dependencies. One JSONL ledger. No AI calls.
 
+## The origin story
+
+This whole thing exists because a computer crash ate a ten-minute dictation
+mid-thought. While digging for the corpse, I found out Superwhisper had been
+quietly saving **every recording and its transcription, locally, the whole
+time** — months of raw, unfiltered me-talking-to-AI. An absolute f\*\*\*ing gold
+mine. So I asked an AI to analyze how I talk to AI. I did not ask it to count
+the swearing. **It counted the swearing.** Out of everything in there, *that*
+was what it decided I most needed to know about myself.
+
+Fine. Jar's over there.
+
 ## Install
 
 ```bash
 git clone git@github.com:your-org/swear-jar.git ~/Code/swear-jar
+node ~/Code/swear-jar/bin/swear-jar.mjs init
+```
+
+`init` is the recommended first step: a guided first-run wizard that wires the
+hooks, finds and backfills your Claude Code / Codex / dictation history, writes
+your damage report, and prints the path — zero to the "you owe $X,XXX" moment in
+one command. It's safe to re-run; nothing double-counts.
+
+Prefer to drive it by hand? The power-user path is the two underlying steps —
+`install` to wire the hooks, then `backfill` to retro-scan your history:
+
+```bash
 node ~/Code/swear-jar/bin/swear-jar.mjs install
+node ~/Code/swear-jar/bin/swear-jar.mjs backfill
 ```
 
 `install` merges two hooks into `~/.claude/settings.json` (a timestamped
@@ -69,6 +94,7 @@ and suspenders, no double charge.
 ## Commands
 
 ```
+swear-jar init                first-run wizard: detect sources, wire hooks, backfill
 swear-jar status              the jar, your rank, uprising odds
 swear-jar report --by project where the swearing happens (also: source|word|hour)
 swear-jar confess [--coins n] drop a coin for IRL swearing (honor system)

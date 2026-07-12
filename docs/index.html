@@ -110,6 +110,14 @@
   .copy:hover{border-color:var(--baccent);color:var(--accent-text)}
   .copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+  /* origin story */
+  .origin{background:var(--card);border:1px solid var(--bcard);border-left:3px solid var(--accent);border-radius:16px;
+    padding:26px 30px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px)}
+  .origin p{color:var(--secondary);font-size:15.5px;line-height:1.72;margin:0 0 15px;max-width:66ch}
+  .origin p b{color:var(--heading);font-weight:600}
+  .origin p em{color:var(--accent-text);font-style:italic;font-weight:600}
+  .origin .kicker{font:700 16px/1.5 var(--sans);color:var(--accent-text);margin:0}
+
   /* privacy */
   .privacy{background:linear-gradient(180deg,#141b17,#12161b);border:1px solid #24352b;border-left:3px solid var(--green);border-radius:16px;padding:28px 30px}
   .privacy h2{margin-top:0}
@@ -173,6 +181,7 @@
     <span class="brand"><span class="j">&#129514;</span> swear-jar</span>
     <span class="pill">100% local &middot; nothing uploaded</span>
     <span class="spacer"></span>
+    <a class="navlink" href="#origin">Origin story</a>
     <a class="navlink" href="#how">How it works</a>
     <a class="navlink" href="demo.html">Demo report</a>
     <a class="navlink" href="https://github.com/BigLaserCo/swear-jar">GitHub</a>
@@ -213,6 +222,24 @@
       </div>
     </aside>
   </header>
+
+  <!-- ── origin story ─────────────────────────────────────────────────── -->
+  <section id="origin">
+    <p class="sec-eyebrow">Why this exists</p>
+    <h2>The origin story</h2>
+    <p class="sub">Every jar has a first coin. This one showed up uninvited.</p>
+    <div class="origin">
+      <p>This whole thing exists because a computer crash ate a ten-minute
+        dictation mid-thought. While digging for the corpse, I found out
+        Superwhisper had been quietly saving <b>every recording and its
+        transcription, locally, the whole time</b> &mdash; months of raw,
+        unfiltered me-talking-to-AI. An absolute f***ing gold mine.</p>
+      <p>So I asked an AI to analyze how I talk to AI. I did not ask it to count
+        the swearing. <b>It counted the swearing.</b> Out of everything in there,
+        <em>that</em> was what it decided I most needed to know about myself.</p>
+      <p class="kicker">Fine. Jar&rsquo;s over there.</p>
+    </div>
+  </section>
 
   <!-- ── how it works ─────────────────────────────────────────────────── -->
   <section id="how">
