@@ -45,9 +45,9 @@ export const LEXICON = [
   pat("cunt", "premium", "\\bc+u+n+t+\\w*\\b"),
 
   // ── standard (2) — medium tier in Python
-  pat("shit", "standard", "\\b(?:bull|horse|dog|dip|ape|bat|jack|cow|no)?s+h+i+t+\\w*\\b"),
+  pat("shit", "standard", "\\b(?:bull|horse|dog|dip|ape|bat|jack|cow|no|gob)?s+h+i+t+\\w*\\b"),
   pat("shit", "standard", `\\bs(?:h)?${CENSOR}+(?:it|t)\\w*\\b`), // s#it / sh*t
-  pat("ass", "standard", "\\b(?:dumb|jack|smart|fat|wise)?ass(?:hole|holes|hat|es|clown|wipe)?\\b"),
+  pat("ass", "standard", "\\b(?:dumb|jack|smart|fat|wise|hard|half)?ass(?:hole|holes|hat|es|clown|wipe)?\\b"),
   pat("ass", "standard", `\\ba${CENSOR}+(?:s|hole)\\w*\\b`), // a**hole / a#s
   pat("bitch", "standard", "\\bb+i+t+c+h+\\w*\\b"),
   pat("bastard", "standard", "\\bbastard\\w*\\b"),
@@ -73,6 +73,28 @@ export const LEXICON = [
   pat("bloody", "mild", "\\bbloody\\b"),
   pat("bugger", "mild", "\\bbugger\\w*\\b"),
   pat("sod", "mild", "\\bsod(?:ding|\\s+off|\\s+it)\\b"), // "sod" alone excluded (soil)
+  pat("feck", "mild", "\\bfeck(?:ing|in|ed|er|s)?\\b"), // Irish — NOT "feckless" (no boundary after feck)
+
+  // ── international lane — a dev's frustration swears in other tongues, each its
+  // own family. General profanity ONLY (no slurs, any language). Every entry is
+  // word-boundary-guarded, and any candidate that collides with an innocent
+  // English word/substring (mist, skit, con, cul, java) is EXCLUDED — see tests.
+  pat("scheisse", "standard", "\\bschei(?:s{1,2}|ß)e?\\w*\\b"), // DE scheiße/scheisse/scheiß
+  pat("verdammt", "mild", "\\bverdammt\\w*\\b"), // DE (like "damned")
+  pat("merde", "standard", "\\bmerd[ae]\\w*\\b"), // FR merde + IT/PT merda
+  pat("putain", "standard", "\\bputain\\w*\\b"), // FR
+  pat("mierda", "standard", "\\bmierda\\w*\\b"), // ES
+  pat("joder", "standard", "\\bjoder\\w*\\b"), // ES
+  pat("cono", "standard", "\\bcoño\\w*\\b"), // ES — ñ REQUIRED; bare "con/cono" excluded
+  pat("cabron", "standard", "\\bcabr[oó]n\\w*\\b"), // ES cabrón/cabron
+  pat("cazzo", "standard", "\\bcazzo\\w*\\b"), // IT
+  pat("vaffanculo", "premium", "\\bvaffanculo\\w*\\b"), // IT (strong)
+  pat("caralho", "standard", "\\bcaralho\\w*\\b"), // PT
+  pat("kut", "standard", "\\bkut\\b"), // NL — whole word only (not "shortcut")
+  pat("godverdomme", "standard", "\\bgodverdomme\\w*\\b"), // NL
+  pat("javla", "standard", "\\bj(?:ä|a)vla\\w*\\b"), // SV jävla — NOT "java/javascript"
+  pat("blyat", "standard", "\\bblya[dt]\\w*\\b"), // RU translit blyat/blyad
+  pat("kurwa", "standard", "\\bkurwa\\w*\\b"), // PL
 ];
 
 // A message that repeats one family more than this is a paste/key-repeat

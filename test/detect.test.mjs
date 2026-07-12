@@ -157,6 +157,107 @@ test("no slurs (and no removed non-swears) in the lexicon", () => {
   }
 });
 
+// ── the hard line: NOTHING group-targeting, in ANY language. Mechanically
+// enforced — no denylisted root may be a family key OR appear inside any
+// lexicon pattern source. (Roots only, so variants/plurals are covered too.)
+test("no slurs — international denylist stays out of the lexicon", () => {
+  const keys = new Set(LEXICON.map((e) => e.key));
+  const sources = LEXICON.map((e) => e.re.source.toLowerCase());
+  const SLUR_DENYLIST = [
+    // racial / ethnic (EN)
+    "nigg", "chink", "spic", "kike", "gook", "coon", "wetback", "beaner",
+    "paki", "raghead", "gyppo", "wop", "dago",
+    // homophobic / transphobic
+    "fag", "dyke", "tranny",
+    // ableist
+    "retard", "spastic",
+    // international slurs
+    "neger", "negre", "sudaca", "bougnoule", "terrone",
+  ];
+  for (const slur of SLUR_DENYLIST) {
+    assert.ok(!keys.has(slur), `slur "${slur}" must not be a swear family`);
+    for (const src of sources) {
+      assert.ok(
+        !src.includes(slur),
+        `slur "${slur}" must not appear in lexicon pattern /${src}/`
+      );
+    }
+  }
+});
+
+// ── english gap-fill: new words + variants a real dev would type in a rage
+test("feck (Irish) counts, feckless does not (negative guard)", () => {
+  assert.equal(detect("ah feck, feck off, this fecking build").words.feck, 3);
+  assert.equal(detect("he was a feckless manager").coins, 0);
+});
+
+test("english gap-fill additions land in the right family", () => {
+  assert.equal(detect("you absolute hardass").words.ass, 1);
+  assert.equal(detect("you utter gobshite").words.shit, 1);
+  assert.equal(detect("stop being a half-ass").words.ass, 1);
+});
+
+test("already-covered english variants still detected", () => {
+  const already = {
+    twat: "twat",
+    prick: "prick",
+    knobhead: "knobhead",
+    bollocks: "bollocking",
+    shit: "shite",
+    arse: "arsed",
+    piss: "pisshead",
+    dick: "dickhead",
+    ass: "jackass",
+    bugger: "bugger-all",
+  };
+  for (const [key, text] of Object.entries(already)) {
+    assert.equal(
+      detect(text).words[key],
+      1,
+      `expected "${text}" -> ${key}, got ${JSON.stringify(detect(text).words)}`
+    );
+  }
+});
+
+// ── international lane: each caught as its own family, correct tier/coins
+test("international swears caught as their own families", () => {
+  const cases = [
+    ["scheiße", "scheisse", 2],
+    ["verdammt", "verdammt", 1],
+    ["merde", "merde", 2],
+    ["merda", "merde", 2],
+    ["putain", "putain", 2],
+    ["mierda", "mierda", 2],
+    ["joder", "joder", 2],
+    ["coño", "cono", 2],
+    ["cabrón", "cabron", 2],
+    ["cazzo", "cazzo", 2],
+    ["vaffanculo", "vaffanculo", 3],
+    ["caralho", "caralho", 2],
+    ["kut", "kut", 2],
+    ["godverdomme", "godverdomme", 2],
+    ["jävla", "javla", 2],
+    ["blyat", "blyat", 2],
+    ["kurwa", "kurwa", 2],
+  ];
+  for (const [text, key, coins] of cases) {
+    const r = detect(text);
+    assert.equal(r.words[key], 1, `${text} -> ${key}: ${JSON.stringify(r.words)}`);
+    assert.equal(r.coins, coins, `${text} should cost ${coins} coins`);
+  }
+});
+
+test("international false positives are excluded (negative guards)", () => {
+  // jävla must never fire on dev vocabulary
+  assert.equal(detect("write it in java and javascript today").coins, 0);
+  // coño needs the ñ — bare con/cono/connect are innocent
+  assert.equal(detect("con permiso, connect the cocktail").coins, 0);
+  // kut is whole-word only — never mid-word
+  assert.equal(detect("a shortcut and a haircut later").coins, 0);
+  // ambiguous exclusions never added: mist (EN weather), skit (EN sketch)
+  assert.equal(detect("mist over the district, a funny skit").coins, 0);
+});
+
 // ── insults + politeness are separate detectors, never in the headline count
 test("insults are counted separately and never as swears", () => {
   assert.equal(detectInsults("you stupid idiot moron").total, 3);
