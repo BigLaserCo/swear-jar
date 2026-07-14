@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "tool": "git-recap",
+  "generatedAt": "2026-07-14T00:00:00.000Z",
+  "period": {
+    "key": "12mo",
+    "label": "Last 12 months",
+    "since": "2025-07-14",
+    "until": "2026-07-14",
+    "days": 366
+  },
+  "filters": {
+    "author": null,
+    "includeMerges": false
+  },
+  "totals": {
+    "commits": 1309,
+    "linesAdded": 605031,
+    "linesRemoved": 63180,
+    "linesNet": 541851,
+    "linesOfCodeNow": null,
+    "repos": 8,
+    "filesTouched": 3218,
+    "activeDays": 69,
+    "longestStreakDays": 19,
+    "avgCommitsPerActiveDay": 19,
+    "busiestDay": {
+      "date": "2026-05-22",
+      "commits": 68
+    }
+  },
+  "series": {
+    "grain": "month",
+    "buckets": [
+      "JUL",
+      "AUG",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DEC",
+      "JAN",
+      "FEB",
+      "MAR",
+      "APR",
+      "MAY",
+      "JUN",
+      "JUL"
+    ],
+    "bucketStart": [
+      "2025-07-01",
+      "2025-08-01",
+      "2025-09-01",
+      "2025-10-01",
+      "2025-11-01",
+      "2025-12-01",
+      "2026-01-01",
+      "2026-02-01",
+      "2026-03-01",
+      "2026-04-01",
+      "2026-05-01",
+      "2026-06-01",
+      "2026-07-01"
+    ],
+    "commits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      4,
+      255,
+      585,
+      327,
+      138
+    ],
+    "linesAdded": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      7551,
+      177614,
+      188555,
+      191279,
+      40032
+    ],
+    "reposActiveCumulative": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      3,
+      5,
+      7,
+      8
+    ],
+    "linesAddedCumulative": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      7551,
+      185165,
+      373720,
+      564999,
+      605031
+    ],
+    "monthTicks": [
+      [
+        0,
+        "JUL"
+      ],
+      [
+        1,
+        "AUG"
+      ],
+      [
+        2,
+        "SEP"
+      ],
+      [
+        3,
+        "OCT"
+      ],
+      [
+        4,
+        "NOV"
+      ],
+      [
+        5,
+        "DEC"
+      ],
+      [
+        6,
+        "JAN"
+      ],
+      [
+        7,
+        "FEB"
+      ],
+      [
+        8,
+        "MAR"
+      ],
+      [
+        9,
+        "APR"
+      ],
+      [
+        10,
+        "MAY"
+      ],
+      [
+        11,
+        "JUN"
+      ],
+      [
+        12,
+        "JUL"
+      ]
+    ]
+  },
+  "perRepo": [
+    {
+      "repo": "web-app",
+      "path": "/home/you/code/web-app",
+      "commits": 495,
+      "insertions": 147631,
+      "deletions": 22789,
+      "filesTouched": 1267,
+      "first": "2026-03-30",
+      "last": "2026-07-03",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "api",
+      "path": "/home/you/code/api",
+      "commits": 353,
+      "insertions": 215503,
+      "deletions": 29077,
+      "filesTouched": 689,
+      "first": "2026-04-19",
+      "last": "2026-07-01",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "worker",
+      "path": "/home/you/code/worker",
+      "commits": 203,
+      "insertions": 63579,
+      "deletions": 5003,
+      "filesTouched": 330,
+      "first": "2026-05-07",
+      "last": "2026-07-05",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "cli",
+      "path": "/home/you/code/cli",
+      "commits": 105,
+      "insertions": 50337,
+      "deletions": 3127,
+      "filesTouched": 183,
+      "first": "2026-05-22",
+      "last": "2026-06-10",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "sdk",
+      "path": "/home/you/code/sdk",
+      "commits": 90,
+      "insertions": 15321,
+      "deletions": 1815,
+      "filesTouched": 84,
+      "first": "2026-07-09",
+      "last": "2026-07-12",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "docs-site",
+      "path": "/home/you/code/docs-site",
+      "commits": 48,
+      "insertions": 37945,
+      "deletions": 1129,
+      "filesTouched": 252,
+      "first": "2026-04-17",
+      "last": "2026-07-04",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "mobile",
+      "path": "/home/you/code/mobile",
+      "commits": 10,
+      "insertions": 37218,
+      "deletions": 166,
+      "filesTouched": 167,
+      "first": "2026-06-18",
+      "last": "2026-07-04",
+      "linesOfCodeNow": null
+    },
+    {
+      "repo": "infra",
+      "path": "/home/you/code/infra",
+      "commits": 5,
+      "insertions": 37497,
+      "deletions": 74,
+      "filesTouched": 246,
+      "first": "2026-06-18",
+      "last": "2026-07-01",
+      "linesOfCodeNow": null
+    }
+  ],
+  "brand": {
+    "brand": {
+      "wordmark": "YOUR CODE",
+      "tag": "// 12-month recap",
+      "footerRight": "made with git-recap"
+    }
+  }
+}

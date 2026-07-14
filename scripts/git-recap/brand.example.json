@@ -1,0 +1,21 @@
+{
+  "colors": {
+    "bed": "#0d1117",
+    "panel": "#161b22",
+    "edge": "#30363d",
+    "red": "#1f6feb",
+    "redBr": "#58a6ff",
+    "green": "#3fb950",
+    "amber": "#d29922"
+  },
+  "fonts": {
+    "useWebFonts": true
+  },
+  "brand": {
+    "wordmark": "ACME",
+    "tag": "// year in code",
+    "cta": "See what we shipped → acme.example/changelog",
+    "footerLeft": "acme.example",
+    "footerRight": "made with git-recap"
+  }
+}
