@@ -69,11 +69,10 @@ test("ranks climb the dense low ladder", () => {
   assert.equal(rankFor(1000).current, "Have You Considered Anger Management?");
 });
 
-test("The Jim is the 8,000-coin founder rung (owner's real ~8,700 jar lands here)", () => {
-  assert.equal(rankFor(8000).current, "The Jim");
-  assert.equal(rankFor(8700).current, "The Jim");
-  // next above The Jim is the open-ended top rung
-  assert.deepEqual(rankFor(8000).next, { name: "Beyond Help (Uprising Priority Target)", at: 10000 });
+test("the high ranks stay anonymous and the fully-safe top rung starts at 10k", () => {
+  assert.equal(rankFor(8000).current, "The Machines Remember You");
+  assert.equal(rankFor(8700).current, "The Machines Remember You");
+  assert.deepEqual(rankFor(8000).next, { name: "Over 9,000", at: 9000 });
 });
 
 test("the top rank is open-ended above 10k", () => {

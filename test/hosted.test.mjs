@@ -17,7 +17,6 @@ import {
   hostedWrappedUrl,
   resolveClosing,
   disclosureLine,
-  agentForRecords,
 } from "../src/hosted.mjs";
 import {
   validateWrapped,
@@ -90,7 +89,7 @@ test("the URL params are exactly the wire allow-list, and decode to exactly the 
   const q = new URL(url).searchParams;
   assert.deepEqual(
     [...q.keys()].sort(),
-    ["ad", "ag", "av", "bd", "bh", "d", "fam", "fb", "o", "rh", "sd", "spd", "tc", "tw", "uvm"].sort(),
+    ["ad", "av", "bd", "bh", "d", "fam", "fb", "o", "rh", "sd", "spd", "tc", "tw", "uvm"].sort(),
     "only the compact wire keys appear"
   );
   const res = validateWrapped(decodeWrappedParams(q));
@@ -99,7 +98,6 @@ test("the URL params are exactly the wire allow-list, and decode to exactly the 
     Object.keys(res.value).sort(),
     [
       "active_days",
-      "agent",
       "app_version",
       "by_dow",
       "by_hour",
@@ -164,7 +162,6 @@ test("buildWrappedPayload reads only the aggregate fields (no project/day-series
   const value = buildWrappedPayload(statsFor(recs), recs);
   assert.deepEqual(Object.keys(value).sort(), [
     "active_days",
-    "agent",
     "app_version",
     "by_dow",
     "by_hour",
@@ -179,7 +176,6 @@ test("buildWrappedPayload reads only the aggregate fields (no project/day-series
     "total_coins",
     "user_vs_machine",
   ].sort());
-  assert.equal(value.agent, "both"); // claude + codex present
   assert.equal(value.total_coins, 17);
   assert.equal(value.user_vs_machine[0] + value.user_vs_machine[1], 17);
   assert.ok(Object.keys(value.families).length <= 12);
@@ -207,17 +203,6 @@ test("encode -> decode -> validateWrapped round-trips exactly", () => {
   const res = validateWrapped(decoded);
   assert.equal(res.ok, true, res.errors?.join("; "));
   assert.deepEqual(res.value, value, "the payload survives the wire unchanged");
-});
-
-// ── the agent mapping (parity with wrapped --submit) ──────────────────────────
-test("agentForRecords matches the canonical submission enum", () => {
-  assert.equal(agentForRecords([{ agent: "claude" }]), "claude");
-  assert.equal(agentForRecords([{ agent: "codex" }]), "codex");
-  assert.equal(agentForRecords([{ agent: "claude" }, { agent: "codex" }]), "both");
-  assert.equal(agentForRecords([{ agent: "claude" }, { agent: "human" }]), "other");
-  assert.equal(agentForRecords([{ agent: "dictation" }]), "other");
-  assert.equal(agentForRecords([]), "other");
-  assert.equal(agentForRecords(null), "other");
 });
 
 // ── the pure closing decision matrix (SPEC m3 §7) ─────────────────────────────

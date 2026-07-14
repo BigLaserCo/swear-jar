@@ -58,7 +58,7 @@ wall, on purpose.
 - **Per-email rate limit** — 3 submissions/day.
 - **Hard body cap** — requests over 4 KB rejected before parsing.
 - **Schema caps** — every numeric field capped (`funnel/schema.mjs`); unknown
-  fields dropped; `agent` is an enum; `top_word` must be censored (an
+  fields dropped; `top_word` must be censored (an
   uncensored swear is rejected server-side).
 - **Handle sanitization** — display names reduced to `[a-zA-Z0-9_ -]`, max 24.
 - **Fail-closed** — unexpected errors return generic 400/500 bodies, never a

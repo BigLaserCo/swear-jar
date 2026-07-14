@@ -20,7 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderDashboard } from "../../src/dashboard.mjs";
 import { computeStats } from "../../src/stats.mjs";
-import { LEXICON, TIER_COINS, FAMILY_CAP } from "../../src/detect.mjs";
+import { LEXICON, TIER_COINS, TIER_DOLLARS, WORD_DOLLARS, FAMILY_CAP } from "../../src/detect.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..", "..");
@@ -78,6 +78,7 @@ const TIER_BY_KEY = (() => {
   return m;
 })();
 const priceOf = (fam) => TIER_COINS[TIER_BY_KEY[fam] || "standard"] || 1;
+const dollarsOf = (fam) => WORD_DOLLARS[fam] ?? TIER_DOLLARS[TIER_BY_KEY[fam] || "standard"];
 
 // ── invented, obviously-fake project names (none contain a lexicon word) ─────
 const PROJECTS = [
@@ -152,8 +153,10 @@ function buildRecords() {
       words[fam] = (words[fam] || 0) + cnt;
     }
     let coins = 0;
+    let dollars = 0;
     for (const [fam, n] of Object.entries(words)) {
       coins += Math.min(n, FAMILY_CAP) * priceOf(fam);
+      dollars += Math.min(n, FAMILY_CAP) * dollarsOf(fam);
     }
 
     recs.push({
@@ -165,6 +168,7 @@ function buildRecords() {
       project,
       words,
       coins,
+      dollars: Math.round(dollars * 100) / 100,
     });
   }
   // chronological — matches how a real ledger appends
@@ -176,9 +180,10 @@ function buildRecords() {
 // inside <div class="app">. Inline styles only (no new external requests); it
 // reuses the report's own CSS variables so it matches the theme.
 const DEMO_BANNER = `
+  <div aria-hidden="true" style="position:fixed;top:78px;right:18px;z-index:50;padding:8px 14px;border:2px solid var(--accent);border-radius:7px;background:var(--solid);color:var(--accent-text);font:900 12px/1 var(--mono);letter-spacing:.16em;transform:rotate(4deg);box-shadow:0 5px 18px rgba(0,0,0,.28)">SAMPLE · NOT REAL DATA</div>
   <div class="demo-banner" role="note" style="margin:18px 0 0;padding:14px 18px;border:1px solid var(--baccent);border-radius:12px;background:linear-gradient(180deg,#241a0f,var(--section));font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--secondary);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline">
-    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SYNTHETIC DEMO DATA</strong>
-    <span>Every figure below is invented for illustration &mdash; your report is generated locally from your own sessions, and nothing here reflects a real person or ever leaves your machine.</span>
+    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SAMPLE REPORT · SYNTHETIC DATA</strong>
+    <span><b>NOT A REAL PERSON OR ACCOUNT.</b> Every figure below is invented for illustration; your real report is generated locally from your own sessions.</span>
     <a href="index.html" style="color:var(--accent-text);margin-left:auto;text-decoration:none">&larr; swear-jar home</a>
   </div>`;
 
@@ -195,7 +200,7 @@ function injectBanner(html) {
 // discovery payload is injected here, only for the hosted demo.html.
 const DEMO_TITLE = "Swear Jar — sample damage report (demo)";
 const DEMO_DESC =
-  "A fully synthetic Swear Jar damage report — the exact dashboard a real user " +
+  "A clearly labeled sample Swear Jar damage report — the exact dashboard a real user " +
   "gets, built from invented data. See coins, favourite words, rage-o-clock, and " +
   "robot-uprising survival odds. 100% local, zero network.";
 const DEMO_CANON = "https://swearjar.unfocused.ai/demo.html";

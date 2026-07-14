@@ -7,8 +7,8 @@
 // spec — flagged in DELTAS below so the merge is a conscious reconciliation, not
 // a silent drift:
 //
-//   DELTA 1  agent enum       = claude | codex | both | dictation
-//            (funnel: claude | codex | superwhisper | other)
+//   DELTA 1  public submissions intentionally omit agent type; that is a V2
+//            product dimension, not a launch-day leaderboard field.
 //   DELTA 2  swears_per_day cap = 5,000   (funnel: 10,000)
 //   DELTA 3  release_hash       = EXACTLY 40 lowercase hex (a full git SHA-1)
 //            (funnel: 7..64 hex). Missing/malformed hash is a HARD REJECT; a
@@ -26,8 +26,6 @@ import { LEXICON } from "../../src/detect.mjs";
 
 const HERE = new URL("./", import.meta.url);
 const PLACEHOLDER_HASH = "0".repeat(40); // dev-build sentinel — always unverified
-
-export const AGENTS = ["claude", "codex", "both", "dictation", "other"]; // unified (see test/schema-parity)
 
 export const CAPS = {
   total_coins: 1_000_000,
@@ -172,14 +170,6 @@ export function validateSubmission(raw, handle, { releases } = {}) {
     errors.push("top_word: must be censored (e.g. f***); uncensored words are rejected");
   } else {
     value.top_word = topWord;
-  }
-
-  // agent enum
-  const agent = typeof raw.agent === "string" ? raw.agent.trim().toLowerCase() : "";
-  if (!AGENTS.includes(agent)) {
-    errors.push(`agent: must be one of ${AGENTS.join("|")}`);
-  } else {
-    value.agent = agent;
   }
 
   // app_version

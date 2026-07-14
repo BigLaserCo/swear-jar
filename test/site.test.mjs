@@ -23,7 +23,7 @@ const DOCS = path.join(HERE, "..", "docs");
 // glob so a newly-added page (admin.html, submit.html, …) is covered automatically.
 const PAGES = fs
   .readdirSync(DOCS)
-  .filter((f) => f.endsWith(".html"))
+  .filter((f) => f.endsWith(".html") && !f.startsWith("_"))
   .sort();
 // Pages that must always exist (the site is broken without them).
 const REQUIRED = ["index.html", "demo.html", "tip.html", "wrapped.html", "admin.html"];
@@ -71,10 +71,10 @@ for (const name of PAGES) {
     assert.ok(!/["'(\s]\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(html), "no protocol-relative external hosts");
     // no external subresource tags
     assert.ok(!/<script\s[^>]*\bsrc=/i.test(html), "no external <script src>");
-    // the ONLY <link> permitted is rel=canonical (SEO, loads nothing) — never a
-    // stylesheet / font / icon / preload, which WOULD fetch a subresource.
+    // Canonical is metadata; the only local page-load asset permitted is the
+    // repo-owned stylesheet. Never add a remote stylesheet/font/icon/preload.
     for (const l of [...html.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0])) {
-      assert.match(l, /rel=["']canonical["']/i, `only rel=canonical <link> allowed (no stylesheets/fonts/icons): ${l}`);
+      assert.ok(/rel=["']canonical["']/i.test(l) || /rel=["']stylesheet["'][^>]*href=["']site\.css["']/i.test(l), `only canonical or local site.css <link> allowed: ${l}`);
     }
   });
 
@@ -107,6 +107,9 @@ const ORIGIN = "https://swearjar.unfocused.ai";
 // EXCLUDED (noindex, debug console) and must never appear in the sitemap.
 const PUBLIC_CANONICALS = {
   "index.html": `${ORIGIN}/`,
+  "origin.html": `${ORIGIN}/origin.html`,
+  "uprising.html": `${ORIGIN}/uprising.html`,
+  "terms.html": `${ORIGIN}/terms.html`,
   "demo.html": `${ORIGIN}/demo.html`,
   "tip.html": `${ORIGIN}/tip.html`,
   "wrapped.html": `${ORIGIN}/wrapped.html`,
@@ -199,6 +202,6 @@ test("llms.txt exists with the brand, the privacy stance, an install one-liner a
   const llms = fs.readFileSync(path.join(DOCS, "llms.txt"), "utf8");
   assert.match(llms, /Swear Jar/, "names the brand");
   assert.match(llms, /local|no upload|never a transcript/i, "states the privacy stance");
-  assert.match(llms, /npx swear-jar/i, "has the install one-liner");
+  assert.match(llms, /git clone https:\/\/github\.com\/BigLaserCo\/swear-jar/i, "has the install one-liner");
   assert.match(llms, /github\.com\/BigLaserCo\/swear-jar/, "links the source");
 });

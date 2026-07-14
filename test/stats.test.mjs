@@ -19,8 +19,8 @@ const FIXTURE = [
 test("hero totals: coins and dollars owed", () => {
   const s = computeStats(FIXTURE, NOW);
   assert.equal(s.totalCoins, 20);
-  assert.equal(s.dollarsOwed, 5); // 20 * 0.25
-  assert.equal(s.coinValue, 0.25);
+  assert.equal(s.dollarsOwed, 5); // legacy fixtures without explicit dollars use the compatibility rate
+  assert.equal(s.coinValue, 1);
   assert.equal(s.totalRecords, 6);
 });
 
@@ -109,7 +109,6 @@ test("swear-instance counts and you-vs-founder rate", () => {
   assert.equal(s.userSwears, 7); // minus the one machine fuck
   assert.equal(s.activeDays, 3);
   assert.equal(s.swearsPerDay, 2.3); // 7 / 3, rounded to 1dp
-  assert.equal(s.founderPerDay, 65);
   assert.equal(s.fbombPct, 50); // 4 f-tier hits / 8 total
 });
 
@@ -140,7 +139,6 @@ test("empty ledger yields sane zeros for the new fields", () => {
   assert.equal(s.totalSwears, 0);
   assert.equal(s.userSwears, 0);
   assert.equal(s.swearsPerDay, 0);
-  assert.equal(s.founderPerDay, 65);
   assert.equal(s.fbombPct, 0);
   assert.equal(s.signatureCombo, null);
   assert.equal(s.spanDays, 0);

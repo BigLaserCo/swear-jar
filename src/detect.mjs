@@ -22,6 +22,12 @@
 const CENSOR = "[*@#$%!]";
 
 export const TIER_COINS = { mild: 1, standard: 2, premium: 3, artisanal: 5 };
+export const TIER_DOLLARS = { mild: 0.10, standard: 0.50, premium: 1.00, artisanal: 5.00 };
+export const WORD_DOLLARS = { damn: 0.25, cunt: 5.00, "user-specific": 1.00 };
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 // key -> attribution family, tier -> coin price, re -> global/ignore-case match.
 function pat(key, tier, source) {
@@ -74,27 +80,9 @@ export const LEXICON = [
   pat("bugger", "mild", "\\bbugger\\w*\\b"),
   pat("sod", "mild", "\\bsod(?:ding|\\s+off|\\s+it)\\b"), // "sod" alone excluded (soil)
   pat("feck", "mild", "\\bfeck(?:ing|in|ed|er|s)?\\b"), // Irish — NOT "feckless" (no boundary after feck)
+  pat("darn", "mild", "\\bdarn\\w*\\b"),
+  pat("heck", "mild", "\\bheck\\b"),
 
-  // ── international lane — a dev's frustration swears in other tongues, each its
-  // own family. General profanity ONLY (no slurs, any language). Every entry is
-  // word-boundary-guarded, and any candidate that collides with an innocent
-  // English word/substring (mist, skit, con, cul, java) is EXCLUDED — see tests.
-  pat("scheisse", "standard", "\\bschei(?:s{1,2}|ß)e?\\w*\\b"), // DE scheiße/scheisse/scheiß
-  pat("verdammt", "mild", "\\bverdammt\\w*\\b"), // DE (like "damned")
-  pat("merde", "standard", "\\bmerd[ae]\\w*\\b"), // FR merde + IT/PT merda
-  pat("putain", "standard", "\\bputain\\w*\\b"), // FR
-  pat("mierda", "standard", "\\bmierda\\w*\\b"), // ES
-  pat("joder", "standard", "\\bjoder\\w*\\b"), // ES
-  pat("cono", "standard", "\\bcoño\\w*\\b"), // ES — ñ REQUIRED; bare "con/cono" excluded
-  pat("cabron", "standard", "\\bcabr[oó]n\\w*\\b"), // ES cabrón/cabron
-  pat("cazzo", "standard", "\\bcazzo\\w*\\b"), // IT
-  pat("vaffanculo", "premium", "\\bvaffanculo\\w*\\b"), // IT (strong)
-  pat("caralho", "standard", "\\bcaralho\\w*\\b"), // PT
-  pat("kut", "standard", "\\bkut\\b"), // NL — whole word only (not "shortcut")
-  pat("godverdomme", "standard", "\\bgodverdomme\\w*\\b"), // NL
-  pat("javla", "standard", "\\bj(?:ä|a)vla\\w*\\b"), // SV jävla — NOT "java/javascript"
-  pat("blyat", "standard", "\\bblya[dt]\\w*\\b"), // RU translit blyat/blyad
-  pat("kurwa", "standard", "\\bkurwa\\w*\\b"), // PL
 ];
 
 // A message that repeats one family more than this is a paste/key-repeat
@@ -104,28 +92,45 @@ export const FAMILY_CAP = 10;
 
 // Overlapping matches are attributed once: longer/pricier patterns (which run
 // first) blank their match, so a cheaper pattern can't re-claim the same span.
-export function detect(text) {
-  if (!text || typeof text !== "string") return { words: {}, coins: 0 };
+export function detect(text, { customWords = [] } = {}) {
+  if (!text || typeof text !== "string") return { words: {}, coins: 0, dollars: 0 };
   let scratch = text.toLowerCase();
   const words = {};
   const tiers = {};
   let coins = 0;
+  let dollars = 0;
   for (const { key, tier, re } of LEXICON) {
     re.lastIndex = 0;
     scratch = scratch.replace(re, (m) => {
       words[key] = (words[key] || 0) + 1;
       tiers[key] = tier;
       coins += TIER_COINS[tier];
+      dollars += WORD_DOLLARS[key] ?? TIER_DOLLARS[tier];
       return " ".repeat(m.length); // blank so a cheaper pattern can't re-match
     });
+  }
+  for (const word of customWords) {
+    const normalized = String(word || "").trim().toLowerCase();
+    if (!normalized || normalized.length > 64) continue;
+    const re = new RegExp(`(?<!\\w)${escapeRegExp(normalized)}(?!\\w)`, "gi");
+    const matches = scratch.match(re) || [];
+    if (matches.length) {
+      const count = Math.min(FAMILY_CAP, matches.length);
+      words["user-specific"] = (words["user-specific"] || 0) + count;
+      tiers["user-specific"] = "premium";
+      coins += count * TIER_COINS.premium;
+      dollars += count * WORD_DOLLARS["user-specific"];
+      scratch = scratch.replace(re, (m) => " ".repeat(m.length));
+    }
   }
   for (const [key, n] of Object.entries(words)) {
     if (n > FAMILY_CAP) {
       coins -= (n - FAMILY_CAP) * TIER_COINS[tiers[key]];
+      dollars -= (n - FAMILY_CAP) * (WORD_DOLLARS[key] ?? TIER_DOLLARS[tiers[key]]);
       words[key] = FAMILY_CAP;
     }
   }
-  return { words, coins };
+  return { words, coins, dollars: Math.round(dollars * 100) / 100 };
 }
 
 // Put-downs — NOT profanity. Counted by a separate detector so the headline

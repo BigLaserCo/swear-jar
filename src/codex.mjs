@@ -39,6 +39,7 @@
 // incremental windows via a `line` field stored alongside the byte offset.
 
 import fs from "node:fs";
+import { loadCustomWords } from "./custom.mjs";
 import path from "node:path";
 import os from "node:os";
 import { detect } from "./detect.mjs";
@@ -182,7 +183,7 @@ export function scanCodexFile(filePath) {
       const text = hygiene(raw);
       if (!text) continue;
 
-      const { words, coins } = detect(text);
+      const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
       if (!coins) continue;
 
       const uuid = `codex:${basename}:${startLine + i}`;
@@ -201,6 +202,7 @@ export function scanCodexFile(filePath) {
         transcript: filePath,
         words,
         coins,
+        dollars,
       });
       seen.add(uuid);
     }

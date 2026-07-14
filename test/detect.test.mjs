@@ -219,43 +219,18 @@ test("already-covered english variants still detected", () => {
   }
 });
 
-// ── international lane: each caught as its own family, correct tier/coins
-test("international swears caught as their own families", () => {
-  const cases = [
-    ["scheiße", "scheisse", 2],
-    ["verdammt", "verdammt", 1],
-    ["merde", "merde", 2],
-    ["merda", "merde", 2],
-    ["putain", "putain", 2],
-    ["mierda", "mierda", 2],
-    ["joder", "joder", 2],
-    ["coño", "cono", 2],
-    ["cabrón", "cabron", 2],
-    ["cazzo", "cazzo", 2],
-    ["vaffanculo", "vaffanculo", 3],
-    ["caralho", "caralho", 2],
-    ["kut", "kut", 2],
-    ["godverdomme", "godverdomme", 2],
-    ["jävla", "javla", 2],
-    ["blyat", "blyat", 2],
-    ["kurwa", "kurwa", 2],
-  ];
-  for (const [text, key, coins] of cases) {
-    const r = detect(text);
-    assert.equal(r.words[key], 1, `${text} -> ${key}: ${JSON.stringify(r.words)}`);
-    assert.equal(r.coins, coins, `${text} should cost ${coins} coins`);
-  }
+test("launch pricing uses dollars and catches the requested words", () => {
+  const r = detect("fuck darn heck damn it cunt motherfucker");
+  assert.equal(r.words.cunt, 1);
+  assert.equal(r.words.darn, 1);
+  assert.equal(r.words.heck, 1);
+  assert.equal(r.dollars, 11.45);
 });
 
-test("international false positives are excluded (negative guards)", () => {
-  // jävla must never fire on dev vocabulary
-  assert.equal(detect("write it in java and javascript today").coins, 0);
-  // coño needs the ñ — bare con/cono/connect are innocent
-  assert.equal(detect("con permiso, connect the cocktail").coins, 0);
-  // kut is whole-word only — never mid-word
-  assert.equal(detect("a shortcut and a haircut later").coins, 0);
-  // ambiguous exclusions never added: mist (EN weather), skit (EN sketch)
-  assert.equal(detect("mist over the district, a funny skit").coins, 0);
+test("custom words are counted without exposing their spelling", () => {
+  const r = detect("my private-term is here", { customWords: ["private-term"] });
+  assert.deepEqual(r.words, { "user-specific": 1 });
+  assert.equal(r.dollars, 1);
 });
 
 // ── insults + politeness are separate detectors, never in the headline count

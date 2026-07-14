@@ -1,6 +1,6 @@
 ---
 name: swear-jar
-description: Operate the local swear jar — the running tally of every time the user (or the machine) swears in a Claude Code / Codex session, and their Robot Uprising Survival Odds. Use when the user asks to "launch swear jar", "set up the swear jar", check the jar, see "how much do I owe the jar", backfill their history, render the dashboard, get their "swear jar wrapped" recap, break the swearing down by project/source/word/hour/agent, or confess an IRL swear.
+description: Operate the local swear jar — the running tally of every time the user (or the machine) swears in a Claude Code / Codex session, and their Robot Uprising Survival Odds. Use when the user asks to "launch swear jar", "set up the swear jar", check the jar, see "how much do I owe the jar", backfill their history, render the dashboard, get their "swear jar wrapped" recap, break the swearing down by project/source/word/hour, manage custom words, or confess an IRL swear.
 ---
 
 # 🫙 Swear jar
@@ -27,7 +27,8 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/swear-jar.mjs" <subcommand>
 | retro-scan ALL past history        | `... backfill`  (add `--codex` to also fold in Codex rollouts) |
 | the shareable HTML report          | `... dashboard`  → **relay the local path AND the hosted wrapped URL it prints** (in a real terminal it opens the hosted wrapped page; under Claude it runs non-TTY and opens NOTHING, so it just prints both — relay both; add `--local` to keep it on the machine; never open a browser yourself) |
 | a shareable one-line "wrapped" recap | `... wrapped`  (add `--submit` to print the leaderboard link — never opens a browser) |
-| where the swearing happens         | `... report --by project`  (also: `source`, `word`, `hour`, `agent`) |
+| where the swearing happens         | `... report --by project`  (also: `source`, `word`, `hour`) |
+| manage local custom words          | `... custom add|remove|list <word>` |
 | log an IRL swear (honor system)    | `... confess`  (add `--coins N` for more than one)             |
 
 Run the command, then relay its output. `init`, `status`, and `wrapped` sign
@@ -55,7 +56,7 @@ $X,XXX" in a single question.
      "claude":       { "found": true, "root": "~/.claude/projects", "transcripts": 214 },
      "codex":        { "found": true, "root": "~/.codex/sessions", "rollouts": 37 },
      "superwhisper": { "found": true, "root": "~/Documents/superwhisper/recordings", "recordings": 1482, "candidates": [] },
-     "ledger":       { "records": 0, "coins": 0 },
+  "ledger":       { "records": 0, "coins": 0 },
      "hooks":        { "installed": true }
    }
    ```
@@ -95,7 +96,7 @@ $X,XXX" in a single question.
    dashboard, and prints the damage summary + report path. It's idempotent —
    re-running adds nothing.
 
-5. **Relay the payoff** — the jar balance / coins / uprising odds it prints,
+5. **Relay the payoff** — the jar balance / damage points / uprising odds it prints,
    the local report path, the **hosted wrapped URL** (opens their wrapped report
    on the web, carrying only the aggregate numbers — coins, $, swears/day,
    censored top word, f-bomb %, active days, families, distributions, odds,

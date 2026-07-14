@@ -1,122 +1,52 @@
-# Installing swear-jar
+# Install Swear Jar
 
-Every path below pulls **zero dependencies** and runs **no install scripts** —
-swear-jar is one small Node ESM package (stdlib only) and a single local ledger.
-**The CLI itself makes zero network requests and never uploads anything**; the
-only things online are pages you deliberately open in your browser (your hosted
-wrapped report, the tip page, the opt-in leaderboard submit), and those carry
-only the disclosed aggregate numbers — never your words. Requires **Node ≥ 20**.
+Swear Jar is a small, MIT-licensed Node tool. It reads prompts and supported
+recordings/transcripts locally, stores counts only, and makes no background
+network calls. Opening a hosted report deliberately shares aggregate numbers;
+raw sentences stay on your machine.
 
-After any install, run **`init` first** — the guided first-run wizard. It wires
-the hooks, finds and backfills your entire Claude Code (and optional Codex /
-dictation) history in one pass, writes your local report, and — in a real
-terminal — opens your **wrapped report** on swearjar.unfocused.ai, whose URL
-carries only the aggregate numbers (never your words; a disclosure line names
-every field first). That's the instant "you owe $X,XXX" moment. The local path
-is always printed; `--local` (or `SWEAR_JAR_LOCAL_ONLY=1`) keeps everything on
-your machine, and `--no-open` (or `SWEAR_JAR_NO_OPEN=1`) opens nothing and just
-prints both. It's resumable and safe to re-run (records dedup by message id).
-Prefer to drive it by hand? **`backfill`** is the power-user alternative — it
-just retro-scans your history, no wizard.
-
----
-
-## a) `npx` — no install, nothing left behind
-
-Run it straight from the registry (after the package is published):
+## Install from GitHub
 
 ```sh
-npx swear-jar init            # guided first-run setup + history audit
-npx swear-jar status          # the jar, your rank, uprising odds
+git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
+cd ~/Code/swear-jar
+node bin/swear-jar.mjs install
+node bin/swear-jar.mjs init --local --no-open
 ```
 
-Or run it **before it's published**, straight from GitHub (needs no npm account
-and no build step — the repo just has to be public):
+`install` adds the Claude Code hooks. `init` is optional: it finds local
+history, builds the first report, and can backfill it. The release repository
+must be public before this clone command can work for new users.
+
+Check the jar:
 
 ```sh
-npx github:BigLaserCo/swear-jar init
-npx github:BigLaserCo/swear-jar status
+node bin/swear-jar.mjs status
+node bin/swear-jar.mjs dashboard --local --no-open
 ```
-
-Power-user alternative: swap `init` for `backfill` to skip the wizard and just
-retro-scan your history.
-
-`npx` downloads the package to its cache, runs it, and pulls no dependencies. To
-wire the live session hooks (so new swears get counted going forward), use a
-global install (b) or the plugin (c).
-
-## b) Global install — `swear-jar` on your PATH
-
-```sh
-npm i -g swear-jar
-swear-jar init           # guided first-run wizard: wire hooks + audit history
-```
-
-`npm i -g` runs no lifecycle/install scripts and adds no dependencies. `init`
-wires the Claude Code hooks (`UserPromptSubmit` + `Stop`) and backfills your
-history in one pass; restart Claude Code (or run `/hooks`) to pick the hooks up.
-Power-user alternative: run `swear-jar install` then `swear-jar backfill` by
-hand. Check the jar any time with `swear-jar status`.
-
-## c) Claude Code plugin — one marketplace, one install
-
-Works once the repo is public:
-
-```
-/plugin marketplace add BigLaserCo/swear-jar
-/plugin install swear-jar@unfocused
-```
-
-The plugin ships the same `bin/` and registers the `UserPromptSubmit` + `Stop`
-hooks for you — no separate `swear-jar install` needed. Zero deps, no install
-scripts. Then, from a terminal, run the guided first-run wizard (it detects your
-sources and audits your history in one pass):
-
-```sh
-swear-jar init           # or: node <plugin-dir>/bin/swear-jar.mjs init
-```
-
-Power-user alternative: swap `init` for `backfill` to skip the wizard and just
-retro-scan your history.
-
-## d) From a clone — no npm at all
-
-```sh
-git clone https://github.com/BigLaserCo/swear-jar.git
-cd swear-jar
-node bin/swear-jar.mjs init        # guided first-run wizard: wire hooks + audit history
-node bin/swear-jar.mjs status      # check the jar
-```
-
-Power-user alternative: run `node bin/swear-jar.mjs install` then `node
-bin/swear-jar.mjs backfill` by hand instead of the wizard.
-
-Nothing to build, nothing to `npm install` — the source runs as-is on Node ≥ 20.
-
----
 
 ## Uninstall
 
-Remove the hooks (leaves your ledger in `~/.swear-jar/` untouched):
+Remove only the Swear Jar hooks; the local ledger remains available:
 
 ```sh
-swear-jar uninstall        # or: node bin/swear-jar.mjs uninstall
+node bin/swear-jar.mjs uninstall
 ```
 
-For a global install, follow up with `npm rm -g swear-jar`. For the plugin, use
-`/plugin uninstall swear-jar@unfocused`.
+Delete `~/.swear-jar/` separately only if you also want to remove local counts
+and reports.
 
----
+## Custom words
 
-## Where your data lives
+The launch lexicon is English-only and intentionally excludes racial and
+bigoted slurs. Add your own terms locally when you want to track something
+specific:
 
-Everything stays local: one append-only ledger at `~/.swear-jar/ledger.jsonl`
-(override with `SWEAR_JAR_HOME`). Only word **counts** are ever written — never
-your prompts, transcripts, or any secret that passed through a session.
+```sh
+node bin/swear-jar.mjs custom add "your-term"
+node bin/swear-jar.mjs custom list
+node bin/swear-jar.mjs custom remove "your-term"
+```
 
----
-
-## Tip the founder
-
-The jar takes real money too — empty yours:
-<https://swearjar.unfocused.ai/tip.html>
+Custom terms are counted as **user-specific** and their spellings are never
+rendered in reports or sent in aggregate links.

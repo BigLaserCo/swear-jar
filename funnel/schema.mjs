@@ -16,11 +16,8 @@
 //   top_word        string ≤ 24, CENSORED ONLY (an uncensored swear is rejected)
 //   fbomb_pct       number 0 .. 100
 //   active_days     int    0 .. 100,000
-//   agent           enum   claude | codex | superwhisper | other
 //   app_version     semver-ish string ≤ 32
 //   release_hash    hex string 7..64 chars (git object hash of the release)
-
-export const AGENTS = ["claude", "codex", "both", "dictation", "other"];
 
 export const CAPS = {
   total_coins: 1_000_000,
@@ -155,14 +152,6 @@ export function validate(stats) {
     value.top_word = topWord;
   }
 
-  // agent enum
-  const agent = typeof stats.agent === "string" ? stats.agent.trim().toLowerCase() : "";
-  if (!AGENTS.includes(agent)) {
-    errors.push(err("agent", `must be one of ${AGENTS.join("|")}`));
-  } else {
-    value.agent = agent;
-  }
-
   // app_version
   const appVersion = typeof stats.app_version === "string" ? stats.app_version.trim() : "";
   if (!appVersion || appVersion.length > CAPS.app_version_len || !APP_VERSION_RE.test(appVersion)) {
@@ -289,7 +278,6 @@ const WIRE = {
   top_word: "tw",
   fbomb_pct: "fb",
   active_days: "ad",
-  agent: "ag",
   app_version: "av",
   release_hash: "rh",
   odds: "o",
@@ -337,7 +325,6 @@ export function decodeWrappedParams(input) {
     top_word: p.get(WIRE.top_word) || "",
     fbomb_pct: Number(p.get(WIRE.fbomb_pct)),
     active_days: Number(p.get(WIRE.active_days)),
-    agent: p.get(WIRE.agent) || "",
     app_version: p.get(WIRE.app_version) || "",
     release_hash: p.get(WIRE.release_hash) || "",
     odds: Number(p.get(WIRE.odds)),

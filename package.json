@@ -20,7 +20,6 @@
   "bugs": {
     "url": "https://github.com/BigLaserCo/swear-jar/issues"
   },
-  "private": true,
   "license": "MIT",
   "type": "module",
   "bin": {

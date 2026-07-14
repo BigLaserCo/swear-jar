@@ -125,7 +125,6 @@ export function publicView(row) {
     top_word: String(s.top_word || ""),
     fbomb_pct: s.fbomb_pct ?? 0,
     active_days: s.active_days ?? 0,
-    agent: String(s.agent || "other"),
     app_version: String(s.app_version || ""),
     verified: row?.verified === true,
     submitted: String(row?.confirmed_at || "").slice(0, 10), // date only
@@ -318,7 +317,7 @@ async function handleExport(request, env) {
     return json(env, 401, GENERIC_401);
   }
 
-  const lines = ["email,handle,join_list,confirmed_at,total_coins,agent,app_version"];
+  const lines = ["email,handle,join_list,confirmed_at,total_coins,app_version"];
   let cursor;
   do {
     const page = await env.JAR.list({ prefix: "confirmed:", cursor });
@@ -335,7 +334,6 @@ async function handleExport(request, env) {
             r.join_list === true ? "true" : "false",
             csv(r.confirmed_at),
             Number(r.stats?.total_coins) || 0,
-            csv(r.stats?.agent),
             csv(r.stats?.app_version),
           ].join(",")
         );

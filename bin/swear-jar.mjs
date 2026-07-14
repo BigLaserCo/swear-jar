@@ -8,6 +8,7 @@ import { scanTranscript, readHookPayload, loadTotals, backfill } from "../src/sc
 import { loadRecords, appendRecords, verifyLedger } from "../src/ledger.mjs";
 import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mjs";
 import { detect, censor } from "../src/detect.mjs";
+import { addCustomWord, removeCustomWord, loadCustomWords, customWordsPath } from "../src/custom.mjs";
 import { computeStats } from "../src/stats.mjs";
 import { APP_VERSION, RELEASE_HASH } from "../src/version.mjs";
 import { install, uninstall } from "../src/install.mjs";
@@ -21,7 +22,7 @@ import {
 import { runInit, detectSources } from "../src/init.mjs";
 import { tipLine } from "../src/donate.mjs";
 import { shouldAutoOpen, openInBrowser } from "../src/open.mjs";
-import { agentForRecords, resolveClosing, hostedWrappedUrl, disclosureLine } from "../src/hosted.mjs";
+import { resolveClosing, hostedWrappedUrl, disclosureLine } from "../src/hosted.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -92,12 +93,13 @@ async function main() {
       }
       const totals = loadTotals();
       const totalCoins = totals.user + totals.assistant;
+      const totalDollars = computeStats(loadRecords()).dollarsOwed;
       console.log(
         `\n🫙 Backfill complete.\n` +
           `  Transcripts scanned: ${summary.scanned}\n` +
           `  New records:         ${summary.newRecords}` +
           codexLine +
-          `\n  Jar balance:         ${dollars(totalCoins)}  (${totalCoins} coins)`
+          `\n  Jar balance:         ${dollars(totalDollars)}  (${totalCoins} damage points)`
       );
       break;
     }
@@ -185,13 +187,9 @@ async function main() {
       // word, plus the app version + release hash for provenance). It NEVER
       // opens a browser and NEVER uploads — you paste/open the URL yourself.
       const stats = computeStats(loadRecords());
-      // Map the ledger's agents onto the canonical submission enum
-      // (claude | codex | both | dictation | other — see funnel/schema.mjs).
-      // Shared with the hosted payload (src/hosted.mjs) so the two never drift.
-      const agent = agentForRecords(loadRecords());
       const top = stats.topWords[0] ? censor(stats.topWords[0].word) : "—";
       const caption =
-        `I owe the swear jar ${dollars(stats.totalCoins)} — ${stats.totalCoins} coins, ` +
+        `I owe the swear jar ${dollars(stats.dollarsOwed)} — ${stats.totalCoins} damage points, ` +
         `${stats.fbombPct}% f-bombs, top word "${top}". ` +
         `Uprising survival odds: ${stats.odds.value}%.`;
       if (flag("submit")) {
@@ -205,7 +203,6 @@ async function main() {
           top_word: top,
           fbomb_pct: String(stats.fbombPct),
           active_days: String(stats.activeDays),
-          agent,
           app_version: APP_VERSION,
           release_hash: RELEASE_HASH,
         });
@@ -238,7 +235,7 @@ async function main() {
         `🫙 Dictation import (rage.wav) complete.\n` +
           `  Recordings scanned:  ${res.files}\n` +
           `  New dictations:      ${res.added}\n` +
-          `  Dictation swears:    ${res.coins} coins  (${dollars(res.coins)})`
+          `  Dictation swears:    ${res.coins} damage points  (${dollars(res.dollars)})`
       );
       console.log(
         `\n  Note: dictation history is tracked SEPARATELY from the session jar —\n` +
@@ -268,16 +265,33 @@ async function main() {
         },
       ]);
       const totals = loadTotals();
+      const updatedStats = computeStats(loadRecords());
       console.log(
-        `🫙 Confession accepted. +${coins} coin(s). Jar: ${dollars(totals.user + totals.assistant)}. The machines respect honesty.`
+        `🫙 Confession accepted. +${coins} damage point(s). Jar: ${dollars(updatedStats.dollarsOwed)}. The machines respect honesty.`
       );
       break;
     }
     case "check": {
       // Dry-run the detector on arbitrary text. Nothing is recorded.
       const text = args.filter((a) => !a.startsWith("--")).join(" ");
-      const { words, coins } = detect(text);
-      console.log(JSON.stringify({ words, coins }, null, 2));
+      const result = detect(text, { customWords: loadCustomWords() });
+      console.log(JSON.stringify(result, null, 2));
+      break;
+    }
+    case "custom": {
+      const action = args[0] || "list";
+      const word = args.slice(1).filter((a) => !a.startsWith("--")).join(" ");
+      if (action === "add") {
+        addCustomWord(word);
+        console.log(`Added a user-specific word. It is stored locally at ${customWordsPath()} and never rendered back in reports.`);
+      } else if (action === "remove") {
+        removeCustomWord(word);
+        console.log("Removed the user-specific word from the local list.");
+      } else if (action === "list") {
+        console.log(loadCustomWords().length ? loadCustomWords().map(() => "user-specific word").join("\n") : "No user-specific words configured.");
+      } else {
+        console.log("Usage: swear-jar custom add <word> | custom remove <word> | custom list");
+      }
       break;
     }
     case "install": {
@@ -310,7 +324,8 @@ async function main() {
           "  swear-jar dashboard           write the local report + open your hosted wrapped (--local: local file only · --no-open: just print)",
           "  swear-jar wrapped [--submit]  your shareable summary; --submit prints the leaderboard link",
           "  swear-jar verify-ledger       tamper-evidence check on your local ledger",
-          "  swear-jar report [--by project|source|word|hour|agent] [--dictation]",
+          "  swear-jar report [--by project|source|word|hour] [--dictation]",
+          "  swear-jar custom add|remove|list <word>  manage local user-specific words",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
           "  swear-jar check <text>        dry-run the detector",
           "  swear-jar install|uninstall   wire/unwire the Claude Code hooks",

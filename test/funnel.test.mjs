@@ -13,7 +13,6 @@ import {
   decodeWrappedParams,
   isUncensoredSwear,
   CAPS,
-  AGENTS,
 } from "../funnel/schema.mjs";
 import {
   validateRequest,
@@ -37,7 +36,6 @@ function goodStats(overrides = {}) {
     top_word: "f**k",
     fbomb_pct: 38,
     active_days: 340,
-    agent: "claude",
     app_version: "0.1.0",
     release_hash: "cd15e0b",
     ...overrides,
@@ -49,7 +47,6 @@ test("schema accepts a fully valid payload", () => {
   const r = validate(goodStats());
   assert.equal(r.ok, true);
   assert.equal(r.value.total_coins, 4215);
-  assert.equal(r.value.agent, "claude");
   assert.equal(r.value.top_word, "f**k");
   assert.equal(r.value.release_hash, "cd15e0b");
 });
@@ -92,12 +89,10 @@ test("schema rejects non-object payloads", () => {
 });
 
 // ── schema: enum + version + hash ────────────────────────────────────────────
-test("schema rejects unknown agent, accepts the enum", () => {
-  assert.equal(validate(goodStats({ agent: "skynet" })).ok, false);
-  assert.equal(validate(goodStats({ agent: 42 })).ok, false);
-  for (const a of AGENTS) {
-    assert.equal(validate(goodStats({ agent: a })).ok, true, `agent=${a}`);
-  }
+test("schema drops agent type from the public payload", () => {
+  const r = validate(goodStats({ agent: "claude" }));
+  assert.equal(r.ok, true);
+  assert.ok(!("agent" in r.value));
 });
 
 test("schema validates app_version and release_hash shapes", () => {
@@ -175,9 +170,9 @@ test("validateWrapped caps odds and streak_days", () => {
 });
 
 test("validateWrapped fails when the base submit fields fail", () => {
-  const r = validateWrapped(goodWrapped({ agent: "skynet", top_word: "fuck" }));
+  const r = validateWrapped(goodWrapped({ top_word: "fuck" }));
   assert.equal(r.ok, false);
-  assert.ok(r.errors.some((e) => e.startsWith("agent")) && r.errors.some((e) => e.startsWith("top_word")));
+  assert.ok(r.errors.some((e) => e.startsWith("top_word")));
 });
 
 test("encodeWrappedParams -> decodeWrappedParams -> validateWrapped round-trips", () => {
@@ -317,7 +312,6 @@ test("publicView NEVER contains email, join_list, or IP — in keys or values", 
     Object.keys(pub).sort(),
     [
       "active_days",
-      "agent",
       "app_version",
       "dollars",
       "fbomb_pct",

@@ -91,7 +91,7 @@
 
   <div id="report" hidden>
     <div class="hero">
-      <div class="tape"><span><b id="agent">·</b> the tape</span><span id="span">·</span></div>
+      <div class="tape"><span><b>your AI sessions</b></span><span id="span">·</span></div>
       <div class="wave" id="wave"></div>
       <div class="big"><span class="c">$</span><span id="dollars" class="tnum">0</span></div>
       <div class="lead">owed to the jar.</div>
@@ -141,12 +141,11 @@
     $('empty').hidden = false;
   } else {
     $('report').hidden = false;
-    $('agent').textContent = ({ claude: 'Claude', codex: 'Codex', both: 'Claude + Codex' }[q.get('ag')] || 'AI sessions');
     $('dollars').textContent = Math.round(Number(q.get('d') || 0)).toLocaleString('en-US');
     $('span').textContent = (q.get('ad') || '0') + ' active days';
     $('body').innerHTML = 'You dropped <b>' + num(q.get('tc')) + '</b> coins across <b>' +
       (q.get('ad') || '0') + '</b> active days — about <b>' + (q.get('spd') || '0') +
-      '</b> a day. At 25¢ a coin, the mic heard all of it.';
+    '</b> a day. The dollar total follows the word tiers in your local report.';
 
     const kpis = [
       [mask(q.get('tw')) || '—', 'favourite word'],

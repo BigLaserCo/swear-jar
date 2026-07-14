@@ -12,6 +12,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { detect, detectPolite } from "./detect.mjs";
+import { loadCustomWords } from "./custom.mjs";
 import {
   loadRecords,
   seenUuids,
@@ -122,7 +123,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
     if (!text || !text.trim()) continue;
     // Never re-ingest our own clink line if it echoes into context.
     if (text.includes("\u{1FAD9} Swear jar")) continue;
-    const { words, coins } = detect(text);
+    const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
     if (!coins) continue;
     // Manners on the same message, for the Gold Star gag. Counts only (never the
     // text) — same privacy rule as `words`. Attached ONLY when present so the
@@ -144,6 +145,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
       transcript: transcriptPath,
       words,
       coins,
+      dollars,
       ...(Object.keys(polite).length ? { polite } : {}),
     });
     seen.add(entry.uuid);

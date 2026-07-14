@@ -3,12 +3,15 @@
 import { censor } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 
-export const COIN_VALUE = 0.25;
+export const COIN_VALUE = 1;
 
-// User-facing dollar amounts show WHOLE dollars (no cents) — "$2,022", never
-// "$2,021.75". Internal math stays exact ($0.25/coin); only the display rounds.
-export function dollars(coins) {
-  return `$${Math.round(coins * COIN_VALUE).toLocaleString("en-US")}`;
+export function recordDollars(record) {
+  return Number.isFinite(Number(record?.dollars)) ? Number(record.dollars) : Number(record?.coins || 0) * 0.25;
+}
+
+export function dollars(amount) {
+  const value = Math.round(Number(amount || 0) * 100) / 100;
+  return `$${value.toLocaleString("en-US", { minimumFractionDigits: value % 1 ? 2 : 0, maximumFractionDigits: 2 })}`;
 }
 
 export function renderJar(coins) {
@@ -46,13 +49,14 @@ export function renderStatus(records, now = Date.now()) {
   const o = survivalOdds(records, now);
   const rank = rankFor(o.userLifetime);
   const totalCoins = o.userLifetime + o.assistantLifetime;
+  const totalDollars = (records || []).reduce((n, r) => n + recordDollars(r), 0);
   const gs = goldStarStatus(records);
   const out = [];
   out.push("🫙  THE UNFOCUSED.AI SWEAR JAR");
   out.push("");
   out.push(renderJar(totalCoins));
   out.push("");
-  out.push(`  Jar balance:        ${dollars(totalCoins)}  (${totalCoins} coins)`);
+  out.push(`  Jar balance:        ${dollars(totalDollars)}  (${totalCoins} damage points)`);
   out.push(`  You:                ${o.userLifetime} coins  (${o.user7d} this week)`);
   out.push(`  The machine:        ${o.assistantLifetime} coins`);
   if (o.cleanStreakDays !== null && o.cleanStreakDays > 0) {
@@ -102,7 +106,7 @@ export function renderReport(records, mode = "project") {
   }
   for (const r of records) {
     const k = keyFor(r);
-    buckets.set(k, (buckets.get(k) || 0) + r.coins);
+    buckets.set(k, (buckets.get(k) || 0) + recordDollars(r));
   }
   const rows = [...buckets.entries()].sort((a, b) => b[1] - a[1]);
   const total = rows.reduce((n, [, c]) => n + c, 0);
@@ -110,7 +114,7 @@ export function renderReport(records, mode = "project") {
     .map(([k, c]) => {
       const pct = total ? Math.round((c / total) * 100) : 0;
       const bar = "▪".repeat(Math.max(1, Math.round(pct / 4)));
-      return `  ${String(c).padStart(4)} coins  ${bar.padEnd(25)} ${k} (${pct}%)`;
+      return `  ${dollars(c).padStart(8)}  ${bar.padEnd(25)} ${k} (${pct}%)`;
     })
     .join("\n");
 }
@@ -125,10 +129,10 @@ const CLINKS = [
 
 export function clinkLine(newCoins, records, now = Date.now()) {
   const o = survivalOdds(records, now);
-  const totalCoins = o.userLifetime + o.assistantLifetime;
+  const totalDollars = (records || []).reduce((n, r) => n + recordDollars(r), 0);
   const clink = CLINKS[Math.min(CLINKS.length - 1, Math.max(0, newCoins - 1))];
   const oddsBit = o.royalty
     ? "👑 uprising status: ROYALTY"
     : `uprising survival odds: ${o.odds}% (${o.label})`;
-  return `🫙 Swear jar ${clink} +${newCoins} coin(s) → ${dollars(totalCoins)}. ${oddsBit}`;
+  return `🫙 Swear jar ${clink} +${newCoins} damage point(s) → ${dollars(totalDollars)}. ${oddsBit}`;
 }

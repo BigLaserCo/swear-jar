@@ -22,8 +22,8 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { detect } from "./detect.mjs";
+import { loadCustomWords } from "./custom.mjs";
 import { dataDir } from "./ledger.mjs";
-import { COIN_VALUE } from "./render.mjs";
 
 // The dictation ledger — deliberately a DIFFERENT file from ledger.jsonl.
 export function dictationPath() {
@@ -116,7 +116,7 @@ export function importSuperwhisper(root = defaultSuperwhisperRoot()) {
     const text = String(meta.result || meta.rawResult || "").trim();
     if (!text) continue; // no transcript text — nothing to count
 
-    const { words, coins } = detect(text);
+    const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
 
     // `datetime` is authoritative; fall back to the epoch-seconds dirname so the
     // by-hour view still works when a recording lacks a datetime field.
@@ -139,6 +139,7 @@ export function importSuperwhisper(root = defaultSuperwhisperRoot()) {
       transcript: "",
       words, // WORD COUNTS ONLY — never the transcript text
       coins,
+      dollars,
     });
     seen.add(uuid);
   }
@@ -147,6 +148,6 @@ export function importSuperwhisper(root = defaultSuperwhisperRoot()) {
 
   result.added = toAdd.length;
   result.coins = toAdd.reduce((n, r) => n + r.coins, 0);
-  result.dollars = result.coins * COIN_VALUE;
+  result.dollars = toAdd.reduce((n, r) => n + Number(r.dollars || 0), 0);
   return result;
 }

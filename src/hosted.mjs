@@ -45,22 +45,12 @@ function maskWord(w) {
   return s[0] + "_".repeat(s.length - 2) + s[s.length - 1];
 }
 
-// The ledger's agent set -> the canonical submission enum. Kept here and reused
-// by BOTH the hosted payload and `wrapped --submit` (bin/swear-jar.mjs) so the
-// two can never disagree (test/hosted.test.mjs pins the mapping).
-export function agentForRecords(records = []) {
-  const present = new Set((Array.isArray(records) ? records : []).map((r) => r?.agent).filter(Boolean));
-  const c = present.has("claude");
-  const x = present.has("codex");
-  return c && x ? "both" : c && present.size === 1 ? "claude" : x && present.size === 1 ? "codex" : "other";
-}
-
-// stats (+ records, for the agent enum) -> the validated wrapped payload. Only
+// stats -> the validated wrapped payload. Only
 // the aggregate fields are read; families are the censored top-12 word families
 // (masked so even our detector can't reconstruct them, counts merged on the rare
 // same-shape collision so nothing is silently lost). Throws if the assembled
 // payload somehow fails validation — a bug-catcher, not an expected path.
-export function buildWrappedPayload(stats, records = []) {
+export function buildWrappedPayload(stats) {
   const topWords = Array.isArray(stats?.topWords) ? stats.topWords : [];
   const families = {};
   for (const w of topWords.slice(0, CAPS.families_max)) {
@@ -75,7 +65,6 @@ export function buildWrappedPayload(stats, records = []) {
     top_word: topWords[0]?.word ? maskWord(topWords[0].word) : "none",
     fbomb_pct: stats.fbombPct,
     active_days: stats.activeDays,
-    agent: agentForRecords(records),
     app_version: APP_VERSION,
     release_hash: RELEASE_HASH,
     families,
@@ -96,9 +85,9 @@ export function buildWrappedPayload(stats, records = []) {
 // if the URL somehow runs long, the smallest-count families are dropped first
 // (stable tiebreak) until it fits, then a HARD ≤MAX_URL assert. Pure string
 // work — no request is made here or anywhere in the client.
-export function hostedWrappedUrl(stats, records = [], opts = {}) {
+export function hostedWrappedUrl(stats, _records = [], opts = {}) {
   const base = opts.base || HOSTED_BASE;
-  const value = buildWrappedPayload(stats, records);
+  const value = buildWrappedPayload(stats);
   let url = `${base}?${encodeWrappedParams(value)}`;
   if (url.length > MAX_URL) {
     const fams = Object.entries(value.families).sort(

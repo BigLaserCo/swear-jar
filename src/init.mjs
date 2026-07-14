@@ -256,7 +256,7 @@ function printDamage(write, stats) {
 
   write("🫙 The damage:");
   write(
-    `   Jar balance:   ${dollars(stats.totalCoins)}  (${stats.totalCoins} coins) — ` +
+    `   Jar balance:   ${dollars(stats.dollarsOwed)}  (${stats.totalCoins} damage points) — ` +
       `you ${stats.userCoins} · the machine ${stats.machineCoins}`
   );
   if (dict.length) {
@@ -291,7 +291,7 @@ export async function runInit(opts = {}) {
   // Idempotency reassurance: a non-empty jar means we've run before. Re-running
   // never double-counts (uuid dedup), so say so up front.
   if (det.ledger.records > 0) {
-    write(`🫙 Jar so far: ${dollars(det.ledger.coins)} — re-running is safe, nothing double-counts.`);
+    write(`🫙 Jar so far: ${dollars(computeStats(loadRecords()).dollarsOwed)} — re-running is safe, nothing double-counts.`);
     write("");
   }
 

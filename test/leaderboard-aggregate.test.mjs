@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { validateSubmission, AGENTS } from "../scripts/leaderboard/schema.mjs";
+import { validateSubmission } from "../scripts/leaderboard/schema.mjs";
 import {
   partition,
   computeBoards,
@@ -19,7 +19,6 @@ const base = {
   fbomb_pct: 40,
   active_days: 10,
   top_word: "f**k",
-  agent: "claude",
   app_version: "0.1.0",
   release_hash: "1111111111111111111111111111111111111111",
 };
@@ -69,11 +68,10 @@ test("bad handle (from author metadata) rejected", () => {
   assert.equal(validateSubmission(base, "not a handle!", { releases: KNOWN }).ok, false);
 });
 
-test("agent enum is closed", () => {
-  assert.equal(validateSubmission({ ...base, agent: "skynet" }, "octocat", { releases: KNOWN }).ok, false);
-  for (const a of AGENTS) {
-    assert.equal(validateSubmission({ ...base, agent: a }, "octocat", { releases: KNOWN }).ok, true);
-  }
+test("agent type is ignored by the public submission schema", () => {
+  const r = validateSubmission({ ...base, agent: "claude" }, "octocat", { releases: KNOWN });
+  assert.equal(r.ok, true);
+  assert.ok(!("agent" in r.submission));
 });
 
 // ── aggregation ─────────────────────────────────────────────────────────────

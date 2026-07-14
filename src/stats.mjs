@@ -15,7 +15,7 @@
 
 import { LEXICON, TIER_COINS } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
-import { COIN_VALUE } from "./render.mjs";
+import { COIN_VALUE, recordDollars } from "./render.mjs";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DOW_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -61,6 +61,9 @@ export function computeStats(records = [], now = Date.now()) {
   let totalCoins = 0;
   let userCoins = 0;
   let machineCoins = 0;
+  let totalDollars = 0;
+  let userDollars = 0;
+  let machineDollars = 0;
 
   // --- swear-instance counts (raw hits, not coin-weighted) ---
   let totalSwears = 0; // every swear instance, user + machine
@@ -85,8 +88,12 @@ export function computeStats(records = [], now = Date.now()) {
     const coins = Number(r?.coins) || 0;
     totalCoins += coins;
     const isMachine = r?.source === "assistant";
+    const amount = recordDollars(r);
+    totalDollars += amount;
     if (isMachine) machineCoins += coins;
     else userCoins += coins;
+    if (isMachine) machineDollars += amount;
+    else userDollars += amount;
 
     // project split (all coins — the jar total is user + machine)
     const proj = r?.project || "unknown";
@@ -203,10 +210,6 @@ export function computeStats(records = [], now = Date.now()) {
   const activeDays = byDay.size;
   const coinsPerActiveDay = activeDays ? round1(totalCoins / activeDays) : 0;
 
-  // --- you vs. the founder (swears per active day vs a fixed benchmark) ---
-  // Raw swear instances, not coins — a "swear" is one hit regardless of tier,
-  // which is the fair unit to line up against a per-day human benchmark.
-  const FOUNDER_PER_DAY = 65;
   const swearsPerDay = activeDays ? round1(userSwears / activeDays) : 0;
 
   // --- % of the f-tier (f-bomb share of all swears) ---
@@ -259,7 +262,9 @@ export function computeStats(records = [], now = Date.now()) {
     coinValue: COIN_VALUE,
     totalCoins,
     totalRecords: recs.length,
-    dollarsOwed: Math.round(totalCoins * COIN_VALUE * 100) / 100,
+    dollarsOwed: Math.round(totalDollars * 100) / 100,
+    userDollars: Math.round(userDollars * 100) / 100,
+    machineDollars: Math.round(machineDollars * 100) / 100,
     userCoins,
     machineCoins,
     userPct,
@@ -269,7 +274,6 @@ export function computeStats(records = [], now = Date.now()) {
     politeTotal,
     goldStar,
     swearsPerDay,
-    founderPerDay: FOUNDER_PER_DAY,
     fbombPct,
     signatureCombo,
     spanDays,

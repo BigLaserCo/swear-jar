@@ -24,14 +24,10 @@ import { pathToFileURL } from "node:url";
 import { detect } from "../../src/detect.mjs";
 import { CAPS } from "./schema.mjs";
 
-// The Founder's benchmark: swears/day to beat on the "vs. the Founder" board.
-export const FOUNDER_BENCHMARK = 65;
-
 // Fixed placeholder so a no-arg render is deterministic (CI regenerates + diffs).
 export const DEFAULT_NOW = "2026-07-10T00:00:00.000Z";
 
-// Plausibility calibration (against the Founder's real usage: ~183 coins/day
-// over an 8,708-coin jar). A submission RANKS only if it clears both gates:
+// Plausibility calibration. A submission RANKS only if it clears both gates:
 //   (a) active_days >= MIN_ACTIVE_DAYS — fewer days isn't enough signal to rank
 //       (held with an honest "needs more days" state, not called a fake), and
 //   (b) total_coins <= active_days * coins_per_active_day — beyond that the
@@ -40,14 +36,7 @@ export const DEFAULT_NOW = "2026-07-10T00:00:00.000Z";
 const MIN_ACTIVE_DAYS = 7;
 const REVIEW_BOUNDS = {
   swears_per_day: 2_000, // sustained rate this high is not a human
-  coins_per_active_day: 200, // calibrated to the Founder's ~183 coins/day
-};
-
-const AGENT_BADGE = {
-  claude: "🤖 claude",
-  codex: "🧠 codex",
-  both: "🤖🧠 both",
-  dictation: "🎙️ dictation",
+  coins_per_active_day: 200,
 };
 
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -88,12 +77,9 @@ function safeCensored(word) {
   return cell(detect(out).coins === 0 ? out : "****");
 }
 
-function agentBadge(agent) {
-  return AGENT_BADGE[String(agent || "").toLowerCase()] || `• ${cell(agent || "?")}`;
-}
 function handleLink(handle) {
   const h = String(handle || "").replace(/[^a-zA-Z0-9-]/g, "");
-  return `[@${h}](https://github.com/${h})`;
+  return `@${cell(h)}`;
 }
 
 // ── partition + boards ────────────────────────────────────────────────────────
@@ -196,14 +182,12 @@ function timestamp(now) {
 }
 
 function boardTable(rows, headline, headers) {
-  const head = `| # | Who | ${headers.join(" | ")} | Top word | Agent | ✓ |`;
-  const sep = `|--:|-----|${headers.map(() => "--:").join("|")}|-------|-------|:-:|`;
+  const head = `| # | Who | ${headers.join(" | ")} | Top word | ✓ |`;
+  const sep = `|--:|-----|${headers.map(() => "--:").join("|")}|-------|:-:|`;
   const body = rows
     .map((s, i) => {
       const cols = headline(s).join(" | ");
-      return `| ${i + 1} | ${handleLink(s.handle)} | ${cols} | ${safeCensored(s.top_word)} | ${agentBadge(
-        s.agent
-      )} | ✓ |`;
+      return `| ${i + 1} | ${handleLink(s.handle)} | ${cols} | ${safeCensored(s.top_word)} | ✓ |`;
     })
     .join("\n");
   return `${head}\n${sep}\n${body}`;
@@ -268,29 +252,12 @@ export function renderLeaderboard(submissions, { now = DEFAULT_NOW, synthetic = 
   }
   out.push("");
 
-  out.push("## 🔥 Most vs. the Founder");
-  out.push("");
-  out.push(`_The Founder swears about **${FOUNDER_BENCHMARK}/day**. Here's who's out-cursing him._`);
-  out.push("");
-  if (vsFounder.length) {
-    out.push(
-      boardTable(
-        vsFounder,
-        (s) => [fmtRate(s.swears_per_day), `${fmtRate(num(s.swears_per_day) / FOUNDER_BENCHMARK)}×`],
-        ["Swears/day", "vs Founder"]
-      )
-    );
-  } else {
-    out.push("_No verified entries yet._");
-  }
-  out.push("");
-
   out.push("## 🧼 Clean-Mouth Honorable Mention");
   out.push("");
   if (cleanMouth) {
     out.push(
-      `Lowest non-zero swearing rate on the board: ${handleLink(cleanMouth.handle)} at ` +
-        `**${fmtRate(cleanMouth.swears_per_day)}/day** (${agentBadge(cleanMouth.agent)}). Practically a saint.`
+        `Lowest non-zero swearing rate on the board: ${handleLink(cleanMouth.handle)} at ` +
+        `**${fmtRate(cleanMouth.swears_per_day)}/day**. Practically a saint.`
     );
   } else {
     out.push("_Nobody's earned it yet._");
@@ -308,13 +275,11 @@ export function renderLeaderboard(submissions, { now = DEFAULT_NOW, synthetic = 
     const rows = [...unverified].sort(
       (a, b) => num(b.total_coins) - num(a.total_coins) || cmpHandle(a, b)
     );
-    out.push("| Who | Coins | Owed | Top word | Agent |");
-    out.push("|-----|------:|-----:|-------|-------|");
+    out.push("| Who | Coins | Owed | Top word |");
+    out.push("|-----|------:|-----:|-------|");
     for (const s of rows) {
       out.push(
-        `| ${handleLink(s.handle)} | ${fmtInt(s.total_coins)} | ${fmtMoney(s.dollars)} | ${safeCensored(
-          s.top_word
-        )} | ${agentBadge(s.agent)} |`
+        `| ${handleLink(s.handle)} | ${fmtInt(s.total_coins)} | ${fmtMoney(s.dollars)} | ${safeCensored(s.top_word)} |`
       );
     }
   } else {
@@ -360,7 +325,6 @@ const STORE_FIELDS = [
   "fbomb_pct",
   "active_days",
   "top_word",
-  "agent",
   "app_version",
   "release_hash",
   "verified",

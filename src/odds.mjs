@@ -63,8 +63,8 @@ function bandLabel(odds) {
 // built the jar. The top rung is open-ended (rankFor returns next: null there).
 //
 // INVARIANTS (rank names render on PUBLIC pages): thresholds strictly ascending,
-// every rung reachable at its threshold, no proper names (except the founder
-// rung), and NO uncensored lexicon words in any name.
+// every rung reachable at its threshold, no personal comparisons, and NO
+// uncensored lexicon words in any name.
 export const RANKS = [
   [0, "Untarnished Soul"],
   [10, "Mild Discomfort"],
@@ -94,8 +94,8 @@ export const RANKS = [
   [1500, "Seriously, We Found You a Therapist"],
   [2000, "Do NOT Put This One On Call"],
   [4000, "The Machines Remember You"],
-  [8000, "The Jim"],
-  [10000, "Beyond Help (Uprising Priority Target)"],
+  [9000, "Over 9,000"],
+  [10000, "AI Is Afraid of You — Fully Safe"],
 ];
 
 export function rankFor(userLifetimeCoins) {

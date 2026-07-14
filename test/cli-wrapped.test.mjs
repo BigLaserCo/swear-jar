@@ -37,7 +37,7 @@ test("wrapped --submit builds a URL with censored top word + provenance, no raw 
   assert.ok(url, "a submit URL is printed");
   const q = new URL(url.trim()).searchParams;
   assert.equal(q.get("total_coins"), "5");
-  assert.equal(q.get("agent"), "both"); // mixed claude+codex → "both"
+  assert.equal(q.get("agent"), null); // agent type is intentionally not public
   assert.equal(q.get("top_word"), "f**k"); // censored, never the raw word
   assert.ok(!url.includes("fuck"), "no uncensored swear in the URL");
   assert.ok(q.get("app_version"), "carries app_version");

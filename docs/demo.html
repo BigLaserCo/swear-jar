@@ -111,7 +111,7 @@
   .hn{font:600 14px/1 var(--mono);text-align:right;color:var(--secondary)}
   .strong{--c:var(--sev-strong)}.medium{--c:var(--sev-medium)}.mild{--c:var(--sev-mild)}
 
-  /* comparison bars (you vs founder / machine) */
+  /* comparison bars (you vs machine) */
   .cmprow{display:grid;grid-template-columns:112px 1fr 84px;align-items:center;gap:14px;margin-top:14px}
   .cmprow:first-child{margin-top:0}
   .who{font:600 12px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--secondary)}
@@ -206,6 +206,8 @@
     text-decoration:none;transition:border-color .15s,color .15s}
   .tiers a:hover{border-color:var(--baccent);color:var(--accent-text)}
   .donate .fine-note{margin-top:15px;font:400 11px/1.6 var(--mono);color:var(--faint)}
+  .float-donate{position:fixed;right:18px;bottom:18px;z-index:40;display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:999px;background:var(--accent);color:var(--on-accent);font:800 12px var(--sans);box-shadow:0 8px 24px rgba(0,0,0,.28);text-decoration:none}
+  .float-donate:hover{background:var(--accent-hover);color:var(--on-accent);transform:translateY(-2px)}
 
   footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--div);font:500 12px/1.7 var(--mono);color:var(--faint)}
   footer b{color:var(--muted);font-weight:600}
@@ -219,22 +221,23 @@
   @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="canonical" href="https://swearjar.unfocused.ai/demo.html">
-<meta name="description" content="A fully synthetic Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
+<meta name="description" content="A clearly labeled sample Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Swear Jar">
 <meta property="og:title" content="Swear Jar — sample damage report (demo)">
-<meta property="og:description" content="A fully synthetic Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
+<meta property="og:description" content="A clearly labeled sample Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
 <meta property="og:url" content="https://swearjar.unfocused.ai/demo.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Swear Jar — sample damage report (demo)">
-<meta name="twitter:description" content="A fully synthetic Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
+<meta name="twitter:description" content="A clearly labeled sample Swear Jar damage report — the exact dashboard a real user gets, built from invented data. See coins, favourite words, rage-o-clock, and robot-uprising survival odds. 100% local, zero network.">
 </head>
 <body>
 <div class="app">
 
+  <div aria-hidden="true" style="position:fixed;top:78px;right:18px;z-index:50;padding:8px 14px;border:2px solid var(--accent);border-radius:7px;background:var(--solid);color:var(--accent-text);font:900 12px/1 var(--mono);letter-spacing:.16em;transform:rotate(4deg);box-shadow:0 5px 18px rgba(0,0,0,.28)">SAMPLE · NOT REAL DATA</div>
   <div class="demo-banner" role="note" style="margin:18px 0 0;padding:14px 18px;border:1px solid var(--baccent);border-radius:12px;background:linear-gradient(180deg,#241a0f,var(--section));font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--secondary);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline">
-    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SYNTHETIC DEMO DATA</strong>
-    <span>Every figure below is invented for illustration &mdash; your report is generated locally from your own sessions, and nothing here reflects a real person or ever leaves your machine.</span>
+    <strong style="color:var(--accent-text);font-weight:700;letter-spacing:.08em">&#129514; SAMPLE REPORT · SYNTHETIC DATA</strong>
+    <span><b>NOT A REAL PERSON OR ACCOUNT.</b> Every figure below is invented for illustration; your real report is generated locally from your own sessions.</span>
     <a href="index.html" style="color:var(--accent-text);margin-left:auto;text-decoration:none">&larr; swear-jar home</a>
   </div>
 
@@ -271,16 +274,6 @@
   <section class="sec">
     <div class="sechead"><div><span class="eyebrow">The usual suspects</span><h2 class="sectitle">Words caught on the mic</h2></div><span class="seccap">most-used swears · by severity</span></div>
     <div class="card" id="board"></div>
-  </section>
-
-  <!-- you vs the founder -->
-  <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">A known offender</span><h2 class="sectitle">You vs. the founder</h2></div><span class="seccap">swears per day — fair across any history length</span></div>
-    <div class="card">
-      <div class="cmprow"><span class="who">You</span><span class="track fillA"><i id="you-bar"></i></span><span class="cval tnum" id="you-val"></span></div>
-      <div class="cmprow"><span class="who">The founder<span class="sub">the benchmark</span></span><span class="track fillF"><i id="founder-bar"></i></span><span class="cval tnum" id="founder-val"></span></div>
-      <p class="cap" id="founder-cap"></p>
-    </div>
   </section>
 
   <!-- you vs the machine -->
@@ -382,22 +375,22 @@
   </section>
 
   <footer>
-    <div><b>How this works.</b> Swear Jar read your AI coding session transcripts on this computer, tallied the swears into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. No account, no server, no upload, no network. Open the source and check.</div>
+    <div><b>How this works.</b> Swear Jar read your AI prompts and supported recordings or transcripts on this computer, tallied aggregate word counts into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. Raw sentences stay local. Open the source and check.</div>
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
-    <div><b>Status.</b> Swear Jar is MIT-licensed / private preview — not yet released. Your numbers are yours to keep.</div>
+    <div><b>Status.</b> Swear Jar is MIT-licensed and preparing for public launch. Your numbers are yours to keep.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
-    <div><b>Made by Jim — unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
+    <div><b>Open source by unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
   </footer>
 </div>
+<a class="float-donate" id="float-donate" href="#donate-sec">🫙 Feel guilty? Donate to the jar</a>
 <div class="toast" id="toast"></div>
 
 <script>
-const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":0.25,"totalCoins":1435,"totalRecords":400,"dollarsOwed":358.75,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"founderPerDay":65,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":2,"royalty":false,"label":"kept alive for entertainment value","user7d":76},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}}};
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":598.45,"userDollars":425,"machineDollars":173.45,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":2,"royalty":false,"label":"kept alive for entertainment value","user7d":76},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}}};
 const $=(id)=>document.getElementById(id);
+if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
-const usd=(d)=>'$'+Math.round(Number(d||0)).toLocaleString('en-US');   // whole dollars, no cents
-const cents=(d)=>Math.round(Number(d||0)*100)+'¢';                     // sub-dollar coin price
-const coinUsd=(coins)=>usd((coins||0)*S.coinValue);
+const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
 const sww=w=>`<span class="sww" data-w="${w}">${w}</span>`;   // a censorable swear span
@@ -416,7 +409,7 @@ const fav=S.topWords&&S.topWords[0];
   }
   wave.innerHTML=h;
 })();
-$('heronum').textContent=fmt(Math.round(S.dollarsOwed));
+$('heronum').textContent=Number(S.dollarsOwed||0).toLocaleString('en-US',{minimumFractionDigits:Number(S.dollarsOwed||0)%1?2:0,maximumFractionDigits:2});
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 
 // ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
@@ -426,7 +419,7 @@ if(S.goldStar){
   const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
 }
 $('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
-  `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${cents(S.coinValue)} a coin, the mic heard all of it.`;
+  `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span><b>${fmt(S.activeDays)}</b> active days</span>`+
@@ -434,7 +427,7 @@ $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
 
 // ---- kpis ----
 $('kpis').innerHTML=[
-  ['🤬 '+fmt(S.totalCoins),'Coins in the jar'],
+  ['🤬 '+fmt(S.totalCoins),'Damage points'],
   [fav?sww(fav.word):'—','Favourite word'],
   [S.longestStreak+'d','Longest streak'],
   [S.fbombPct+'%','Were f-bombs'],
@@ -450,19 +443,6 @@ $('kpis').innerHTML=[
     return `<div class="hit"><span class="hw">${sww(w.word)}<span class="htag ${sev}">${w.tier}</span></span>`+
       `<span class="hbar"><span class="hfill ${sev}" style="--w:${(Math.sqrt(w.count/mx)*100).toFixed(1)}%"></span></span>`+
       `<span class="hn tnum">${fmt(w.count)}</span></div>`;}).join('');
-})();
-
-// ---- you vs the founder ----
-(function(){
-  const you=S.swearsPerDay||0,founder=S.founderPerDay||65,mx=Math.max(you,founder,1);
-  $('you-bar').style.setProperty('--w',(you/mx*100).toFixed(1)+'%');
-  $('founder-bar').style.setProperty('--w',(founder/mx*100).toFixed(1)+'%');
-  $('you-val').innerHTML=`${you}<span class="u">/day</span>`;
-  $('founder-val').innerHTML=`${founder}<span class="u">/day</span>`;
-  const diff=Math.round((founder-you)*10)/10;
-  $('founder-cap').innerHTML= diff>=0
-    ? `You're <b>${diff}/day</b> calmer than the founder. Rookie numbers — or genuine serenity.`
-    : `You out-swear the founder by <b>${Math.abs(diff)}/day</b>. The benchmark just moved — and it's you.`;
 })();
 
 // ---- you vs the machine ----
@@ -556,8 +536,8 @@ $('kpis').innerHTML=[
   if(S.firstSwearAvg) f.push([S.firstSwearAvg,'First swear of the day',`On an average day your first swear lands at <b>${S.firstSwearAvg}</b>. Good morning to the machine.`]);
   if(S.signatureCombo){const c=S.signatureCombo;
     f.push([`${sww(c.a)} + ${sww(c.b)}`,'Signature combo',`Your most common pairing in one message — landed together <b>${fmt(c.count)}</b> time${c.count===1?'':'s'}. A classic.`]);}
-  const perYear=Math.round((S.coinsPerActiveDay||0)*365);
-  f.push([usd(perYear*S.coinValue),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear*S.coinValue)}</b> a year.`]);
+  const perYear=Math.round(((S.dollarsOwed||0)/(S.activeDays||1))*365*100)/100;
+  f.push([usd(perYear),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear)}</b> a year.`]);
   f.push([`${fmt(S.vocab)} curses`,'Distinct vocabulary',`A working set of <b>${fmt(S.vocab)}</b> distinct swears. Range, if nothing else.`]);
   f.push([`${S.cleanDaysPct}% clean`,'You kept it together',`<b>${S.cleanDaysPct}%</b> of the days in your span had zero coins. So it is possible.`]);
   $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');

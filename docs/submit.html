@@ -187,7 +187,6 @@ const FIELDS = [
   ["top_word",      "top word",        "str"],
   ["fbomb_pct",     "f-bomb %",        "num"],
   ["active_days",   "active days",     "int"],
-  ["agent",         "agent",           "str"],
   ["app_version",   "app version",     "str"],
   ["release_hash",  "release",         "str"],
 ];
@@ -205,7 +204,7 @@ function renderStats(stats) {
     k.className = "k";
     k.textContent = label;
     const v = document.createElement("div");
-    v.className = "v" + (["agent","app_version","release_hash","top_word"].includes(key) ? " dim" : "");
+    v.className = "v" + (["app_version","release_hash","top_word"].includes(key) ? " dim" : "");
     v.textContent = stats[key] === "" ? "—" : String(stats[key]);
     cell.append(k, v);
     grid.append(cell);

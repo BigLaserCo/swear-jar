@@ -111,7 +111,7 @@
   .hn{font:600 14px/1 var(--mono);text-align:right;color:var(--secondary)}
   .strong{--c:var(--sev-strong)}.medium{--c:var(--sev-medium)}.mild{--c:var(--sev-mild)}
 
-  /* comparison bars (you vs founder / machine) */
+  /* comparison bars (you vs machine) */
   .cmprow{display:grid;grid-template-columns:112px 1fr 84px;align-items:center;gap:14px;margin-top:14px}
   .cmprow:first-child{margin-top:0}
   .who{font:600 12px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--secondary)}
@@ -206,6 +206,8 @@
     text-decoration:none;transition:border-color .15s,color .15s}
   .tiers a:hover{border-color:var(--baccent);color:var(--accent-text)}
   .donate .fine-note{margin-top:15px;font:400 11px/1.6 var(--mono);color:var(--faint)}
+  .float-donate{position:fixed;right:18px;bottom:18px;z-index:40;display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:999px;background:var(--accent);color:var(--on-accent);font:800 12px var(--sans);box-shadow:0 8px 24px rgba(0,0,0,.28);text-decoration:none}
+  .float-donate:hover{background:var(--accent-hover);color:var(--on-accent);transform:translateY(-2px)}
 
   footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--div);font:500 12px/1.7 var(--mono);color:var(--faint)}
   footer b{color:var(--muted);font-weight:600}
@@ -255,16 +257,6 @@
   <section class="sec">
     <div class="sechead"><div><span class="eyebrow">The usual suspects</span><h2 class="sectitle">Words caught on the mic</h2></div><span class="seccap">most-used swears · by severity</span></div>
     <div class="card" id="board"></div>
-  </section>
-
-  <!-- you vs the founder -->
-  <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">A known offender</span><h2 class="sectitle">You vs. the founder</h2></div><span class="seccap">swears per day — fair across any history length</span></div>
-    <div class="card">
-      <div class="cmprow"><span class="who">You</span><span class="track fillA"><i id="you-bar"></i></span><span class="cval tnum" id="you-val"></span></div>
-      <div class="cmprow"><span class="who">The founder<span class="sub">the benchmark</span></span><span class="track fillF"><i id="founder-bar"></i></span><span class="cval tnum" id="founder-val"></span></div>
-      <p class="cap" id="founder-cap"></p>
-    </div>
   </section>
 
   <!-- you vs the machine -->
@@ -366,22 +358,22 @@
   </section>
 
   <footer>
-    <div><b>How this works.</b> Swear Jar read your AI coding session transcripts on this computer, tallied the swears into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. No account, no server, no upload, no network. Open the source and check.</div>
+    <div><b>How this works.</b> Swear Jar read your AI prompts and supported recordings or transcripts on this computer, tallied aggregate word counts into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. Raw sentences stay local. Open the source and check.</div>
     <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
-    <div><b>Status.</b> Swear Jar is MIT-licensed / private preview — not yet released. Your numbers are yours to keep.</div>
+    <div><b>Status.</b> Swear Jar is MIT-licensed and preparing for public launch. Your numbers are yours to keep.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
-    <div><b>Made by Jim — unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
+    <div><b>Open source by unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
   </footer>
 </div>
+<a class="float-donate" id="float-donate" href="#donate-sec">🫙 Feel guilty? Donate to the jar</a>
 <div class="toast" id="toast"></div>
 
 <script>
 const S = /*__DATA__*/{};
 const $=(id)=>document.getElementById(id);
+if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
-const usd=(d)=>'$'+Math.round(Number(d||0)).toLocaleString('en-US');   // whole dollars, no cents
-const cents=(d)=>Math.round(Number(d||0)*100)+'¢';                     // sub-dollar coin price
-const coinUsd=(coins)=>usd((coins||0)*S.coinValue);
+const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
 const sww=w=>`<span class="sww" data-w="${w}">${w}</span>`;   // a censorable swear span
@@ -400,7 +392,7 @@ const fav=S.topWords&&S.topWords[0];
   }
   wave.innerHTML=h;
 })();
-$('heronum').textContent=fmt(Math.round(S.dollarsOwed));
+$('heronum').textContent=Number(S.dollarsOwed||0).toLocaleString('en-US',{minimumFractionDigits:Number(S.dollarsOwed||0)%1?2:0,maximumFractionDigits:2});
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 
 // ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
@@ -410,7 +402,7 @@ if(S.goldStar){
   const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
 }
 $('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
-  `about <b>${fmt(S.coinsPerActiveDay)}</b> a day. At ${cents(S.coinValue)} a coin, the mic heard all of it.`;
+  `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span><b>${fmt(S.activeDays)}</b> active days</span>`+
@@ -418,7 +410,7 @@ $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
 
 // ---- kpis ----
 $('kpis').innerHTML=[
-  ['🤬 '+fmt(S.totalCoins),'Coins in the jar'],
+  ['🤬 '+fmt(S.totalCoins),'Damage points'],
   [fav?sww(fav.word):'—','Favourite word'],
   [S.longestStreak+'d','Longest streak'],
   [S.fbombPct+'%','Were f-bombs'],
@@ -434,19 +426,6 @@ $('kpis').innerHTML=[
     return `<div class="hit"><span class="hw">${sww(w.word)}<span class="htag ${sev}">${w.tier}</span></span>`+
       `<span class="hbar"><span class="hfill ${sev}" style="--w:${(Math.sqrt(w.count/mx)*100).toFixed(1)}%"></span></span>`+
       `<span class="hn tnum">${fmt(w.count)}</span></div>`;}).join('');
-})();
-
-// ---- you vs the founder ----
-(function(){
-  const you=S.swearsPerDay||0,founder=S.founderPerDay||65,mx=Math.max(you,founder,1);
-  $('you-bar').style.setProperty('--w',(you/mx*100).toFixed(1)+'%');
-  $('founder-bar').style.setProperty('--w',(founder/mx*100).toFixed(1)+'%');
-  $('you-val').innerHTML=`${you}<span class="u">/day</span>`;
-  $('founder-val').innerHTML=`${founder}<span class="u">/day</span>`;
-  const diff=Math.round((founder-you)*10)/10;
-  $('founder-cap').innerHTML= diff>=0
-    ? `You're <b>${diff}/day</b> calmer than the founder. Rookie numbers — or genuine serenity.`
-    : `You out-swear the founder by <b>${Math.abs(diff)}/day</b>. The benchmark just moved — and it's you.`;
 })();
 
 // ---- you vs the machine ----
@@ -540,8 +519,8 @@ $('kpis').innerHTML=[
   if(S.firstSwearAvg) f.push([S.firstSwearAvg,'First swear of the day',`On an average day your first swear lands at <b>${S.firstSwearAvg}</b>. Good morning to the machine.`]);
   if(S.signatureCombo){const c=S.signatureCombo;
     f.push([`${sww(c.a)} + ${sww(c.b)}`,'Signature combo',`Your most common pairing in one message — landed together <b>${fmt(c.count)}</b> time${c.count===1?'':'s'}. A classic.`]);}
-  const perYear=Math.round((S.coinsPerActiveDay||0)*365);
-  f.push([usd(perYear*S.coinValue),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear*S.coinValue)}</b> a year.`]);
+  const perYear=Math.round(((S.dollarsOwed||0)/(S.activeDays||1))*365*100)/100;
+  f.push([usd(perYear),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear)}</b> a year.`]);
   f.push([`${fmt(S.vocab)} curses`,'Distinct vocabulary',`A working set of <b>${fmt(S.vocab)}</b> distinct swears. Range, if nothing else.`]);
   f.push([`${S.cleanDaysPct}% clean`,'You kept it together',`<b>${S.cleanDaysPct}%</b> of the days in your span had zero coins. So it is possible.`]);
   $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');
