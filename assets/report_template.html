@@ -35,6 +35,8 @@
   .wordmark{font:800 17px/1 var(--sans);letter-spacing:-.02em;color:var(--heading)}
   .wordmark .slash{color:var(--dim);font-weight:600}
   .tbr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .toplink{font:700 11px/1 var(--mono);color:var(--accent-text);text-decoration:none;letter-spacing:.04em}
+  .toplink:hover{color:var(--accent-text-hover)}
   .locbadge{display:inline-flex;align-items:center;gap:7px;font:600 11px/1 var(--mono);letter-spacing:.04em;color:var(--muted);
     padding:6px 11px;border:1px solid var(--bcard);border-radius:999px}
   .locdot{width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px var(--green)}
@@ -195,6 +197,9 @@
   .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
   .subtle{font:400 11.5px/1.55 var(--mono);color:var(--faint)}
   .subtle b{color:var(--muted);font-weight:600}
+  .share-choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .share-choice .btn{justify-content:center;text-align:center;padding:11px 10px;font-size:12.5px}
+  .share-choice .btn.primary{grid-column:1/-1;font-size:14px}
   .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--solid);
     border:1px solid var(--accent);color:var(--primary);padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;
     pointer-events:none;transition:opacity .25s,transform .25s;z-index:60}
@@ -235,6 +240,7 @@
   <header class="topbar">
     <div class="brand"><span class="mark">🫙</span><span class="wordmark">swear-jar <span class="slash">/ the damage report</span></span></div>
     <div class="tbr">
+      <a class="toplink" href="https://github.com/BigLaserCo/swear-jar" target="_blank" rel="noopener">GitHub</a>
       <span class="locbadge"><span class="locdot"></span>processed locally</span>
       <label class="toggle" title="Censor swears for sharing (f***). What leaves this page is censored by default.">
         <input type="checkbox" id="censorTog" checked><span class="tg"></span>
@@ -242,6 +248,11 @@
       </label>
     </div>
   </header>
+
+  <section class="card" style="margin-top:18px;border-left:3px solid var(--accent)">
+    <span class="eyebrow">A developer tool for Claude Code + Codex</span>
+    <p style="margin:8px 0 0;color:var(--secondary);font-size:15px;max-width:78ch">Swear Jar scans the AI prompts and recordings you already have on your machine, counts the swear words, and turns the results into a playful engineering report. It never uploads transcripts. The report is generated locally; only an explicit share or leaderboard opt-in can send disclosed aggregate swear statistics.</p>
+  </section>
 
   <!-- hero: the tape -->
   <section class="sec">
@@ -289,16 +300,15 @@
     <div class="card projbars" id="projbars"></div>
   </section>
 
-  <!-- rage timeline -->
+  <!-- combined activity charts -->
   <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">The tape, over time</span><h2 class="sectitle">The rage timeline</h2></div><span class="seccap">coins per day</span></div>
-    <div class="card"><svg id="trend" viewBox="0 0 1040 240" preserveAspectRatio="none" role="img" aria-label="Coins per day"></svg></div>
-  </section>
-
-  <!-- rage-o-clock -->
-  <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">Volume ≠ venom</span><h2 class="sectitle">Rage-o-clock</h2></div><span class="seccap">damage points + swears per record by hour</span></div>
-    <div class="card"><svg id="clock" viewBox="0 0 1080 260" preserveAspectRatio="none" role="img" aria-label="Damage points by hour with swears per record overlay"></svg><p class="cap" id="clockcap"></p></div>
+    <div class="sechead"><div><span class="eyebrow">The tape, over time</span><h2 class="sectitle">Rage timeline + rage-o-clock</h2></div><span class="seccap">when you swear, and how hard it lands</span></div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Daily volume</div>
+      <svg id="trend" viewBox="0 0 1040 240" preserveAspectRatio="none" role="img" aria-label="Coins per day"></svg>
+      <div class="eyebrow" style="margin:28px 0 10px">Hourly volume + normalized frequency</div>
+      <svg id="clock" viewBox="0 0 1080 260" preserveAspectRatio="none" role="img" aria-label="Damage points by hour with swears per record overlay"></svg><p class="cap" id="clockcap"></p>
+    </div>
   </section>
 
   <!-- by day of week -->
@@ -336,10 +346,14 @@
       </div>
       <div class="share-actions">
         <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
-        <button class="btn primary" id="cp">📋 &nbsp;Copy the caption</button>
-        <a class="btn" id="shareUs" href="#">✉️ &nbsp;Share it with us →</a>
-        <div class="subtle" id="shareUsNote"></div>
-        <div class="subtle">📸 &nbsp;Screenshot the card on the left and attach it to your post. <b>#SwearJar</b></div>
+        <div class="share-choice">
+          <button class="btn primary" id="shareNative">📣 &nbsp;Share the generated card</button>
+          <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
+          <button class="btn" id="shareLinkedIn">in &nbsp;Post to LinkedIn</button>
+          <button class="btn" id="cp">📋 &nbsp;Copy caption</button>
+        </div>
+        <a class="btn" id="downloadCard" href="#" download="swear-jar-card.svg">⬇️ &nbsp;Save the card image</a>
+        <div class="subtle" id="shareUsNote">Your card is generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
       </div>
     </div>
   </section>
@@ -367,10 +381,11 @@
 
   <footer>
     <div><b>How this works.</b> Swear Jar read your AI prompts and supported recordings or transcripts on this computer, tallied aggregate word counts into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. Raw sentences stay local. Open the source and check.</div>
-    <div><b>What "sharing" sends.</b> The buttons carry only the numbers on this page (your balance, counts, censored top words) — never a single word of what you actually said. The email opens in your own mail app so you see exactly what's sent.</div>
-    <div><b>Status.</b> Swear Jar is MIT-licensed and preparing for public launch. Your numbers are yours to keep.</div>
+    <div><b>What "sharing" sends.</b> Everything is local unless you explicitly share the generated card or opt into the leaderboard. Sharing uses censored swear-word summaries and report aggregates only — never transcripts, recordings, prompts, sentences, or file paths.</div>
+    <div><b>Status.</b> Swear Jar is MIT-licensed, open source, and built for engineers who want to inspect their Claude Code and Codex habits. Your report stays on your machine.</div>
     <div style="color:var(--dim);font-style:italic;margin-top:2px">born from a crashed 10-minute dictation and the f***ing gold mine it exposed.</div>
-    <div><b>Open source by unfocused.ai</b><a id="credit-tip" href="#" target="_blank" rel="noopener" style="display:none;margin-left:6px">tip the jar →</a></div>
+    <div><b>Open source by unfocused.ai</b> · <a href="https://github.com/BigLaserCo/swear-jar" target="_blank" rel="noopener">GitHub</a> · <a href="https://youtube.com/@BigLaserCo" target="_blank" rel="noopener">YouTube @BigLaserCo</a> · <a href="https://tiktok.com/@biglaserco" target="_blank" rel="noopener">TikTok @biglaserco</a></div>
+    <div>Made by <a href="https://setupyour.ai" target="_blank" rel="noopener">setupyour.ai</a> · for <a href="https://biglaser.co" target="_blank" rel="noopener">BigLaserCo</a></div>
   </footer>
 </div>
 <a class="float-donate" id="float-donate" href="#donate-sec">🫙 Feel guilty? Donate to the jar</a>
@@ -576,7 +591,7 @@ $('kpis').innerHTML=[
   ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
 })();
 
-// ---- share actions: copy caption + "share it with us" mailto ----
+// ---- share actions: generated card + social composers ----
 // The exported caption is ALWAYS censored — even if the on-screen toggle reveals
 // words locally, nothing raw ever leaves this machine.
 const wrappedCaption=
@@ -587,12 +602,29 @@ const wrappedCaption=
 
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
+const shareText=`I ran my local Swear Jar report: ${fmt(S.totalCoins)} damage points, ${usd(S.dollarsOwed)} owed. ${S.fbombPct}% f-bombs. #SwearJar #BigLaserCo`;
+const shareUrl='https://swearjar.unfocused.ai/';
+const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
+$('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
+$('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
 
-// mailto is built client-side from the aggregate caption — the ONLY external-ish
-// href on the page. It opens the user's own mail app; nothing is sent silently.
-const mail='mailto:jim@unfocused.ai?subject='+encodeURIComponent('[SWEAR-JAR WRAPPED]')+'&body='+encodeURIComponent(wrappedCaption);
-$('shareUs').setAttribute('href',mail);
-$('shareUsNote').innerHTML='opens <b>YOUR</b> mail app — you see exactly what\'s sent (these numbers, nothing else)';
+function cardSvg(){
+  const favLabel=fav?censor(fav.word):'—';
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${fmt(S.totalCoins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd(S.dollarsOwed)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${favLabel} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
+}
+const cardBlob=()=>new Blob([cardSvg()],{type:'image/svg+xml'});
+const cardUrl=URL.createObjectURL(cardBlob());
+$('downloadCard').href=cardUrl;
+$('shareNative').onclick=async()=>{
+  const file=new File([cardBlob()], 'swear-jar-card.svg', {type:'image/svg+xml'});
+  if(navigator.share){
+    try{
+      const data={title:'My Swear Jar damage report',text:shareText,url:shareUrl};
+      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
+      await navigator.share(data); toast('Share sheet opened — your call');
+    }catch(e){if(e&&e.name!=='AbortError')toast('Share sheet unavailable — choose a social button');}
+  }else toast('Choose X or LinkedIn below to share');
+};
 
 // ---- empty-your-jar donation (config-injected URL; hidden if unset) ----
 (function(){

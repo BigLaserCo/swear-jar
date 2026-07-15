@@ -38,7 +38,7 @@ const REQUIRED = ["index.html", "demo.html", "tip.html", "wrapped.html", "admin.
 // page subresource (browsers/crawlers never fetch it on load), so it does not
 // break the zero-request guarantee.
 const ALLOWED_REF =
-  /^https?:\/\/(github\.com\/BigLaserCo\/swear-jar|(buy|donate)\.stripe\.com\/|(www\.)?tiktok\.com\/|(www\.)?youtube\.com\/|([a-z0-9-]+\.)?unfocused\.ai(\/|$)|([a-z0-9-]+\.)?setupyour\.ai(\/|$)|schema\.org(\/|$))/i;
+  /^https?:\/\/(github\.com\/BigLaserCo\/swear-jar|(buy|donate)\.stripe\.com\/|(www\.)?tiktok\.com\/|(www\.)?youtube\.com\/|([a-z0-9-]+\.)?unfocused\.ai|([a-z0-9-]+\.)?setupyour\.ai|biglaser\.co|((www\.)?x\.com\/intent\/post)|((www\.)?linkedin\.com\/sharing\/share-offsite)|((www\.)?w3\.org\/2000\/svg)|schema\.org)/i;
 
 function readPage(name) {
   return fs.readFileSync(path.join(DOCS, name), "utf8");

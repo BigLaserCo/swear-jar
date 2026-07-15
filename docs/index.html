@@ -13,7 +13,7 @@
   <meta name="twitter:title" content="Swear Jar — your AI damage report">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Swear Jar","applicationCategory":"DeveloperApplication","url":"https://swearjar.unfocused.ai/","description":"An open-source novelty tool that analyzes local AI prompts and transcripts and generates a playful damage report.","license":"MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"unfocused.ai","url":"https://unfocused.ai"}</script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"Raw prompts, sentences, transcript files, and code stay on your machine. A hosted report receives only disclosed aggregate stats when you choose to open it."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"No. Prompts, sentences, transcript files, recordings, and code stay on your machine. Only an explicit social share or leaderboard opt-in can send disclosed aggregate swear statistics."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
   <link rel="stylesheet" href="site.css">
   <link rel="stylesheet" href="fab.css">
 </head>
@@ -23,6 +23,7 @@
       <a class="brand" href="index.html">🫙 swear-jar</a>
       <span class="pill">open source · local-first</span>
       <span class="spacer"></span>
+      <a class="navlink github" href="https://github.com/BigLaserCo/swear-jar">GitHub</a>
       <a class="navlink active" href="index.html">Damage report</a>
       <a class="navlink" href="origin.html">Origin story</a>
       <a class="navlink" href="uprising.html">Robot uprising</a>
@@ -33,12 +34,12 @@
       <div>
         <p class="eyebrow">Swear Jar · an unfocused.ai open-source project</p>
         <h1>How frustrated are you at AI? <span>Let&rsquo;s measure it.</span></h1>
-        <p class="lede">We all get a little frustrated at AI. Swear Jar hooks into supported prompts and looks for recordings or transcripts you already have, then turns the <b>aggregate word counts</b> into a ridiculous damage report.</p>
+        <p class="lede">Swear Jar is a local developer tool for Claude Code and Codex. It scans the AI prompts and recordings you already have, counts how often you swear at the machine, and turns the <b>aggregate word counts</b> into a ridiculous engineering damage report.</p>
         <div class="cta">
           <a class="btn primary" href="#how">🫙 Get your damage report</a>
           <a class="btn ghost" href="demo.html">See a sample report →</a>
         </div>
-        <p class="micro">Raw sentences stay on your machine. If you choose to open a hosted report, only the disclosed aggregate stats are sent. We don&rsquo;t associate a report with you unless you choose to log in.</p>
+        <p class="micro">The report is generated locally and stays on your machine. Only an explicit social share or leaderboard opt-in can send disclosed aggregate swear statistics. We never take your transcripts.</p>
       </div>
       <aside class="report-card" aria-label="Sample damage report">
         <div class="card-top"><b>🫙 the damage report</b><span>synthetic demo</span></div>
@@ -61,20 +62,20 @@
         <article class="step">
           <div class="step-head"><span class="step-num">1</span><h3>Install</h3></div>
           <p>Clone the repository, then run the guided setup. It wires the hooks, scans the history you choose, and writes a local report.</p>
-          <div class="route"><div class="route-title">📦 GitHub source <span class="badge">MIT licensed</span></div><pre>git clone https://github.com/BigLaserCo/swear-jar.git
+          <div class="route"><div class="route-title">📦 GitHub source <span class="badge">MIT licensed</span></div><div class="command"><pre>git clone https://github.com/BigLaserCo/swear-jar.git
 cd swear-jar
 node bin/swear-jar.mjs install
-node bin/swear-jar.mjs init --local</pre></div>
+node bin/swear-jar.mjs init --local</pre><button class="copy-command" type="button" data-copy="git clone https://github.com/BigLaserCo/swear-jar.git\ncd swear-jar\nnode bin/swear-jar.mjs install\nnode bin/swear-jar.mjs init --local">Copy</button></div></div>
         </article>
         <article class="step">
           <div class="step-head"><span class="step-num">2</span><h3>Analyze your history</h3></div>
           <p>Scan supported AI prompts plus existing recordings or transcripts from tools such as Superwhisper. Analysis happens locally; the ledger keeps aggregate counts, not sentences.</p>
-          <pre>node bin/swear-jar.mjs backfill</pre>
+          <div class="command"><pre>node bin/swear-jar.mjs backfill</pre><button class="copy-command" type="button" data-copy="node bin/swear-jar.mjs backfill">Copy</button></div>
         </article>
         <article class="step">
           <div class="step-head"><span class="step-num">3</span><h3>Open the damage report</h3></div>
-          <p>Build the local report, then decide whether to open a hosted version. The hosted handoff carries only the basic stats named in the disclosure.</p>
-          <pre>node bin/swear-jar.mjs dashboard --local</pre>
+          <p>Build the local report. It opens on your machine. If you later choose to share the generated card or join the leaderboard, only the disclosed aggregate stats leave.</p>
+          <div class="command"><pre>node bin/swear-jar.mjs dashboard --local</pre><button class="copy-command" type="button" data-copy="node bin/swear-jar.mjs dashboard --local">Copy</button></div>
         </article>
       </div>
       <p class="micro"><b>Uninstall anytime:</b> <code>node bin/swear-jar.mjs uninstall</code> removes only the hooks; your local ledger and report stay untouched. The same command is in the <a href="https://github.com/BigLaserCo/swear-jar/blob/main/README.md#install">README</a> and <a href="https://github.com/BigLaserCo/swear-jar/blob/main/docs/swear-jar.1">man page</a>.</p>
@@ -85,7 +86,7 @@ node bin/swear-jar.mjs init --local</pre></div>
       <h2>Your words stay yours.</h2>
       <div class="privacy-grid">
         <div><b>Raw text stays local.</b><br>Prompts, sentences, recordings, transcripts, and code are analyzed on your machine.</div>
-        <div><b>Only stats may leave.</b><br>If you open a hosted report, it receives basic aggregate counts and censored summary data—not your sentences.</div>
+        <div><b>Only explicit sharing may leave.</b><br>Your report is local. If you share the generated card or opt into the leaderboard, only disclosed aggregate swear statistics leave—not your sentences.</div>
         <div><b>Login is optional.</b><br>We only associate a report with a username or email when you choose to log in.</div>
         <div><b>Read the code.</b><br>It is MIT-licensed and intentionally small. You are welcome to have your own AI inspect it for anything funky.</div>
       </div>
@@ -96,10 +97,16 @@ node bin/swear-jar.mjs init --local</pre></div>
 
     <footer>
       <span><b>🫙 swear-jar</b> · MIT-licensed open-source project</span>
-      <span>Follow the maker: <a href="https://tiktok.com/@biglaserco" rel="noopener">TikTok @biglaserco</a> · <a href="https://youtube.com/@BigLaserCo" rel="noopener">YouTube @BigLaserCo</a></span>
+      <span>Follow the maker — BigLaserCo: <a href="https://tiktok.com/@biglaserco" rel="noopener">TikTok @biglaserco</a> · <a href="https://youtube.com/@BigLaserCo" rel="noopener">YouTube @BigLaserCo</a></span>
       <span><a href="origin.html">Origin story</a> · <a href="terms.html">Privacy &amp; terms</a> · <a href="demo.html">Sample report</a> · <a href="https://github.com/BigLaserCo/swear-jar">GitHub</a></span>
+      <span>Made by <a href="https://setupyour.ai">setupyour.ai</a> · for <a href="https://biglaser.co">BigLaserCo</a></span>
   </footer>
   </div>
+  <script>
+    document.querySelectorAll('[data-copy]').forEach((button)=>button.addEventListener('click',async()=>{
+      try{await navigator.clipboard.writeText(button.dataset.copy);button.textContent='Copied';setTimeout(()=>button.textContent='Copy',1400)}catch{button.textContent='Select + copy';}
+    }));
+  </script>
   <div class="swear-fab">
     <div class="swear-fab-menu" aria-label="Jar actions">
       <a href="tip.html">Donate to the tip jar <span>→</span></a>

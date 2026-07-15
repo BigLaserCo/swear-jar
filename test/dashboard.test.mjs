@@ -44,7 +44,7 @@ test("HTML carries only word-family names and numbers — never message text", (
   assert.ok(html.includes('"fuck"'));
 });
 
-test("HTML auto-requests nothing — the only URLs are the human-clicked donate + lights hrefs", () => {
+test("HTML auto-requests nothing — external URLs are human-clicked share and footer links", () => {
   const HOSTED = "https://swearjar.unfocused.ai/wrapped?tc=1";
   const html = renderDashboard(computeStats(FIXTURE, NOW), { hostedUrl: HOSTED });
   // no subresources, no scripted network: nothing loads or phones home on open
@@ -53,16 +53,15 @@ test("HTML auto-requests nothing — the only URLs are the human-clicked donate 
     !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|new\s+WebSocket|new\s+EventSource/.test(html),
     "no scripted network calls"
   );
-  // every http(s) reference is one of exactly two human-clicked <a href>s:
-  // DONATE_URL (the tip jar) and the hosted wrapped URL (see it in lights)
+  // Every http(s) reference is a human-clicked link: tip jar, optional report
+  // share, social composers, source, and maker credits. Nothing is fetched on load.
   const urls = [...html.matchAll(/https?:\/\/[^\s"'`<>()]+/gi)].map((m) => m[0]);
-  const allowed = new Set([DONATE_URL, HOSTED]);
-  const foreign = urls.filter((u) => !allowed.has(u));
-  assert.deepEqual(foreign, [], `only donate_url + hosted_wrapped_url may appear; found: ${foreign.join(", ")}`);
-  // with both sections hidden, the page is URL-free entirely (the old default)
+  const allowed = [DONATE_URL, HOSTED, "https://github.com/BigLaserCo/swear-jar", "https://swearjar.unfocused.ai/", "https://x.com/intent/post?", "https://www.linkedin.com/sharing/share-offsite/?", "https://youtube.com/@BigLaserCo", "https://tiktok.com/@biglaserco", "https://setupyour.ai", "https://biglaser.co", "http://www.w3.org/2000/svg"];
+  const foreign = urls.filter((u) => !allowed.some((prefix) => u === prefix || u.startsWith(prefix)));
+  assert.deepEqual(foreign, [], `found unexpected external URL: ${foreign.join(", ")}`);
+  // With donation and optional report share hidden, static source/social links remain.
   const off = renderDashboard(computeStats(FIXTURE, NOW), { donateUrl: false });
-  assert.ok(!/https?:/i.test(off), "no http(s) URLs at all when donate + lights are hidden");
-  assert.ok(!/\/\/[a-z0-9.-]+\.[a-z]{2,}/i.test(off), "no protocol-relative hosts");
+  assert.ok(!/https:\/\/[^"'`<>()]*wrapped/i.test(off), "no hosted report URL when lights are hidden");
 });
 
 test("hosted 'in lights' button injects only when a hosted URL is provided", () => {

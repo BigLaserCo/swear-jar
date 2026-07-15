@@ -21,7 +21,7 @@ const BUILDER = path.join(ROOT, "scripts", "site", "buildAdmin.mjs");
 // Click-through hosts allowed on the admin page: the source repo, the canonical
 // site (canonical/OG tags), and the maker's socials in the shared footer.
 const ALLOWED_REF =
-  /^https?:\/\/(github\.com\/BigLaserCo\/swear-jar|swearjar\.unfocused\.ai\/|(www\.)?tiktok\.com\/|(www\.)?youtube\.com\/)/i;
+  /^https?:\/\/(github\.com\/BigLaserCo\/swear-jar|swearjar\.unfocused\.ai|((www\.)?tiktok\.com)|((www\.)?youtube\.com)|setupyour\.ai|biglaser\.co|((www\.)?x\.com\/intent\/post)|((www\.)?linkedin\.com\/sharing\/share-offsite)|((www\.)?w3\.org\/2000\/svg))/i;
 
 function read() {
   return fs.readFileSync(ADMIN, "utf8");
