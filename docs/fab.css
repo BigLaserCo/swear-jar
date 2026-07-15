@@ -1,0 +1,9 @@
+.swear-fab{position:fixed;right:18px;bottom:18px;z-index:80;display:flex;flex-direction:column;align-items:flex-end;gap:8px;font-family:var(--sans,system-ui,sans-serif)}
+.swear-fab-menu{display:flex;flex-direction:column;gap:7px;min-width:210px;padding:8px;border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(23,20,28,.96);box-shadow:0 16px 38px rgba(0,0,0,.34);opacity:0;transform:translateY(8px) scale(.98);pointer-events:none;transition:opacity .16s ease,transform .16s ease}
+.swear-fab:focus-within .swear-fab-menu,.swear-fab:hover .swear-fab-menu{opacity:1;transform:none;pointer-events:auto}
+.swear-fab-menu a{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 11px;border-radius:9px;color:var(--heading,#f3eee7);font-size:12px;font-weight:750;text-decoration:none;background:rgba(255,255,255,.04)}
+.swear-fab-menu a:hover,.swear-fab-menu a:focus-visible{background:rgba(232,98,58,.16);color:var(--accent-light,#f0805c);outline:none}
+.swear-fab-menu span{color:var(--accent-light,#f0805c);font-size:15px}
+.swear-fab-toggle{appearance:none;border:0;display:inline-flex;align-items:center;gap:7px;padding:11px 14px;border-radius:999px;background:var(--accent,#e8623a);color:#1a0e07;box-shadow:0 8px 24px rgba(0,0,0,.3);font:800 12px var(--sans,system-ui,sans-serif);cursor:pointer}
+.swear-fab-toggle:hover,.swear-fab-toggle:focus-visible{background:var(--accent-light,#f0805c);outline:2px solid rgba(255,255,255,.65);outline-offset:2px}
+@media(max-width:520px){.swear-fab{right:12px;bottom:12px}.swear-fab-menu{min-width:200px}.swear-fab-toggle{padding:10px 12px}}

@@ -74,7 +74,7 @@ for (const name of PAGES) {
     // Canonical is metadata; the only local page-load asset permitted is the
     // repo-owned stylesheet. Never add a remote stylesheet/font/icon/preload.
     for (const l of [...html.matchAll(/<link\b[^>]*>/gi)].map((m) => m[0])) {
-      assert.ok(/rel=["']canonical["']/i.test(l) || /rel=["']stylesheet["'][^>]*href=["']site\.css["']/i.test(l), `only canonical or local site.css <link> allowed: ${l}`);
+      assert.ok(/rel=["']canonical["']/i.test(l) || /rel=["']stylesheet["'][^>]*href=["'](?:site|fab)\.css["']/i.test(l), `only canonical or local site/fab.css <link> allowed: ${l}`);
     }
   });
 

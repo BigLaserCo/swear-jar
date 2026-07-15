@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Swear Jar — sample damage report (demo)</title>
+<link rel="stylesheet" href="fab.css">
 <style>
   :root{
     --page:#0C0B0E;--section:#131117;--card:rgba(24,21,28,.62);--solid:#17141C;--input:#100E14;
@@ -609,5 +610,6 @@ function paintCensor(){
 $('censorTog').addEventListener('change',e=>{CENSOR=e.target.checked;paintCensor();});
 paintCensor();   // sharing is censored by default
 </script>
+<div class="swear-fab"><div class="swear-fab-menu" aria-label="Jar actions"><a href="tip.html">Donate to the tip jar <span>→</span></a><a href="submit.html#mailing-list">Join the mailing list <span>→</span></a></div><button class="swear-fab-toggle" type="button" aria-label="Open jar actions">🫙 Jar actions</button></div>
 </body>
 </html>

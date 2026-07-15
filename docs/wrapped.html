@@ -13,6 +13,7 @@
 <meta property="og:url" content="https://swearjar.unfocused.ai/wrapped.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Swear Jar — wrapped">
+<link rel="stylesheet" href="fab.css">
 <meta name="twitter:description" content="A Swear Jar wrapped report — aggregate stats only, never a word you said.">
 <style>
   :root{
@@ -173,5 +174,6 @@
     $('hours').innerHTML = bh.map((v) => '<i style="height:' + Math.max(2, v / hmax * 100) + '%"></i>').join('');
   }
 </script>
+<div class="swear-fab"><div class="swear-fab-menu" aria-label="Jar actions"><a href="tip.html">Donate to the tip jar <span>→</span></a><a href="submit.html#mailing-list">Join the mailing list <span>→</span></a></div><button class="swear-fab-toggle" type="button" aria-label="Open jar actions">🫙 Jar actions</button></div>
 </body>
 </html>

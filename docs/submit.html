@@ -12,6 +12,7 @@
 <meta property="og:description" content="Put your jar on the public swear-jar leaderboard. Email-verified, censored words only, no spam.">
 <meta property="og:url" content="https://swearjar.unfocused.ai/submit.html">
 <meta name="twitter:card" content="summary">
+<link rel="stylesheet" href="fab.css">
 <meta name="twitter:title" content="swear-jar — submit your score">
 <meta name="twitter:description" content="Put your jar on the public swear-jar leaderboard. Censored words only, no spam.">
 <style>
@@ -137,7 +138,7 @@
 
       <label class="consent">
         <input type="checkbox" id="joinlist">
-        <span>Also join the mailing list &mdash; occasional AI tooling stuff from the makers.
+        <span id="mailing-list">Also join the mailing list &mdash; occasional AI tooling stuff from the makers.
           <span class="sub">Optional. No spam, unsubscribe anytime.</span></span>
       </label>
 
@@ -295,5 +296,6 @@ $("form").addEventListener("submit", async (e) => {
   btn.textContent = "Send my confirmation email";
 });
 </script>
+<div class="swear-fab"><div class="swear-fab-menu" aria-label="Jar actions"><a href="tip.html">Donate to the tip jar <span>→</span></a><a href="submit.html#mailing-list">Join the mailing list <span>→</span></a></div><button class="swear-fab-toggle" type="button" aria-label="Open jar actions">🫙 Jar actions</button></div>
 </body>
 </html>

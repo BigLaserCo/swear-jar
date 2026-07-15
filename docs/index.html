@@ -13,8 +13,9 @@
   <meta name="twitter:title" content="Swear Jar — your AI damage report">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Swear Jar","applicationCategory":"DeveloperApplication","url":"https://swearjar.unfocused.ai/","description":"An open-source novelty tool that analyzes local AI prompts and transcripts and generates a playful damage report.","license":"MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"unfocused.ai","url":"https://unfocused.ai"}</script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"Raw prompts, sentences, transcript files, and code stay on your machine. A hosted report receives only disclosed aggregate stats when you choose to open it."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Not yet. The source repository and npm package are currently private, so the public install commands are not live."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"Raw prompts, sentences, transcript files, and code stay on your machine. A hosted report receives only disclosed aggregate stats when you choose to open it."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
   <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="fab.css">
 </head>
 <body>
   <div class="wrap">
@@ -54,7 +55,7 @@
       <p class="eyebrow">Three steps</p>
       <h2>Get your damage report</h2>
       <p class="sub">The concept is simple: install from GitHub, analyze the history you already own, then see the numbers. One route, one command, one report.</p>
-      <div class="notice"><b>Launch-day note:</b> the public install path is ready in the source, but the GitHub repository must be visible before anyone outside the maintainer team can clone it.</div>
+      <div class="notice"><b>Launch day:</b> the repository is public and the commands below are ready to run.</div>
 
       <div class="steps">
         <article class="step">
@@ -97,7 +98,14 @@ node bin/swear-jar.mjs init --local --no-open</pre></div>
       <span><b>🫙 swear-jar</b> · MIT-licensed open-source project</span>
       <span>Follow the maker: <a href="https://tiktok.com/@biglaserco" rel="noopener">TikTok @biglaserco</a> · <a href="https://youtube.com/@BigLaserCo" rel="noopener">YouTube @BigLaserCo</a></span>
       <span><a href="origin.html">Origin story</a> · <a href="terms.html">Privacy &amp; terms</a> · <a href="demo.html">Sample report</a> · <a href="https://github.com/BigLaserCo/swear-jar">GitHub</a></span>
-    </footer>
+  </footer>
+  </div>
+  <div class="swear-fab">
+    <div class="swear-fab-menu" aria-label="Jar actions">
+      <a href="tip.html">Donate to the tip jar <span>→</span></a>
+      <a href="submit.html#mailing-list">Join the mailing list <span>→</span></a>
+    </div>
+    <button class="swear-fab-toggle" type="button" aria-label="Open jar actions">🫙 Jar actions</button>
   </div>
 </body>
 </html>
