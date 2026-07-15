@@ -41,7 +41,8 @@ node bin/swear-jar.mjs custom remove "your-term"
 
 Custom terms are reported only as **user-specific**; their spellings are not
 rendered in the UI or sent in aggregate links. Current examples include
-darn/heck at $0.10, damn it at $0.25, fuck at $1, and cunt at $5.
+darn/heck/damn at $0.50, ordinary swears such as fuck at $1, and severe
+words or compounds such as cunt at $5.
 
 ## Scope
 

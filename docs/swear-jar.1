@@ -1,0 +1,44 @@
+.TH SWEAR-JAR 1 "July 2026" "Swear Jar 0.1.0" "User Commands"
+.SH NAME
+swear-jar \- local-first AI profanity damage report
+.SH SYNOPSIS
+.B swear-jar
+.I command
+.RI [ options ]
+.SH DESCRIPTION
+Swear Jar analyzes supported local AI prompts and recordings, stores aggregate
+counts, and writes a local damage report. Raw sentences stay on the machine.
+.SH COMMANDS
+.TP
+.B init [--local]
+Run first-time setup, scan selected history, write the report, and open it.
+.TP
+.B dashboard [--local]
+Write the local report and open it.
+.TP
+.B status
+Print the jar balance, rank, and uprising odds.
+.TP
+.B install
+Install the Claude Code hooks in the local Claude settings file.
+.TP
+.B uninstall
+Remove only the Swear Jar hooks. The local ledger and reports are left intact.
+.TP
+.B backfill [--codex]
+Scan existing supported transcripts.
+.TP
+.B custom add|remove|list WORD
+Manage local user-specific words.
+.TP
+.B verify-ledger
+Check the tamper-evident local ledger.
+.SH PRIVACY
+Analysis is local. Opening a hosted report is an explicit action that shares
+only disclosed aggregate metadata. Raw sentences are never included.
+.SH FILES
+.TP
+.B ~/.swear-jar/
+Local ledger, configuration, and generated reports.
+.SH SEE ALSO
+.BR https://swearjar.unfocused.ai/

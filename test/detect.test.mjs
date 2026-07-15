@@ -14,6 +14,7 @@ test("counts basic swears with tiered coins", () => {
   assert.equal(r.words.shit, 1);
   assert.equal(r.words.fuck, 1);
   assert.equal(r.coins, 1 + 2 + 3);
+  assert.equal(r.dollars, 2.5);
 });
 
 test("artisanal tier outranks its substring", () => {
@@ -224,7 +225,7 @@ test("launch pricing uses dollars and catches the requested words", () => {
   assert.equal(r.words.cunt, 1);
   assert.equal(r.words.darn, 1);
   assert.equal(r.words.heck, 1);
-  assert.equal(r.dollars, 11.45);
+  assert.equal(r.dollars, 12.5);
 });
 
 test("custom words are counted without exposing their spelling", () => {

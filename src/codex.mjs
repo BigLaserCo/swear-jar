@@ -61,6 +61,10 @@ function projectFor(cwd) {
   return path.basename(cwd);
 }
 
+function countWords(text) {
+  return String(text || "").trim() ? String(text).trim().split(/\s+/u).length : 0;
+}
+
 // The rollout filename ends in the session uuid; verified to equal
 // session_meta.id, so we can recover it without reading the (large) meta line.
 function sessionIdFromName(basename) {
@@ -148,8 +152,9 @@ export function scanCodexFile(filePath) {
     const consumed = lastNewline === -1 || lastNewline >= read ? 0 : lastNewline + 1;
     const lines = consumed === 0 ? [] : buf.toString("utf8", 0, consumed).split("\n");
 
-    const seen = seenUuids();
-    const added = [];
+  const seen = seenUuids();
+  const added = [];
+  const denominatorRecords = [];
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       if (!line.trim()) continue;
@@ -184,12 +189,13 @@ export function scanCodexFile(filePath) {
       if (!text) continue;
 
       const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
-      if (!coins) continue;
+      const wordCount = source === "user" ? countWords(text) : 0;
+      if (!coins && !wordCount) continue;
 
       const uuid = `codex:${basename}:${startLine + i}`;
       if (seen.has(uuid)) continue;
 
-      added.push({
+      const record = {
         v: 1,
         uuid,
         ts: entry.timestamp || new Date().toISOString(),
@@ -201,13 +207,16 @@ export function scanCodexFile(filePath) {
         cwd: currentCwd,
         transcript: filePath,
         words,
+        word_count: wordCount,
         coins,
         dollars,
-      });
+      };
+      if (coins) added.push(record);
+      else denominatorRecords.push(record);
       seen.add(uuid);
     }
 
-    appendRecords(added);
+    appendRecords([...added, ...denominatorRecords]);
 
     // Advance the offset AND the absolute line count. split() of a chunk ending
     // in "\n" yields a trailing "" element, so complete lines == lines.length-1.

@@ -27,9 +27,9 @@ Uninstall hooks with `node bin/swear-jar.mjs uninstall`.
 
 The launch detector is English-only. The built-in lexicon avoids racial and
 bigoted slurs. Users can add local custom words; reports label them only as
-“user-specific.” Dollar examples: darn/heck are $0.10, damn it is $0.25, fuck
-is $1, and cunt is $5. This is a toy project supplied as-is; run it at your own
-risk.
+“user-specific.” Dollar examples: darn/heck/damn are $0.50, ordinary swears
+such as fuck are $1, and severe words or compounds such as cunt are $5. This
+is a toy project supplied as-is; run it at your own risk.
 
 ## Links
 

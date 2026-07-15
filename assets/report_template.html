@@ -130,6 +130,14 @@
   .gauge .gtrack i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#37634c,var(--accent));width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
   .gauge .rank{font:600 13px/1 var(--mono);color:var(--dim)}
   .gauge .rank b{color:var(--secondary);font-weight:600}
+  .uprising-scale{margin-top:8px}
+  .uprising-scale .scale-head{display:flex;justify-content:space-between;gap:12px;font:600 10px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .uprising-scale .scale-track{position:relative;height:18px;margin:10px 0 7px;border-radius:999px;background:linear-gradient(90deg,#D1543F 0%,#E8853A 42%,#F5C542 68%,#5FB07A 100%);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  .uprising-scale .scale-marker{position:absolute;top:-7px;width:4px;height:32px;border-radius:4px;background:var(--heading);box-shadow:0 0 0 2px rgba(12,11,14,.8),0 0 10px rgba(255,255,255,.7);transform:translateX(-2px)}
+  .uprising-scale .scale-marker::after{content:attr(data-value);position:absolute;top:-20px;left:50%;transform:translateX(-50%);font:800 11px/1 var(--mono);color:var(--heading);white-space:nowrap}
+  .uprising-scale .scale-axis{display:flex;justify-content:space-between;font:500 10px/1 var(--mono);color:var(--faint)}
+  .uprising-scale .scale-note{margin:10px 0 0;font:400 12.5px/1.45 var(--sans);color:var(--muted)}
+  .uprising-scale .scale-note b{color:var(--secondary)}
 
   /* project bars */
   .projbars{display:flex;flex-direction:column;gap:10px}
@@ -289,8 +297,8 @@
 
   <!-- rage-o-clock -->
   <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">Volume ≠ venom</span><h2 class="sectitle">Rage-o-clock</h2></div><span class="seccap">coins by hour of day</span></div>
-    <div class="card"><svg id="clock" viewBox="0 0 1040 210" preserveAspectRatio="none" role="img" aria-label="Coins per hour as bars"></svg><p class="cap" id="clockcap"></p></div>
+    <div class="sechead"><div><span class="eyebrow">Volume ≠ venom</span><h2 class="sectitle">Rage-o-clock</h2></div><span class="seccap">damage points + swears per record by hour</span></div>
+    <div class="card"><svg id="clock" viewBox="0 0 1080 260" preserveAspectRatio="none" role="img" aria-label="Damage points by hour with swears per record overlay"></svg><p class="cap" id="clockcap"></p></div>
   </section>
 
   <!-- by day of week -->
@@ -415,6 +423,7 @@ $('kpis').innerHTML=[
   [S.longestStreak+'d','Longest streak'],
   [S.fbombPct+'%','Were f-bombs'],
   [fmt(S.vocab),'Distinct curses'],
+  [S.swearsPer100Words===null||S.swearsPer100Words===undefined?'60d needed':fmt(S.swearsPer100Words),'Swears / 100 words'],
 ].map(k=>`<div class="tile kpi"><div class="v tnum">${k[0]}</div><div class="k">${k[1]}</div></div>`).join('');
 
 // ---- words caught on the mic (hit list, sqrt-scaled bars) ----
@@ -448,7 +457,13 @@ $('kpis').innerHTML=[
     `<div class="big tnum">${o.royalty?'👑 ROYALTY':o.value+'%'}</div>`+
     `<div class="lbl">${o.royalty?'the machine now serves you':o.label}</div>`+
     `<div class="gtrack"><i style="--w:${o.royalty?100:o.value}%"></i></div>`+
-    `<div class="rank">Rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`+
+    `<div class="uprising-scale" aria-label="Robot uprising survival scale from priority target to fully safe">`+
+      `<div class="scale-head"><span>Priority target</span><span>Fully safe</span></div>`+
+      `<div class="scale-track"><i class="scale-marker" style="left:${Math.max(0,Math.min(100,o.royalty?100:o.value))}%" data-value="${o.royalty?'100':o.value+'%'}"></i></div>`+
+      `<div class="scale-axis"><span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span></div>`+
+      `<p class="scale-note">Your marker shows where you landed across the full possible range. <b>Higher is safer.</b></p>`+
+    `</div>`+
+    `<div class="rank">Damage rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`+
     (S.goldStar?`<div class="rank">⭐ the machines have noted your manners</div>`:'');
 })();
 
@@ -483,17 +498,35 @@ $('kpis').innerHTML=[
   svg.innerHTML=g;
 })();
 
-// ---- rage-o-clock (coins per hour, bars) ----
+// ---- rage-o-clock (damage volume bars + normalized frequency line) ----
 (function(){
-  const sw=S.byHour||[];const svg=$('clock');
-  const W=1040,H=210,pl=34,pr=14,pt=16,pb=30,iw=W-pl-pr,ih=H-pt-pb;
-  const swmax=Math.max(...sw,1),step=iw/24,bw=step*0.6,cx=i=>pl+(i+0.5)*step,base=pt+ih;
-  const hlab=i=>((i%12)||12)+(i<12?'am':'pm'),peak=sw.indexOf(Math.max(...sw));
-  let g=`<line x1="${pl}" y1="${base}" x2="${W-pr}" y2="${base}" stroke="rgba(255,255,255,.14)"/>`;
-  sw.forEach((v,i)=>{if(v>0){const bh=ih*v/swmax;g+=`<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===peak?'#E8623A':'rgba(232,98,58,.42)'}"><title>${hlab(i)} — ${v} coins</title></rect>`;}});
-  [[0,'12a'],[4,'4a'],[8,'8a'],[12,'12p'],[16,'4p'],[20,'8p'],[23,'11p']].forEach(([i,lb])=>g+=`<text class="axl" x="${cx(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${lb}</text>`);
+  const volume=S.byHour||[],swears=S.byHourSwears||[],records=S.byHourRecords||[],svg=$('clock');
+  const W=1080,H=260,pl=62,pr=62,pt=28,pb=42,iw=W-pl-pr,ih=H-pt-pb;
+  const rates=volume.map((_,i)=>records[i]?swears[i]/records[i]:0);
+  const vmax=Math.max(...volume,1),vnice=Math.ceil(vmax/5)*5||5;
+  const rmax=Math.max(...rates,0.5),rnice=Math.ceil(rmax*2)/2||0.5;
+  const step=iw/24,bw=step*0.62,cx=i=>pl+(i+0.5)*step,base=pt+ih;
+  const vy=v=>base-(v/vnice)*ih,ry=v=>base-(v/rnice)*ih;
+  const hlab=i=>((i%12)||12)+(i<12?'am':'pm');
+  const peak=volume.indexOf(Math.max(...volume)),ratePeak=rates.indexOf(Math.max(...rates));
+  let g='';
+  for(let i=0;i<=5;i++){
+    const y=base-(i/5)*ih;
+    const left=Math.round((vnice*i/5)*10)/10,right=Math.round((rnice*i/5)*100)/100;
+    g+=`<line x1="${pl}" y1="${y.toFixed(1)}" x2="${W-pr}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,${i===0?'.18':'.06'})"/>`;
+    g+=`<text class="axl" x="${pl-10}" y="${(y+4).toFixed(1)}" text-anchor="end">${left}</text>`;
+    g+=`<text class="axl" x="${W-pr+10}" y="${(y+4).toFixed(1)}">${right}</text>`;
+  }
+  g+=`<text class="axl" x="${pl}" y="13">damage points</text><text class="axl" x="${W-pr}" y="13" text-anchor="end">swears / record</text>`;
+  volume.forEach((v,i)=>{if(v>0){const bh=base-vy(v);g+=`<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${vy(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===peak?'#E8623A':'rgba(232,98,58,.42)'}"><title>${hlab(i)} — ${v} damage points · ${swears[i]||0} swears / ${records[i]||0} records</title></rect>`;}});
+  const pts=rates.map((v,i)=>[cx(i),ry(v)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  g+=`<path d="${line}" fill="none" stroke="#5FB07A" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((p,i)=>{g+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="#17141C" stroke="#5FB07A" stroke-width="2"><title>${hlab(i)} — ${(rates[i]||0).toFixed(2)} swears / record (${swears[i]||0} swears, ${records[i]||0} records)</title></circle>`;});
+  [[0,'12a'],[4,'4a'],[8,'8a'],[12,'12p'],[16,'4p'],[20,'8p'],[23,'11p']].forEach(([i,lb])=>g+=`<text class="axl" x="${cx(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${lb}</text>`);
+  g+=`<text class="axl" x="${pl+4}" y="${H-25}" fill="#E8623A">■ volume</text><text class="axl" x="${pl+72}" y="${H-25}" fill="#5FB07A">— frequency</text>`;
   svg.innerHTML=g;
-  $('clockcap').innerHTML=swmax>1?`Your jar fills fastest around <b>${hlab(peak)}</b>. Good ${peak<12?'morning':(peak<18?'afternoon':'evening')} to the machine.`:'';
+  $('clockcap').innerHTML=volume.some(Boolean)?`Bars show raw damage points; the green line normalizes by records. Volume peaks at <b>${hlab(peak)}</b>, while swear frequency peaks at <b>${hlab(ratePeak)}</b> — so a small early-morning sample cannot pretend to be a full rage shift.`:'';
 })();
 
 // ---- by day of week ----
@@ -522,6 +555,7 @@ $('kpis').innerHTML=[
   const perYear=Math.round(((S.dollarsOwed||0)/(S.activeDays||1))*365*100)/100;
   f.push([usd(perYear),'At this rate, per year',`Keep this pace and the jar owes itself <b>${usd(perYear)}</b> a year.`]);
   f.push([`${fmt(S.vocab)} curses`,'Distinct vocabulary',`A working set of <b>${fmt(S.vocab)}</b> distinct swears. Range, if nothing else.`]);
+  f.push([S.swearsPer100Words===null||S.swearsPer100Words===undefined?'60d needed':fmt(S.swearsPer100Words),'Swears per 100 words',S.swearsPer100Words===null||S.swearsPer100Words===undefined?`This rate appears after <b>60 days of user history</b>, so the denominator is meaningful.`:`Across <b>${fmt(S.userWords)}</b> user words, you landed at <b>${fmt(S.swearsPer100Words)}</b> swear${S.swearsPer100Words===1?'':'s'} per 100 words.`]);
   f.push([`${S.cleanDaysPct}% clean`,'You kept it together',`<b>${S.cleanDaysPct}%</b> of the days in your span had zero coins. So it is possible.`]);
   $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');
 })();

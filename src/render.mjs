@@ -1,12 +1,13 @@
 // Terminal rendering: the jar, the odds meter, the reports.
 
-import { censor } from "./detect.mjs";
+import { censor, dollarsForWords } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 
 export const COIN_VALUE = 1;
 
 export function recordDollars(record) {
-  return Number.isFinite(Number(record?.dollars)) ? Number(record.dollars) : Number(record?.coins || 0) * 0.25;
+  if (record?.words && Object.keys(record.words).length) return dollarsForWords(record.words);
+  return Number.isFinite(Number(record?.dollars)) ? Number(record.dollars) : Number(record?.coins || 0);
 }
 
 export function dollars(amount) {

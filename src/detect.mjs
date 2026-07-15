@@ -12,7 +12,7 @@
 //   - the overlap-blanking algorithm, so an overlapping match (bullshit vs shit,
 //     motherfucker vs fuck) is attributed exactly once.
 //
-// Tiers set the coin price. Python's tier mapping is preserved:
+// Tiers set the damage-point price. Python's tier mapping is preserved:
 //   strong  -> premium  (3 coins)
 //   medium  -> standard (2 coins)
 //   mild    -> mild     (1 coin)
@@ -22,8 +22,10 @@
 const CENSOR = "[*@#$%!]";
 
 export const TIER_COINS = { mild: 1, standard: 2, premium: 3, artisanal: 5 };
-export const TIER_DOLLARS = { mild: 0.10, standard: 0.50, premium: 1.00, artisanal: 5.00 };
-export const WORD_DOLLARS = { damn: 0.25, cunt: 5.00, "user-specific": 1.00 };
+// Money is deliberately simpler than damage points: mild words are 50 cents,
+// ordinary swears are a dollar, and the truly bad words/compounds are $5.
+export const TIER_DOLLARS = { mild: 0.50, standard: 1.00, premium: 1.00, artisanal: 5.00 };
+export const WORD_DOLLARS = { cunt: 5.00, "user-specific": 1.00 };
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -84,6 +86,26 @@ export const LEXICON = [
   pat("heck", "mild", "\\bheck\\b"),
 
 ];
+
+const TIER_BY_KEY = (() => {
+  const m = {};
+  for (const { key, tier } of LEXICON) if (!(key in m)) m[key] = tier;
+  return m;
+})();
+
+// Reprice old ledger records from their word-family counts so reports do not
+// preserve a stale dollar amount calculated under an earlier pricing table.
+export function dollarsForWords(words = {}) {
+  let total = 0;
+  for (const [key, rawCount] of Object.entries(words || {})) {
+    const count = Number(rawCount) || 0;
+    if (count <= 0) continue;
+    const tier = TIER_BY_KEY[key] || (key === "user-specific" ? "premium" : null);
+    if (!tier) continue;
+    total += count * (WORD_DOLLARS[key] ?? TIER_DOLLARS[tier]);
+  }
+  return Math.round(total * 100) / 100;
+}
 
 // A message that repeats one family more than this is a paste/key-repeat
 // artifact ("grovel, bitch." ×104), not 104 swears. Real swearing rarely

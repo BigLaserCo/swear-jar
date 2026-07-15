@@ -69,7 +69,7 @@ test("ranks climb the dense low ladder", () => {
   assert.equal(rankFor(1000).current, "Have You Considered Anger Management?");
 });
 
-test("the high ranks stay anonymous and the fully-safe top rung starts at 10k", () => {
+test("the high ranks stay anonymous and the top damage rung starts at 10k", () => {
   assert.equal(rankFor(8000).current, "The Machines Remember You");
   assert.equal(rankFor(8700).current, "The Machines Remember You");
   assert.deepEqual(rankFor(8000).next, { name: "Over 9,000", at: 9000 });

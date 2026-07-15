@@ -36,6 +36,8 @@ node bin/swear-jar.mjs uninstall
 Delete `~/.swear-jar/` separately only if you also want to remove local counts
 and reports.
 
+The full command reference is in [`docs/swear-jar.1`](swear-jar.1).
+
 ## Custom words
 
 The launch lexicon is English-only and intentionally excludes racial and

@@ -68,12 +68,16 @@ export function computeStats(records = [], now = Date.now()) {
   // --- swear-instance counts (raw hits, not coin-weighted) ---
   let totalSwears = 0; // every swear instance, user + machine
   let userSwears = 0; // just the human's swear instances
+  let userWords = 0;
+  const userHistoryDates = new Set();
 
   // --- manners (Gold Star gag): polite-word instances across all records ---
   let politeTotal = 0;
 
   // --- distributions ---
   const byHour = new Array(24).fill(0);
+  const byHourSwears = new Array(24).fill(0);
+  const byHourRecords = new Array(24).fill(0);
   const byDow = new Array(7).fill(0);
   const byProject = new Map();
   const byDay = new Map(); // dateKey -> coins
@@ -108,6 +112,11 @@ export function computeStats(records = [], now = Date.now()) {
       if (!isMachine) userSwears += cnt;
       if (cnt > 0) famsInRec.push(w);
     }
+    if (!isMachine && Number(r?.word_count) > 0) {
+      userWords += Number(r.word_count);
+      const wordParts = parseParts(r?.ts);
+      if (wordParts) userHistoryDates.add(wordParts.dateKey);
+    }
     // manners tally — pre-Gold-Star records have no `polite` field (→ 0), so
     // old ledgers keep working. Counts only; never any text.
     for (const n of Object.values(r?.polite || {})) politeTotal += Number(n) || 0;
@@ -136,6 +145,8 @@ export function computeStats(records = [], now = Date.now()) {
     const p = parseParts(r?.ts);
     if (p) {
       byHour[p.hh] += coins;
+      byHourSwears[p.hh] += Object.values(r?.words || {}).reduce((n, v) => n + (Number(v) || 0), 0);
+      byHourRecords[p.hh] += 1;
       byDow[p.dow] += coins;
       byDay.set(p.dateKey, (byDay.get(p.dateKey) || 0) + coins);
       if ((r?.source !== "assistant") && coins > 0) {
@@ -211,6 +222,8 @@ export function computeStats(records = [], now = Date.now()) {
   const coinsPerActiveDay = activeDays ? round1(totalCoins / activeDays) : 0;
 
   const swearsPerDay = activeDays ? round1(userSwears / activeDays) : 0;
+  const userHistoryDays = userHistoryDates.size;
+  const swearsPer100Words = userHistoryDays >= 60 && userWords > 0 ? round1((userSwears / userWords) * 100) : null;
 
   // --- % of the f-tier (f-bomb share of all swears) ---
   const fbombPct = totalSwears ? Math.round((100 * fbombs) / totalSwears) : 0;
@@ -271,6 +284,9 @@ export function computeStats(records = [], now = Date.now()) {
     machinePct: total ? 100 - userPct : 0,
     totalSwears,
     userSwears,
+    userWords,
+    userHistoryDays,
+    swearsPer100Words,
     politeTotal,
     goldStar,
     swearsPerDay,
@@ -279,6 +295,8 @@ export function computeStats(records = [], now = Date.now()) {
     spanDays,
     cleanDaysPct,
     byHour,
+    byHourSwears,
+    byHourRecords,
     byDow,
     dowLabels: DOW_SHORT,
     worstDow,

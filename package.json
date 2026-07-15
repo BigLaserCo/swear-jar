@@ -25,6 +25,7 @@
   "bin": {
     "swear-jar": "bin/swear-jar.mjs"
   },
+  "man": "docs/swear-jar.1",
   "files": [
     "bin",
     "src",

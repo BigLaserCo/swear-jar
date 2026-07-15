@@ -19,7 +19,7 @@ const FIXTURE = [
 test("hero totals: coins and dollars owed", () => {
   const s = computeStats(FIXTURE, NOW);
   assert.equal(s.totalCoins, 20);
-  assert.equal(s.dollarsOwed, 5); // legacy fixtures without explicit dollars use the compatibility rate
+  assert.equal(s.dollarsOwed, 11); // repriced from word families: mild $.50, ordinary $1, severe $5
   assert.equal(s.coinValue, 1);
   assert.equal(s.totalRecords, 6);
 });
@@ -40,6 +40,8 @@ test("coins by hour (literal wall clock, TZ-independent)", () => {
   assert.equal(s.byHour[14], 4);
   assert.equal(s.byHour[23], 5);
   assert.equal(s.byHour.reduce((a, b) => a + b, 0), 20);
+  assert.equal(s.byHourSwears[9], 4); // fuck + fuck + damn + hell across three records
+  assert.equal(s.byHourRecords[9], 3);
 });
 
 test("coins by day of week + worst weekday", () => {
@@ -143,6 +145,22 @@ test("empty ledger yields sane zeros for the new fields", () => {
   assert.equal(s.signatureCombo, null);
   assert.equal(s.spanDays, 0);
   assert.equal(s.cleanDaysPct, 0);
+  assert.equal(s.swearsPer100Words, null);
+});
+
+test("swears per 100 words is gated on 60 days of user history", () => {
+  const records = Array.from({ length: 60 }, (_, i) => ({
+    source: "user",
+    ts: new Date(Date.UTC(2026, 3, 1 + i, 9)).toISOString(),
+    words: { damn: 1 },
+    word_count: 100,
+    coins: 1,
+  }));
+  const ready = computeStats(records, NOW);
+  assert.equal(ready.userHistoryDays, 60);
+  assert.equal(ready.userWords, 6000);
+  assert.equal(ready.swearsPer100Words, 1);
+  assert.equal(computeStats(records.slice(0, 59), NOW).swearsPer100Words, null);
 });
 
 test("gold star: more polite instances than swear instances flips goldStar on", () => {

@@ -167,6 +167,7 @@ test("clean messages (no swears) produce no records", () => {
   const home = freshHome();
   const p = writeRollout(home, [meta(), turnCtx(), userMsg("thank you, that was lovely"), agentMsg("happy to help")]);
   assert.equal(scanCodexFile(p).added.length, 0);
+  assert.equal(loadRecords().find((r) => r.uuid)?.word_count > 0, true);
 });
 
 test("missing file is a no-op", () => {

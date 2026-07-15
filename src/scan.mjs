@@ -72,6 +72,10 @@ function projectFor(cwd) {
   return path.basename(cwd);
 }
 
+function countWords(text) {
+  return String(text || "").trim() ? String(text).trim().split(/\s+/u).length : 0;
+}
+
 export function scanTranscript(transcriptPath, hook = {}) {
   if (!transcriptPath || !fs.existsSync(transcriptPath)) {
     return { added: [], userCoins: 0 };
@@ -108,6 +112,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
 
   const seen = seenUuids();
   const added = [];
+  const denominatorRecords = [];
   for (const line of lines) {
     if (!line.trim()) continue;
     let entry;
@@ -124,7 +129,8 @@ export function scanTranscript(transcriptPath, hook = {}) {
     // Never re-ingest our own clink line if it echoes into context.
     if (text.includes("\u{1FAD9} Swear jar")) continue;
     const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
-    if (!coins) continue;
+    const wordCount = entry.type === "user" ? countWords(text) : 0;
+    if (!coins && !wordCount) continue;
     // Manners on the same message, for the Gold Star gag. Counts only (never the
     // text) — same privacy rule as `words`. Attached ONLY when present so the
     // ledger stays lean and pre-Gold-Star records (no `polite` field) keep
@@ -132,7 +138,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
     // a SWEAR jar, so politeness is only noted alongside a coin.
     const polite = detectPolite(text).words;
     const cwd = entry.cwd || hook.cwd || "";
-    added.push({
+    const record = {
       v: 1,
       uuid: entry.uuid,
       ts: entry.timestamp || new Date().toISOString(),
@@ -144,14 +150,17 @@ export function scanTranscript(transcriptPath, hook = {}) {
       cwd,
       transcript: transcriptPath,
       words,
+      word_count: wordCount,
       coins,
       dollars,
       ...(Object.keys(polite).length ? { polite } : {}),
-    });
+    };
+    if (coins) added.push(record);
+    else denominatorRecords.push(record);
     seen.add(entry.uuid);
   }
 
-  appendRecords(added);
+  appendRecords([...added, ...denominatorRecords]);
   saveState(recordOffset(state, transcriptPath, offset + consumed, size));
 
   const userCoins = added

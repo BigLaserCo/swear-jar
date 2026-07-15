@@ -95,7 +95,7 @@ export const RANKS = [
   [2000, "Do NOT Put This One On Call"],
   [4000, "The Machines Remember You"],
   [9000, "Over 9,000"],
-  [10000, "AI Is Afraid of You — Fully Safe"],
+  [10000, "AI Is Afraid of You"],
 ];
 
 export function rankFor(userLifetimeCoins) {

@@ -66,7 +66,7 @@ test("polite words are recorded (counts only) alongside a swear record", () => {
     line(userMsg("p1", "please fix this fucking bug, thanks so much")) +
       // swear-only message: record has NO polite field (stays lean / old-compat)
       line(userMsg("p2", "this is complete shit")) +
-      // polite-only message: still produces NO record — this is a SWEAR jar
+      // polite-only message: retained as an anonymous word-count denominator
       line(userMsg("p3", "thank you, that was lovely and kind"))
   );
   const { added } = scanTranscript(t, {});
@@ -78,6 +78,7 @@ test("polite words are recorded (counts only) alongside a swear record", () => {
   // privacy: only count keys, never the raw text, land on disk
   const raw = fs.readFileSync(path.join(home, "ledger.jsonl"), "utf8");
   assert.ok(!raw.includes("lovely") && !raw.includes("bug"), "no message text in the ledger");
+  assert.equal(loadRecords().filter((r) => r.uuid === "p3")[0].word_count > 0, true);
 });
 
 test("re-scan of the same transcript adds nothing (uuid dedup)", () => {
@@ -86,6 +87,7 @@ test("re-scan of the same transcript adds nothing (uuid dedup)", () => {
   fs.writeFileSync(t, line(userMsg("u1", "damn it")));
   assert.equal(scanTranscript(t, {}).added.length, 1);
   assert.equal(scanTranscript(t, {}).added.length, 0);
+  assert.equal(loadRecords().filter((r) => r.uuid === "u1")[0].word_count > 0, true);
   assert.equal(loadRecords().length, 1);
 });
 
