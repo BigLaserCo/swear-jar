@@ -14,11 +14,11 @@ censored summary words, and uprising stats. Raw sentences stay on your machine.
 git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
 cd ~/Code/swear-jar
 node bin/swear-jar.mjs install
-node bin/swear-jar.mjs init --local --no-open
+node bin/swear-jar.mjs init --local
 ```
 
 Check the report with `node bin/swear-jar.mjs status` or
-`node bin/swear-jar.mjs dashboard --local --no-open`.
+`node bin/swear-jar.mjs dashboard --local`.
 
 Uninstall the hooks with:
 

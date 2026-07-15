@@ -18,7 +18,7 @@ a public submission.
 git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
 cd ~/Code/swear-jar
 node bin/swear-jar.mjs install
-node bin/swear-jar.mjs init --local --no-open
+node bin/swear-jar.mjs init --local
 ```
 
 Uninstall hooks with `node bin/swear-jar.mjs uninstall`.

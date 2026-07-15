@@ -11,7 +11,7 @@ raw sentences stay on your machine.
 git clone https://github.com/BigLaserCo/swear-jar.git ~/Code/swear-jar
 cd ~/Code/swear-jar
 node bin/swear-jar.mjs install
-node bin/swear-jar.mjs init --local --no-open
+node bin/swear-jar.mjs init --local
 ```
 
 `install` adds the Claude Code hooks. `init` is optional: it finds local
@@ -22,7 +22,7 @@ Check the jar:
 
 ```sh
 node bin/swear-jar.mjs status
-node bin/swear-jar.mjs dashboard --local --no-open
+node bin/swear-jar.mjs dashboard --local
 ```
 
 ## Uninstall
