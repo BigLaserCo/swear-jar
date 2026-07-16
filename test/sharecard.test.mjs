@@ -20,8 +20,8 @@ const D = {
   favLabel: "f***",
   fbombPct: 41,
   vocab: 16,
+  kindActs: 190,
   credits: 252,
-  dollarsBack: 63.25, // decimal in DATA — must render whole on the card
   favKindLabel: "please",
   grovelPct: 12,
   kindVocab: 13,
@@ -40,9 +40,9 @@ test("damage card renders the aggregate numbers, whole dollars only", () => {
 test("kindness card is karma-only: points, NEVER money (Jim red-alert 2026-07-16)", () => {
   const svg = cardSvg(D, "kindness");
   assert.ok(svg.includes("the kindness report"), "kindness heading");
-  assert.ok(svg.includes("252"), "karma points");
-  assert.ok(svg.includes("karma points"), "karma framing");
-  assert.ok(svg.includes("redeemable for absolutely nothing"), "worth nothing, explicitly");
+  assert.ok(svg.includes("190"), "nice things said — the headline number");
+  assert.ok(svg.includes("nice things said to an AI"), "plain-language framing");
+  assert.ok(svg.includes("252 karma points (worth nothing)"), "karma framing, explicitly worthless");
   assert.ok(!svg.includes("$"), "NO dollar sign anywhere on the kindness card — karma is not money");
   assert.ok(!/earned back|owed|off the jar/i.test(svg), "no money-back language");
   assert.ok(svg.includes("please"), "favourite courtesy (lexicon constant)");

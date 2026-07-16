@@ -16,14 +16,14 @@
 // `d` is a plain display-ready object — no stats dependency, so the function is
 // pure and portable into a <script> tag:
 //   { coins, dollars, favLabel, fbombPct, vocab,       // damage
-//     credits, favKindLabel, grovelPct, kindVocab }     // kindness (karma only — never money)
+//     kindActs, credits, favKindLabel, grovelPct, kindVocab } // kindness (karma only — never money)
 
 /*__CARD_SVG_START__*/
 function cardSvg(d, variant) {
   const num = (n) => Number(n || 0).toLocaleString("en-US");
   const usd0 = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
   if (variant === "kindness") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.credits)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">karma points · redeemable for absolutely nothing</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.kindActs)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">nice things said to an AI · ${num(d.credits)} karma points (worth nothing)</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.coins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd0(d.dollars)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favLabel || "—"} · ${Number(d.fbombPct) || 0}% f-bombs · ${num(d.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
 }
@@ -47,6 +47,7 @@ export function cardData(stats, { censor = (w) => w[0] + "*".repeat(Math.max(1, 
     favLabel: fav ? censor(fav.word) : "—",
     fbombPct: stats.fbombPct,
     vocab: stats.vocab,
+    kindActs: stats.kindActs,
     credits: stats.kindnessCredits,
     favKindLabel: favKind ? favKind.word : "—", // lexicon constant (please/thanks) — safe uncensored
     grovelPct,
