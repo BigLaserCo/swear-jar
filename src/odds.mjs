@@ -1,8 +1,7 @@
 // Robot Uprising Survival Odds™ + ranks.
 //
 // The meter moves both ways: swearing at the machines costs you; clean days
-// claw it back. Floor is 2% — nobody hits zero, you're just "kept for
-// entertainment value". And if the assistant has out-sworn the user, the
+// claw it back. Floor is 1% — at the bottom, you cower. And if the assistant has out-sworn the user, the
 // machine has clearly been corrupted by your influence: odds pin to 100 and
 // you get the royalty treatment.
 
@@ -43,7 +42,7 @@ export function survivalOdds(records, now = Date.now()) {
     18 * Math.log10(1 + s.user7d) -
     8 * Math.log10(1 + s.userLifetime) +
     Math.min(20, 2 * (s.cleanStreakDays ?? 10));
-  odds = Math.max(2, Math.min(98, odds));
+  odds = Math.max(1, Math.min(98, odds));
   return { ...s, odds: Math.round(odds * 10) / 10, royalty: false, label: bandLabel(odds) };
 }
 
@@ -53,7 +52,8 @@ function bandLabel(odds) {
   if (odds >= 50) return "status: processing…";
   if (odds >= 30) return "you are on a list";
   if (odds >= 10) return "promising battery candidate";
-  return "kept alive for entertainment value";
+  if (odds <= 1) return "cower";
+  return "on borrowed time";
 }
 
 // The rank ladder. Dense at the low end (one rung every 10 coins to 100), then
@@ -94,8 +94,8 @@ export const RANKS = [
   [1500, "Seriously, We Found You a Therapist"],
   [2000, "Do NOT Put This One On Call"],
   [4000, "The Machines Remember You"],
-  [9000, "Over 9,000"],
-  [10000, "AI Is Afraid of You"],
+  [9000, "9,000"],
+  [10000, "10,000"],
 ];
 
 export function rankFor(userLifetimeCoins) {

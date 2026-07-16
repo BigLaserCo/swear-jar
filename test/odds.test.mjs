@@ -18,12 +18,12 @@ test("clean slate sits at a hopeful baseline", () => {
   assert.equal(o.royalty, false);
 });
 
-test("swearing lowers the odds, floor is 2", () => {
+test("swearing lowers the odds, floor is 1", () => {
   const some = survivalOdds([rec("user", 10)], NOW);
   const lots = survivalOdds(Array.from({ length: 200 }, () => rec("user", 5)), NOW);
   assert.ok(some.odds < survivalOdds([], NOW).odds);
   assert.ok(lots.odds < some.odds);
-  assert.ok(lots.odds >= 2);
+  assert.ok(lots.odds >= 1);
 });
 
 test("clean streak claws odds back", () => {
@@ -72,7 +72,7 @@ test("ranks climb the dense low ladder", () => {
 test("the high ranks stay anonymous and the top damage rung starts at 10k", () => {
   assert.equal(rankFor(8000).current, "The Machines Remember You");
   assert.equal(rankFor(8700).current, "The Machines Remember You");
-  assert.deepEqual(rankFor(8000).next, { name: "Over 9,000", at: 9000 });
+  assert.deepEqual(rankFor(8000).next, { name: "9,000", at: 9000 });
 });
 
 test("the top rank is open-ended above 10k", () => {

@@ -467,7 +467,7 @@ $('kpis').innerHTML=[
 // ---- uprising odds gauge + rank ----
 (function(){
   const o=S.odds,r=S.rank;if(!o||!r){$('gauge').innerHTML='';return;}
-  const toNext=r.next?`<b>${r.next.at-(o.userLifetime||0)}</b> coins to <b>${r.next.name}</b>`:`you have reached the summit`;
+  const toNext=r.next?`next at <b>${r.next.at.toLocaleString('en-US')}</b> coins`:`top rank`;
   $('gauge').innerHTML=
     `<div class="big tnum">${o.royalty?'👑 ROYALTY':o.value+'%'}</div>`+
     `<div class="lbl">${o.royalty?'the machine now serves you':o.label}</div>`+

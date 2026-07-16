@@ -63,7 +63,7 @@ export function renderStatus(records, now = Date.now()) {
   if (o.cleanStreakDays !== null && o.cleanStreakDays > 0) {
     out.push(`  Clean streak:       ${o.cleanStreakDays} day(s) without a coin`);
   }
-  out.push(`  Rank:               ${rank.current}${rank.next ? `  (${rank.next.at - o.userLifetime} coins to ${rank.next.name})` : ""}`);
+  out.push(`  Rank:               ${rank.current}${rank.next ? `  (next at ${rank.next.at} coins)` : ""}`);
   if (gs.goldStar) {
     out.push("");
     out.push("  ⭐ GOLD STAR — more please-and-thank-yous than swears. Who ARE you?");
