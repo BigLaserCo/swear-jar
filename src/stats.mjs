@@ -12,7 +12,7 @@
 // Their transcript-native replacements: coins-by-project, you-vs-machine,
 // uprising odds + rank.
 
-import { LEXICON, TIER_COINS, creditTierFor, dollarsForPositives, CREDIT_COINS } from "./detect.mjs";
+import { LEXICON, TIER_COINS, creditTierFor, creditsForPositives, dollarsForPositives, CREDIT_COINS } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 import { COIN_VALUE, recordDollars } from "./render.mjs";
 
@@ -89,6 +89,14 @@ export function computeStats(records = [], now = Date.now()) {
   const comboCounts = new Map(); // "famA famB" (sorted) -> co-occurrences in one USER record
   const firstUserMin = new Map(); // dateKey -> earliest user-swear minute-of-day
   const userDates = new Set(); // dates the human swore (for the streak)
+  // kindness distributions — same wall-clock buckets as the rage side, but the
+  // unit is tier-weighted CREDITS (a grovel counts more than a please), and only
+  // HUMAN records earn them (matching the crediting rule above).
+  const kindByHour = new Array(24).fill(0);
+  const kindByDow = new Array(7).fill(0);
+  const kindByDay = new Map(); // dateKey -> credits
+  const firstKindMin = new Map(); // dateKey -> earliest kind minute-of-day
+  const kindDates = new Set(); // dates the human was kind (for the kind streak)
   let firstTs = null;
   let lastTs = null;
 
@@ -134,6 +142,21 @@ export function computeStats(records = [], now = Date.now()) {
       kindnessDollars += dollarsForPositives(r?.polite);
       for (const [reason, n] of Object.entries(r?.rejects || {})) {
         rejectCounts.set(reason, (rejectCounts.get(reason) || 0) + (Number(n) || 0));
+      }
+      // kindness time buckets (credit-weighted, human-only)
+      const recCredits = creditsForPositives(r?.polite);
+      if (recCredits > 0) {
+        const kp = parseParts(r?.ts);
+        if (kp) {
+          kindByHour[kp.hh] += recCredits;
+          kindByDow[kp.dow] += recCredits;
+          kindByDay.set(kp.dateKey, (kindByDay.get(kp.dateKey) || 0) + recCredits);
+          kindDates.add(kp.dateKey);
+          const kmins = kp.hh * 60 + kp.mm;
+          if (!firstKindMin.has(kp.dateKey) || kmins < firstKindMin.get(kp.dateKey)) {
+            firstKindMin.set(kp.dateKey, kmins);
+          }
+        }
       }
     }
 
@@ -234,6 +257,31 @@ export function computeStats(records = [], now = Date.now()) {
     firstSwearAvg = fmtClock(avg);
   }
 
+  // --- kindness derived series (mirrors of the rage side, credit-weighted) ---
+  const kindDaySeries = [...kindByDay.entries()]
+    .map(([date, credits]) => ({ date, credits }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let bestKindDay = null;
+  for (const d of kindDaySeries) if (!bestKindDay || d.credits > bestKindDay.credits) bestKindDay = d;
+  // longest run of consecutive calendar days with at least one credited kindness
+  let kindStreak = 0;
+  {
+    let run2 = 0;
+    let prev2 = null;
+    for (const key of [...kindDates].sort()) {
+      const cur = Date.parse(key + "T00:00:00Z");
+      if (prev2 !== null && cur - prev2 === DAY_MS) run2 += 1;
+      else run2 = 1;
+      if (run2 > kindStreak) kindStreak = run2;
+      prev2 = cur;
+    }
+  }
+  let firstThanksAvg = null;
+  if (firstKindMin.size) {
+    const avg = [...firstKindMin.values()].reduce((a, b) => a + b, 0) / firstKindMin.size;
+    firstThanksAvg = fmtClock(avg);
+  }
+
   const activeDays = byDay.size;
   const coinsPerActiveDay = activeDays ? round1(totalCoins / activeDays) : 0;
 
@@ -323,6 +371,13 @@ export function computeStats(records = [], now = Date.now()) {
     topPositives, // [{word,count,tier,credits}] — credited, by family
     rejects, // [{reason,count}] — the audit trail of what did NOT count
     rejectedTotal,
+    // kindness time distributions (credit-weighted, human-only)
+    kindByHour,
+    kindByDow,
+    kindDaySeries, // [{date,credits}]
+    bestKindDay,
+    kindStreak,
+    firstThanksAvg,
     politeTotal, // backward-compat: total manners instances (old goldStar input)
     goldStar, // backward-compat: the pre-kindness banner flag the current UI reads
     swearsPerDay,

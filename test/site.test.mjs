@@ -111,6 +111,7 @@ const PUBLIC_CANONICALS = {
   "uprising.html": `${ORIGIN}/uprising.html`,
   "terms.html": `${ORIGIN}/terms.html`,
   "demo.html": `${ORIGIN}/demo.html`,
+  "kindness.html": `${ORIGIN}/kindness.html`,
   "tip.html": `${ORIGIN}/tip.html`,
   "wrapped.html": `${ORIGIN}/wrapped.html`,
   "submit.html": `${ORIGIN}/submit.html`,

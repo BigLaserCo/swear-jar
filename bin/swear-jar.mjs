@@ -135,6 +135,9 @@ async function main() {
       // --no-donate hides).
       const donateFlag = flag("donate-url");
       const localOnly = Boolean(flag("local")) || Boolean(process.env.SWEAR_JAR_LOCAL_ONLY);
+      // --kindness renders side B (the kindness report) instead of the damage
+      // report. Same data, same privacy rules — the flip side of the tape.
+      const kind = flag("kindness") ? "kindness" : "damage";
       const records = loadRecords();
       const stats = computeStats(records);
       const outPath = writeDashboard(records, {
@@ -142,6 +145,16 @@ async function main() {
         outPath: flag("out") || undefined,
         hostedUrl: localOnly ? false : undefined,
         localOnly,
+        kind,
+      });
+      // Always write the OTHER side next to it so the "flip the tape" links
+      // work. Same donate/hosted decisions as the primary write, so re-running
+      // either command never degrades the sibling report.
+      writeDashboard(records, {
+        donateUrl: flag("no-donate") ? false : typeof donateFlag === "string" ? donateFlag : undefined,
+        hostedUrl: localOnly ? false : undefined,
+        localOnly,
+        kind: kind === "kindness" ? "damage" : "kindness",
       });
       console.log(`🫙 Dashboard written: ${outPath}`);
       const canOpen = shouldAutoOpen({ isTTY: process.stdout.isTTY, noOpen: Boolean(flag("no-open")) });
