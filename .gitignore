@@ -14,3 +14,8 @@ docs/_myreport.html
 
 # machine-local release-queue state (operator tooling) — never tracked
 .elephant/
+
+# Agent context — internal tier, never published (verify.mjs internal-docs gate)
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
