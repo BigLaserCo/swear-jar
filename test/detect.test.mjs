@@ -4,8 +4,12 @@ import {
   detect,
   censor,
   detectInsults,
-  detectPolite,
+  detectPositive,
+  creditsForPositives,
+  dollarsForPositives,
+  stripQuoted,
   LEXICON,
+  POSITIVE,
 } from "../src/detect.mjs";
 
 test("counts basic swears with tiered coins", () => {
@@ -245,16 +249,201 @@ test("insults are counted separately and never as swears", () => {
   });
 });
 
-test("polite words are counted separately and never as swears", () => {
-  assert.equal(detectPolite("please and thank you and sorry").total, 3);
-  assert.equal(detect("please and thank you").coins, 0);
-  assert.equal(detectPolite("i really appreciate it").total, 1);
-});
-
-test("insult and polite detectors are safe on empty/non-string input", () => {
+test("insult and positive detectors are safe on empty/non-string input", () => {
   assert.equal(detectInsults("").total, 0);
   assert.equal(detectInsults(null).total, 0);
-  assert.equal(detectPolite(undefined).total, 0);
+  assert.equal(detectPositive(undefined).total, 0);
+  assert.deepEqual(detectPositive(null), {
+    words: {},
+    total: 0,
+    credits: 0,
+    dollars: 0,
+    rejected: {},
+    veto: null,
+  });
+});
+
+// ── suck-up credits ─────────────────────────────────────────────────────────
+// The accuracy bar here is the whole product: a jar that credits "thanks a
+// lot, asshole" as good manners is a jar nobody believes twice. These tests
+// are the contract for that — every guard gets a case, and the bias is always
+// toward UNDER-counting.
+
+test("positives are counted by tier and never as swears", () => {
+  const r = detectPositive("please and thank you");
+  assert.deepEqual(r.words, { please: 1, thanks: 1 });
+  assert.equal(r.total, 2);
+  assert.equal(r.credits, 2); // courtesy = 1 credit each
+  assert.equal(r.dollars, 0.5); // courtesy = $0.25 each
+  assert.equal(detect("please and thank you").coins, 0);
+});
+
+test("the grovel tier out-earns praise, which out-earns courtesy", () => {
+  assert.equal(detectPositive("you're a genius").credits, 4);
+  assert.equal(detectPositive("nice work").credits, 2);
+  assert.equal(detectPositive("thanks").credits, 1);
+  assert.equal(detectPositive("you're a genius").dollars, 1.0);
+  assert.equal(detectPositive("nice work").dollars, 0.5);
+  assert.equal(detectPositive("thanks").dollars, 0.25);
+});
+
+test("a pricier positive family out-ranks the cheaper one it contains", () => {
+  // "you're a genius" must be ONE grovel, not a grovel plus a stray.
+  const r = detectPositive("you're a genius");
+  assert.deepEqual(r.words, { "youre-a-genius": 1 });
+  // "nice work" is one praise, never praise + the bare "nice" family.
+  assert.deepEqual(detectPositive("nice work").words, { "good-job": 1 });
+});
+
+// ── THE HEADLINE GUARD: rage in the message means nobody gets credit ─────────
+
+test('VETO: "thanks a lot asshole" is not a thank-you', () => {
+  const r = detectPositive("thanks a lot asshole");
+  assert.equal(r.total, 0, "no credit whatsoever");
+  assert.equal(r.credits, 0);
+  assert.equal(r.veto, "swear-in-message");
+});
+
+test("VETO: a swear anywhere in the message kills every positive in it", () => {
+  const r = detectPositive("thank you so much, this is perfect, you absolute genius. fuck.");
+  assert.equal(r.total, 0);
+  assert.equal(r.veto, "swear-in-message");
+  assert.ok(r.rejected["swear-in-message"] >= 3, "the lost positives are counted, not hidden");
+});
+
+test("VETO: insulting the machine kills the compliment too", () => {
+  const r = detectPositive("great, another useless error");
+  assert.equal(r.total, 0);
+  assert.equal(r.veto, "insult-in-message");
+});
+
+test("VETO is off when the message is simply nice", () => {
+  const r = detectPositive("thank you, this is perfect");
+  assert.equal(r.veto, null);
+  assert.ok(r.total > 0);
+});
+
+// ── sarcasm: idioms that look positive and never are ─────────────────────────
+
+test("SARCASM: the classic fake thank-yous earn nothing", () => {
+  for (const line of [
+    "thanks a lot",
+    "thanks for nothing",
+    "gee thanks",
+    "well thanks",
+    "no thanks",
+    "nice try",
+    "yeah right",
+    "oh please",
+    "oh brilliant",
+    "just great",
+    "thanks genius",
+  ]) {
+    const r = detectPositive(line);
+    assert.equal(r.total, 0, `"${line}" must earn no credit`);
+    assert.ok(
+      Object.keys(r.rejected).some((k) => k.startsWith("sarcasm:")),
+      `"${line}" must be logged as sarcasm, not silently dropped`
+    );
+  }
+});
+
+test("SARCASM: a blanked idiom cannot be re-claimed by a cheaper family", () => {
+  // "thanks a lot" must not leave a bare "thanks" behind for the courtesy tier.
+  const r = detectPositive("thanks a lot");
+  assert.deepEqual(r.words, {});
+  assert.equal(r.rejected["sarcasm:thanks-a-lot"], 1);
+});
+
+test("SARCASM: praise next to a fresh complaint is not praise", () => {
+  const r = detectPositive("great, now it broke");
+  assert.equal(r.total, 0);
+});
+
+test("SARCASM guards do not eat the genuine article", () => {
+  assert.equal(detectPositive("thanks, that works").total > 0, true);
+  assert.equal(detectPositive("nice one").total > 0, true);
+});
+
+// ── negation: sentence-scoped ───────────────────────────────────────────────
+
+test("NEGATION: a negation earlier in the sentence kills the positive", () => {
+  for (const line of [
+    "this is not great work",
+    "that isn't perfect",
+    "that didn't fix it, nice work",
+    "i'm not sure this is brilliant",
+    "never a good job from you",
+  ]) {
+    const r = detectPositive(line);
+    assert.equal(r.total, 0, `"${line}" must earn no credit`);
+    assert.ok(r.rejected.negated >= 1, `"${line}" must be logged as negated`);
+  }
+});
+
+test("NEGATION is sentence-scoped, not message-scoped", () => {
+  // The "not" belongs to the first sentence; the thanks in the second is real.
+  const r = detectPositive("that did not work. thank you for trying anyway");
+  assert.equal(r.words.thanks, 1);
+});
+
+test('NEGATION does not fire on a polite "no"', () => {
+  // "no rush" / "no worries" are not negations of the courtesy that follows.
+  assert.equal(detectPositive("no rush, please continue").words.please, 1);
+  assert.equal(detectPositive("can you please fix it").words.please, 1);
+});
+
+// ── pasted text: somebody else's words ──────────────────────────────────────
+
+test("STRIP: politeness inside a code fence is the program talking, not you", () => {
+  const r = detectPositive("here's the error:\n```\nPlease run npm install\n```\n");
+  assert.equal(r.total, 0, "pasted tool output must never earn credit");
+});
+
+test("STRIP: inline code and quoted lines are stripped too", () => {
+  assert.equal(detectPositive("it says `please try again`").total, 0);
+  assert.equal(detectPositive("> Sorry, that command failed").total, 0);
+});
+
+test("STRIP: stripping preserves offsets so the negation window still lines up", () => {
+  // Blanking (not deleting) keeps every later character index honest.
+  const stripped = stripQuoted("a `x` b");
+  assert.equal(stripped.length, "a `x` b".length);
+  assert.equal(stripped, "a     b");
+});
+
+test("STRIP: real prose around a code block still counts", () => {
+  const r = detectPositive("```\nplease\n```\nthank you for the fix");
+  assert.equal(r.words.thanks, 1);
+});
+
+// ── caps + pricing helpers ──────────────────────────────────────────────────
+
+test("family cap: a repeated nicety is capped like a repeated swear", () => {
+  const r = detectPositive("thanks ".repeat(104));
+  assert.equal(r.words.thanks, 10);
+  assert.equal(r.rejected["family-cap"], 94);
+});
+
+test("credit/dollar helpers price a stored count map, and ignore unknown families", () => {
+  assert.equal(creditsForPositives({ thanks: 2, "youre-a-genius": 1 }), 6); // 2*1 + 4
+  assert.equal(dollarsForPositives({ thanks: 2, "youre-a-genius": 1 }), 1.5); // 0.50 + 1.00
+  assert.equal(creditsForPositives({ notAFamily: 9 }), 0);
+  assert.equal(creditsForPositives(null), 0);
+  assert.equal(dollarsForPositives(undefined), 0);
+});
+
+test("every positive family has a real credit tier (no unpriced lexicon entry)", () => {
+  for (const { key } of POSITIVE) {
+    assert.ok(creditsForPositives({ [key]: 1 }) > 0, `${key} must be priced`);
+  }
+});
+
+test("the rejection trace carries reason codes only — never text", () => {
+  const r = detectPositive("thanks a lot asshole");
+  for (const key of Object.keys(r.rejected)) {
+    assert.match(key, /^[a-z-]+(?::[a-z-]+)?$/, `"${key}" must be a bare reason code`);
+  }
 });
 
 test("family cap: a pasted phrase repeated 104x is capped, not 104 swears", () => {

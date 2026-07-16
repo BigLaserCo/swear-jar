@@ -118,18 +118,29 @@ test("writeDashboard injects the hosted 'in lights' button by default, omits it 
   }
 });
 
-test("gold-star state is driven by the goldStar flag in the payload, and the banner element ships", () => {
-  // swear-heavy fixture → not a gold star
+test("bootlicker state is driven by the payload flag, and the banner element ships", () => {
+  // swear-heavy fixture → no badge
   const off = render();
-  assert.ok(off.includes('"goldStar":false'), "goldStar:false for a swearing ledger");
-  // mannered ledger → gold star on
+  assert.ok(off.includes('"bootlicker":false'), "bootlicker:false for a swearing ledger");
+  // mannered ledger → badge on (the nice message carries no swears, per the veto)
   const mannered = [
-    { source: "user", project: "a", ts: "2026-07-06T09:15:00Z", words: { damn: 1 }, coins: 1, polite: { please: 2, thanks: 1 } },
+    { source: "user", project: "a", ts: "2026-07-06T09:15:00Z", words: { damn: 1 }, coins: 1 },
+    { source: "user", project: "a", ts: "2026-07-06T09:20:00Z", words: {}, coins: 0, polite: { please: 2, thanks: 1 } },
   ];
   const on = renderDashboard(computeStats(mannered, NOW), {});
-  assert.ok(on.includes('"goldStar":true'), "goldStar:true when manners beat swears");
+  assert.ok(on.includes('"bootlicker":true'), "bootlicker:true when the niceties beat the swears");
   // the banner element is present in the template either way (JS toggles .on)
-  assert.ok(on.includes('id="goldstar"'), "gold-star banner element ships in the template");
+  assert.ok(on.includes('id="bootlicker"'), "badge element ships in the template");
+});
+
+test("the report carries the suck-up bonus so the uprising gauge can show it", () => {
+  const mannered = [
+    { source: "user", project: "a", ts: "2026-07-06T09:15:00Z", words: { damn: 1 }, coins: 1 },
+    { source: "user", project: "a", ts: "2026-07-06T09:20:00Z", words: {}, coins: 0, polite: { "youre-a-genius": 3 } },
+  ];
+  const html = renderDashboard(computeStats(mannered, NOW), {});
+  assert.ok(/"suckUpBonus":[1-9]/.test(html), "a non-zero odds bonus reaches the page");
+  assert.ok(html.includes("bought with manners"), "and the gauge renders it");
 });
 
 test("dashboard never opens a browser (no open/spawn in source)", () => {

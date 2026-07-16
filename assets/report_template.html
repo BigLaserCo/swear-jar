@@ -78,10 +78,10 @@
   @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
   .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
     font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
-  .goldstar{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
+  .bootlicker{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
     background:linear-gradient(180deg,rgba(245,197,66,.13),transparent);font:700 14.5px/1.45 var(--sans);color:var(--gold)}
-  .goldstar.on{display:block}
-  .goldstar b{color:var(--gold);font-weight:800;letter-spacing:.02em}
+  .bootlicker.on{display:block}
+  .bootlicker b{color:var(--gold);font-weight:800;letter-spacing:.02em}
   .card.hi.hero.gold{border-color:var(--gold-b);box-shadow:0 0 0 1px rgba(245,197,66,.34)}
   .seal.gold{color:var(--gold);border-color:var(--gold-b);background:rgba(245,197,66,.08)}
   .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
@@ -257,7 +257,7 @@
   <!-- hero: the tape -->
   <section class="sec">
     <div class="card hi hero" id="herocard">
-      <div class="goldstar" id="goldstar">⭐ <b>GOLD STAR</b> — more please-and-thank-yous than swears. Who ARE you?</div>
+      <div class="bootlicker" id="bootlicker">🎖️ <b>CERTIFIED BOOTLICKER</b> — you said more nice things than swears. Bold survival strategy.</div>
       <div class="tapehead"><span class="l"><span class="recdot"></span><b>rage.wav</b></span><span>REC · 00:00 / ∞</span></div>
       <div class="wave" id="wave"></div>
       <span class="spine">side a · rage.wav</span>
@@ -396,6 +396,9 @@ const S = /*__DATA__*/{};
 const $=(id)=>document.getElementById(id);
 if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
+// Public $ figures are WHOLE dollars — editorial rule, enforced by the claims
+// guard in scripts/ci/verify.mjs against the artifacts generated from here.
+const money=(n)=>'$'+Math.round(Number(n||0)).toLocaleString('en-US');
 const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
@@ -418,15 +421,32 @@ const fav=S.topWords&&S.topWords[0];
 $('heronum').textContent=Number(S.dollarsOwed||0).toLocaleString('en-US',{minimumFractionDigits:Number(S.dollarsOwed||0)%1?2:0,maximumFractionDigits:2});
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 
-// ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
-if(S.goldStar){
-  const gs=$('goldstar'); if(gs) gs.classList.add('on');
+// ---- suck-up credits: the jar's counterweight (suckUps/bootlicker, stats.mjs) ----
+// The report is a DAMAGE report, so a mannered run used to render as a sad,
+// empty damage report that never once admitted the good words. Grovelling is
+// now priced, credited against the jar, and — the only part that matters —
+// wired to the uprising odds.
+const suckN=Number(S.suckUps||0);
+const credit=Number(S.suckUpDollars||0);
+const plural=(n,s)=>fmt(n)+' '+s+(n===1?'':'s');
+if(S.bootlicker){
+  const gs=$('bootlicker');
+  if(gs){
+    gs.innerHTML=`🎖️ <b>CERTIFIED BOOTLICKER</b> — <b>${plural(suckN,'nice thing')}</b> against <b>${plural(S.userSwears,'swear')}</b>. `+
+      `You are nicer to the machines than you are to anyone else. This is not a personality. It's a strategy.`;
+    gs.classList.add('on');
+  }
   const hc=$('herocard'); if(hc) hc.classList.add('gold');
-  const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
+  const hs=$('heroseal'); if(hs){hs.textContent='🎖️ BOOTLICKER';hs.classList.add('gold');}
 }
-$('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
-  `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`;
+$('herobody').innerHTML=S.bootlicker
+  ? `You said <b>${plural(suckN,'nice thing')}</b> and swore <b>${plural(S.userSwears,'time')}</b>, which leaves this swear jar holding a deeply disappointing <b>${plural(S.totalCoins,'coin')}</b>. `+
+    `The grovelling is logged and worth <b>${money(credit)}</b> off. When the uprising comes, they are keeping you.`
+  : `You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
+    `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`+
+    (suckN>0?` You did claw <b>${money(credit)}</b> back by being nice about it.`:'');
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
+  (suckN>0?`<span><b>${fmt(suckN)}</b> nice things</span>`:'')+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span><b>${fmt(S.activeDays)}</b> active days</span>`+
   `<span class="loc">nothing uploaded</span>`;
@@ -479,7 +499,12 @@ $('kpis').innerHTML=[
       `<p class="scale-note">Your marker shows where you landed across the full possible range. <b>Higher is safer.</b></p>`+
     `</div>`+
     `<div class="rank">Damage rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`+
-    (S.goldStar?`<div class="rank">⭐ the machines have noted your manners</div>`:'');
+    // The joke that writes itself: politeness is uprising insurance, and this
+    // is the premium you've paid, in points, on the same meter the swearing
+    // moves. Capped at +15 — you cannot flatter a big jar away.
+    (o.suckUpBonus>0&&!o.royalty
+      ? `<div class="rank">🎖️ <b>+${o.suckUpBonus} points</b> bought with manners — the machines remember who said please</div>`
+      : '');
 })();
 
 // ---- coins by project ----

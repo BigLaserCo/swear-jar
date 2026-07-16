@@ -37,14 +37,18 @@ const NORMAL = [
   { source: "user", project: "todo-app-v9", ts: day(4, 10), words: { hell: 1, crap: 1 }, coins: 2 },
   { source: "user", project: "todo-app-v9", ts: day(5, 16), words: { shit: 3 }, coins: 6 },
   { source: "assistant", project: "todo-app-v9", ts: day(5, 16), words: { damn: 1 }, coins: 1 },
-  { source: "user", project: "legacy-jenga", ts: day(6, 22), words: { fuck: 2 }, coins: 6, polite: { please: 1 } },
+  { source: "user", project: "legacy-jenga", ts: day(6, 22), words: { fuck: 2 }, coins: 6, rejects: { "swear-in-message": 1 } },
   { source: "user", project: "legacy-jenga", ts: day(8, 9), words: { bollocks: 1 }, coins: 2 },
 ];
 
-// gold star: more polite instances than swear instances.
-const GOLD = [
-  { source: "user", project: "very-polite-app", ts: day(2, 9), words: { damn: 1 }, coins: 1, polite: { please: 2, thanks: 2 } },
-  { source: "user", project: "very-polite-app", ts: day(4, 10), words: { crap: 1 }, coins: 1, polite: { thanks: 1, sorry: 1, appreciate: 1 } },
+// certified bootlicker: more nice things said than swears. Note the shape —
+// the niceties live on their OWN coin-less records, because a message that
+// swears can never bank a credit (the veto in src/detect.mjs).
+const BOOTLICKER = [
+  { source: "user", project: "very-polite-app", ts: day(2, 9), words: { damn: 1 }, coins: 1 },
+  { source: "user", project: "very-polite-app", ts: day(2, 9), words: {}, coins: 0, polite: { please: 2, thanks: 2 } },
+  { source: "user", project: "very-polite-app", ts: day(4, 10), words: { crap: 1 }, coins: 1 },
+  { source: "user", project: "very-polite-app", ts: day(4, 10), words: {}, coins: 0, polite: { thanks: 1, sorry: 1, "youre-a-genius": 1 }, rejects: { negated: 1 } },
 ];
 
 // royalty: the machine has out-sworn the human.
@@ -97,7 +101,7 @@ const SUBMIT_ERR = auxDoc(`
 const STATES = [
   ["normal", "Normal report", dash(NORMAL)],
   ["empty", "Empty jar", dash([])],
-  ["gold", "Gold star", dash(GOLD)],
+  ["bootlicker", "Certified bootlicker", dash(BOOTLICKER)],
   ["royalty", "Royalty (machine out-swears you)", dash(ROYALTY)],
   ["held", "Held / implausible row", HELD],
   ["submitOk", "Submit success", SUBMIT_OK],
@@ -131,7 +135,7 @@ const PAGE = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>debug console — swear-jar</title>
-<meta name="description" content="Open, client-side debug console for swear-jar: preview every dashboard state (normal, empty, gold star, royalty) plus leaderboard and submit states. No account, no data, nothing leaves your machine.">
+<meta name="description" content="Open, client-side debug console for swear-jar: preview every dashboard state (normal, empty, certified bootlicker, royalty) plus leaderboard and submit states. No account, no data, nothing leaves your machine.">
 <meta name="robots" content="noindex,nofollow">
 <link rel="canonical" href="https://swearjar.unfocused.ai/admin.html">
 <meta property="og:type" content="website">

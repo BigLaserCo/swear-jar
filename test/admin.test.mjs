@@ -61,7 +61,7 @@ test("admin.html shows no uncensored lexicon words in its visible chrome", () =>
 
 test("admin.html carries every advertised state and the live editor", () => {
   const html = read();
-  for (const key of ["normal", "empty", "gold", "royalty", "held", "submitOk", "submitErr"]) {
+  for (const key of ["normal", "empty", "bootlicker", "royalty", "held", "submitOk", "submitErr"]) {
     assert.ok(html.includes(`data-state="${key}"`), `state button ${key} present`);
   }
   assert.ok(html.includes('id="apply"') && html.includes('id="ed-coins"'), "live stats editor present");

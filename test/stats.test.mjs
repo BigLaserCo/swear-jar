@@ -163,39 +163,86 @@ test("swears per 100 words is gated on 60 days of user history", () => {
   assert.equal(computeStats(records.slice(0, 59), NOW).swearsPer100Words, null);
 });
 
-test("gold star: more polite instances than swear instances flips goldStar on", () => {
-  // 1 swear instance (damn), 3 polite instances → manners win.
+test("bootlicker: more nice things than swears flips the badge on", () => {
+  // 1 swear instance (damn), 3 positive instances → the grovelling wins.
   const mannered = [
-    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 1 }, coins: 1, polite: { please: 2, thanks: 1 } },
+    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 1 }, coins: 1 },
+    { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, polite: { please: 2, thanks: 1 } },
   ];
   const s = computeStats(mannered, NOW);
-  assert.equal(s.politeTotal, 3);
-  assert.equal(s.totalSwears, 1);
-  assert.equal(s.goldStar, true);
+  assert.equal(s.suckUps, 3);
+  assert.equal(s.suckUpCredits, 3); // 3 courtesy = 1 credit each
+  assert.equal(s.suckUpDollars, 0.75); // 3 x $0.25
+  assert.equal(s.userSwears, 1);
+  assert.equal(s.bootlicker, true);
 });
 
-test("gold star stays OFF when swears meet or beat manners (instances, not coins)", () => {
-  // The base FIXTURE has 8 swear instances and no polite fields → not a star.
-  assert.equal(computeStats(FIXTURE, NOW).goldStar, false);
-  assert.equal(computeStats(FIXTURE, NOW).politeTotal, 0);
-  // A tie is NOT a gold star (strictly greater required).
+test("bootlicker stays OFF when swears meet or beat the niceties (instances, not coins)", () => {
+  // The base FIXTURE has 8 swear instances and no polite fields → no badge.
+  assert.equal(computeStats(FIXTURE, NOW).bootlicker, false);
+  assert.equal(computeStats(FIXTURE, NOW).suckUps, 0);
+  // A tie is NOT a badge (strictly greater required).
   const tie = [
-    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 2 }, coins: 2, polite: { please: 2 } },
+    { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 2 }, coins: 2 },
+    { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, polite: { please: 2 } },
   ];
-  assert.equal(computeStats(tie, NOW).goldStar, false);
-  // Manners must be non-zero — an all-clean empty jar is not a star.
-  assert.equal(computeStats([], NOW).goldStar, false);
+  assert.equal(computeStats(tie, NOW).bootlicker, false);
+  // Niceties must be non-zero — an all-clean empty jar is not a bootlicker.
+  assert.equal(computeStats([], NOW).bootlicker, false);
 });
 
-test("gold star is backward-compatible with pre-Gold-Star ledgers (no polite field)", () => {
-  // Old records simply lack `polite`; they contribute 0 manners and never crash.
+test("the assistant's manners are not YOUR credit", () => {
+  // The machine says "please" for a living; crediting it would just be the
+  // machine flattering itself into your survival odds.
+  const s = computeStats(
+    [
+      { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 1 }, coins: 1 },
+      { source: "assistant", project: "a", ts: "2026-07-08T09:01:00Z", words: {}, coins: 0, polite: { please: 9, thanks: 9 } },
+    ],
+    NOW
+  );
+  assert.equal(s.suckUps, 0, "assistant politeness earns the human nothing");
+  assert.equal(s.bootlicker, false);
+});
+
+test("credits are priced by tier, and the jar reports what you actually owe", () => {
+  const s = computeStats(
+    [
+      { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { fuck: 2 }, coins: 6, dollars: 2 },
+      { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, polite: { "youre-a-genius": 1, thanks: 2 } },
+    ],
+    NOW
+  );
+  assert.equal(s.suckUpCredits, 6); // 4 (grovel) + 2 x 1 (courtesy)
+  assert.equal(s.suckUpDollars, 1.5); // $1.00 + 2 x $0.25
+  assert.equal(s.dollarsOwed, 2);
+  assert.equal(s.netDollars, 0.5); // $2 owed less $1.50 earned back
+});
+
+test("the rejection trace is aggregated for the audit, human records only", () => {
+  const s = computeStats(
+    [
+      { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { fuck: 1 }, coins: 3, rejects: { "swear-in-message": 2 } },
+      { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, rejects: { negated: 1, "sarcasm:nice-try": 1 } },
+      { source: "assistant", project: "a", ts: "2026-07-08T09:06:00Z", words: {}, coins: 0, rejects: { negated: 99 } },
+    ],
+    NOW
+  );
+  assert.equal(s.rejectedTotal, 4, "the assistant's rejects are not in your audit");
+  assert.deepEqual(s.rejects[0], { reason: "swear-in-message", count: 2 });
+});
+
+test("badge + credits are backward-compatible with pre-credit ledgers", () => {
+  // Old records simply lack `polite`; they contribute 0 and never crash.
   const legacy = [
     { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { fuck: 1 }, coins: 3 },
     { source: "user", project: "a", ts: "2026-07-08T10:00:00Z", words: { shit: 1 }, coins: 2 },
   ];
   const s = computeStats(legacy, NOW);
-  assert.equal(s.politeTotal, 0);
-  assert.equal(s.goldStar, false);
+  assert.equal(s.suckUps, 0);
+  assert.equal(s.suckUpCredits, 0);
+  assert.equal(s.bootlicker, false);
+  assert.deepEqual(s.topPositives, []);
 });
 
 test("uprising odds + rank reuse odds.mjs", () => {

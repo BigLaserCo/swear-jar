@@ -57,28 +57,42 @@ test("scan records user and assistant swears with source + project", () => {
   assert.equal(bySource.assistant.words.shit, 1);
 });
 
-test("polite words are recorded (counts only) alongside a swear record", () => {
+test("suck-up credits are recorded (counts only), and a swearing message earns NONE", () => {
   const home = freshHome();
   const t = path.join(home, "polite.jsonl");
   fs.writeFileSync(
     t,
-    // a swearing-but-mannered message: gets a record, and a `polite` count map
+    // swearing-but-mannered: the veto means it banks NO credit, and the
+    // would-be positives are logged as rejections instead. This is the
+    // "thanks a lot, asshole" rule, applied end-to-end.
     line(userMsg("p1", "please fix this fucking bug, thanks so much")) +
-      // swear-only message: record has NO polite field (stays lean / old-compat)
+      // swear-only: no polite field, no rejects (nothing was even a candidate)
       line(userMsg("p2", "this is complete shit")) +
-      // polite-only message: retained as an anonymous word-count denominator
+      // genuinely nice: kept as a coin-less denominator record, credit attached
       line(userMsg("p3", "thank you, that was lovely and kind"))
   );
   const { added } = scanTranscript(t, {});
-  assert.equal(added.length, 2, "only the two swearing messages are recorded");
+  assert.equal(added.length, 2, "only the two swearing messages carry coins");
   const byUuid = Object.fromEntries(added.map((r) => [r.uuid, r]));
-  assert.deepEqual(byUuid.p1.polite, { please: 1, thanks: 1 });
+  assert.ok(!("polite" in byUuid.p1), "a message that swears banks no credit");
+  assert.deepEqual(byUuid.p1.rejects, { "swear-in-message": 2 }, "and the loss is auditable");
   assert.equal(byUuid.p1.words.fuck, 1);
   assert.ok(!("polite" in byUuid.p2), "swear-only record carries no polite field");
-  // privacy: only count keys, never the raw text, land on disk
+  assert.ok(!("rejects" in byUuid.p2), "nothing to reject, so no field at all");
+
+  // The nice message is a coin-less record; find it in the ledger.
+  const all = fs
+    .readFileSync(path.join(home, "ledger.jsonl"), "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => JSON.parse(l));
+  const p3 = all.find((r) => r.uuid === "p3");
+  assert.deepEqual(p3.polite, { thanks: 1 }, "genuine niceties are credited");
+  assert.equal(p3.coins, 0);
+
+  // privacy: only count keys + reason codes, never the raw text, land on disk
   const raw = fs.readFileSync(path.join(home, "ledger.jsonl"), "utf8");
   assert.ok(!raw.includes("lovely") && !raw.includes("bug"), "no message text in the ledger");
-  assert.equal(loadRecords().filter((r) => r.uuid === "p3")[0].word_count > 0, true);
 });
 
 test("re-scan of the same transcript adds nothing (uuid dedup)", () => {
