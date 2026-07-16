@@ -11,7 +11,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { detect, detectPolite } from "./detect.mjs";
+import { detect, detectPositive } from "./detect.mjs";
 import { loadCustomWords } from "./custom.mjs";
 import {
   loadRecords,
@@ -131,12 +131,20 @@ export function scanTranscript(transcriptPath, hook = {}) {
     const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
     const wordCount = entry.type === "user" ? countWords(text) : 0;
     if (!coins && !wordCount) continue;
-    // Manners on the same message, for the Gold Star gag. Counts only (never the
-    // text) — same privacy rule as `words`. Attached ONLY when present so the
-    // ledger stays lean and pre-Gold-Star records (no `polite` field) keep
-    // working unchanged. A message with NO swears still records nothing: this is
-    // a SWEAR jar, so politeness is only noted alongside a coin.
-    const polite = detectPolite(text).words;
+    // Suck-up credits on the same message. Counts and reason codes ONLY (never
+    // the text) — the same privacy rule as `words`. Both fields are attached
+    // ONLY when non-empty, so the ledger stays lean and records predating the
+    // credit system keep working unchanged.
+    //
+    // `swearCount` is handed over so detectPositive doesn't re-run the lexicon:
+    // it drives the veto (a message that swears earns no credit), and it is the
+    // count from the FULL text on purpose — see detectPositive.
+    const swearCount = Object.values(words).reduce((n, v) => n + (Number(v) || 0), 0);
+    const pos = detectPositive(text, { swearCount });
+    const polite = pos.words;
+    // `rejects` is what makes the tally auditable instead of merely trusted:
+    // it records WHY a would-be positive didn't count, by reason code.
+    const rejects = pos.rejected;
     const cwd = entry.cwd || hook.cwd || "";
     const record = {
       v: 1,
@@ -154,6 +162,7 @@ export function scanTranscript(transcriptPath, hook = {}) {
       coins,
       dollars,
       ...(Object.keys(polite).length ? { polite } : {}),
+      ...(Object.keys(rejects).length ? { rejects } : {}),
     };
     if (coins) added.push(record);
     else denominatorRecords.push(record);

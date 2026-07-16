@@ -9,11 +9,10 @@
 // NOT computable from AI-session transcripts — we do not fake them):
 //   - swears-per-1,000-words / rage-rate  (no per-record word totals here)
 //   - "recordings" counts / % of recordings sworn  (there are no recordings)
-//   - politeness + insult tallies          (base lexicon counts swears only)
 // Their transcript-native replacements: coins-by-project, you-vs-machine,
 // uprising odds + rank.
 
-import { LEXICON, TIER_COINS } from "./detect.mjs";
+import { LEXICON, TIER_COINS, creditTierFor, creditsForPositives, dollarsForPositives, CREDIT_COINS } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 import { COIN_VALUE, recordDollars } from "./render.mjs";
 
@@ -71,7 +70,12 @@ export function computeStats(records = [], now = Date.now()) {
   let userWords = 0;
   const userHistoryDates = new Set();
 
-  // --- manners (Gold Star gag): polite-word instances across all records ---
+  // --- kindness credits: positive instances, by family, HUMAN records only ---
+  const posCounts = new Map(); // family -> instances
+  const rejectCounts = new Map(); // reason code -> count (the audit trail)
+  let kindnessDollars = 0;
+  // Backward-compat: the pre-kindness "manners" stat the current UI still reads
+  // (goldStar banner). Sums ALL records' `polite` field, exactly as before.
   let politeTotal = 0;
 
   // --- distributions ---
@@ -85,6 +89,14 @@ export function computeStats(records = [], now = Date.now()) {
   const comboCounts = new Map(); // "famA famB" (sorted) -> co-occurrences in one USER record
   const firstUserMin = new Map(); // dateKey -> earliest user-swear minute-of-day
   const userDates = new Set(); // dates the human swore (for the streak)
+  // kindness distributions — same wall-clock buckets as the rage side, but the
+  // unit is tier-weighted CREDITS (a grovel counts more than a please), and only
+  // HUMAN records earn them (matching the crediting rule above).
+  const kindByHour = new Array(24).fill(0);
+  const kindByDow = new Array(7).fill(0);
+  const kindByDay = new Map(); // dateKey -> credits
+  const firstKindMin = new Map(); // dateKey -> earliest kind minute-of-day
+  const kindDates = new Set(); // dates the human was kind (for the kind streak)
   let firstTs = null;
   let lastTs = null;
 
@@ -117,9 +129,36 @@ export function computeStats(records = [], now = Date.now()) {
       const wordParts = parseParts(r?.ts);
       if (wordParts) userHistoryDates.add(wordParts.dateKey);
     }
-    // manners tally — pre-Gold-Star records have no `polite` field (→ 0), so
-    // old ledgers keep working. Counts only; never any text.
+    // backward-compat manners tally (ALL records, matches the old goldStar).
     for (const n of Object.values(r?.polite || {})) politeTotal += Number(n) || 0;
+    // kindness tally — records predating the kindness system have no `polite`
+    // field (→ 0), so old ledgers keep working. Counts only; never any text.
+    // HUMAN records only: the assistant says "please" for a living, and paying
+    // it credit would just be the machine flattering itself.
+    if (!isMachine) {
+      for (const [k, n] of Object.entries(r?.polite || {})) {
+        posCounts.set(k, (posCounts.get(k) || 0) + (Number(n) || 0));
+      }
+      kindnessDollars += dollarsForPositives(r?.polite);
+      for (const [reason, n] of Object.entries(r?.rejects || {})) {
+        rejectCounts.set(reason, (rejectCounts.get(reason) || 0) + (Number(n) || 0));
+      }
+      // kindness time buckets (credit-weighted, human-only)
+      const recCredits = creditsForPositives(r?.polite);
+      if (recCredits > 0) {
+        const kp = parseParts(r?.ts);
+        if (kp) {
+          kindByHour[kp.hh] += recCredits;
+          kindByDow[kp.dow] += recCredits;
+          kindByDay.set(kp.dateKey, (kindByDay.get(kp.dateKey) || 0) + recCredits);
+          kindDates.add(kp.dateKey);
+          const kmins = kp.hh * 60 + kp.mm;
+          if (!firstKindMin.has(kp.dateKey) || kmins < firstKindMin.get(kp.dateKey)) {
+            firstKindMin.set(kp.dateKey, kmins);
+          }
+        }
+      }
+    }
 
     // signature combo: which two families the HUMAN lands in the same message.
     // We only have per-record family sets (no ordering), so this is honestly a
@@ -218,6 +257,31 @@ export function computeStats(records = [], now = Date.now()) {
     firstSwearAvg = fmtClock(avg);
   }
 
+  // --- kindness derived series (mirrors of the rage side, credit-weighted) ---
+  const kindDaySeries = [...kindByDay.entries()]
+    .map(([date, credits]) => ({ date, credits }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let bestKindDay = null;
+  for (const d of kindDaySeries) if (!bestKindDay || d.credits > bestKindDay.credits) bestKindDay = d;
+  // longest run of consecutive calendar days with at least one credited kindness
+  let kindStreak = 0;
+  {
+    let run2 = 0;
+    let prev2 = null;
+    for (const key of [...kindDates].sort()) {
+      const cur = Date.parse(key + "T00:00:00Z");
+      if (prev2 !== null && cur - prev2 === DAY_MS) run2 += 1;
+      else run2 = 1;
+      if (run2 > kindStreak) kindStreak = run2;
+      prev2 = cur;
+    }
+  }
+  let firstThanksAvg = null;
+  if (firstKindMin.size) {
+    const avg = [...firstKindMin.values()].reduce((a, b) => a + b, 0) / firstKindMin.size;
+    firstThanksAvg = fmtClock(avg);
+  }
+
   const activeDays = byDay.size;
   const coinsPerActiveDay = activeDays ? round1(totalCoins / activeDays) : 0;
 
@@ -263,11 +327,22 @@ export function computeStats(records = [], now = Date.now()) {
   const total = userCoins + machineCoins;
   const userPct = total ? Math.round((100 * userCoins) / total) : 0;
 
-  // --- Gold Star: more manners than swears. The fair, honest unit is INSTANCES
-  // vs INSTANCES (one "please" vs one swear-hit), NOT coin-weighted — a mild
-  // "damn" is one swear, not three, when weighed against a "thank you". Needs at
-  // least one polite word so an all-clean empty jar isn't a star by default. ---
-  const goldStar = politeTotal > 0 && politeTotal > totalSwears;
+  // --- KINDNESS CREDITS. o.kindActs / o.kindnessCredits / o.kind come from
+  // odds.mjs summarize(), the ONE place the verdict rule lives — so every
+  // surface built on this data agrees on whether the user qualifies as kind.
+  // topPositives + rejects are the audit trail the design/CLI render. ---
+  const goldStar = politeTotal > 0 && politeTotal > totalSwears; // backward-compat
+  const topPositives = [...posCounts.entries()]
+    .filter(([, c]) => c > 0)
+    .map(([word, count]) => {
+      const tier = creditTierFor(word) || "courtesy";
+      return { word, count, tier, credits: count * (CREDIT_COINS[tier] || 1) };
+    })
+    .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+  const rejects = [...rejectCounts.entries()]
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason));
+  const rejectedTotal = rejects.reduce((n, r) => n + r.count, 0);
 
   return {
     app: "Swear Jar",
@@ -287,8 +362,24 @@ export function computeStats(records = [], now = Date.now()) {
     userWords,
     userHistoryDays,
     swearsPer100Words,
-    politeTotal,
-    goldStar,
+    // Kindness credits — the jar's counterweight (the design reads these).
+    kindActs: o.kindActs, // positive INSTANCES (the verdict's unit)
+    kindnessCredits: o.kindnessCredits, // tier-weighted credits (the odds' unit)
+    kindnessDollars: Math.round(kindnessDollars * 100) / 100, // earned back off the jar
+    netDollars: Math.round((totalDollars - kindnessDollars) * 100) / 100,
+    kind: o.kind, // qualifies as kind: more kind acts than swears
+    topPositives, // [{word,count,tier,credits}] — credited, by family
+    rejects, // [{reason,count}] — the audit trail of what did NOT count
+    rejectedTotal,
+    // kindness time distributions (credit-weighted, human-only)
+    kindByHour,
+    kindByDow,
+    kindDaySeries, // [{date,credits}]
+    bestKindDay,
+    kindStreak,
+    firstThanksAvg,
+    politeTotal, // backward-compat: total manners instances (old goldStar input)
+    goldStar, // backward-compat: the pre-kindness banner flag the current UI reads
     swearsPerDay,
     fbombPct,
     signatureCombo,
@@ -314,7 +405,13 @@ export function computeStats(records = [], now = Date.now()) {
     lastTs: lastTs ? lastTs.ts : "",
     activeDays,
     coinsPerActiveDay,
-    odds: { value: o.odds, royalty: o.royalty, label: o.label, user7d: o.user7d },
+    odds: {
+      value: o.odds,
+      royalty: o.royalty,
+      label: o.label,
+      user7d: o.user7d,
+      kindnessBonus: o.kindnessBonus, // survival-odds points bought with kindness
+    },
     rank,
   };
 }

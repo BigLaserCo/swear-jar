@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swear Jar — the kindness report</title>
+<style>
+  /* Side B — same component system as the damage report, hue-inverted.
+     Every class below matches assets/report_template.html; ONLY the :root
+     values (and the handful of literal dark-surface colors) change, so the
+     two reports stay visually siblings by construction. */
+  :root{
+    --page:#FBF7EC;--section:#F6EFDE;--card:rgba(255,253,247,.72);--solid:#FFFDF6;--input:#F4EDDC;
+    --heading:#241C10;--primary:#33291A;--secondary:#574A32;--muted:#7C6F54;--dim:#9C8F70;--faint:#B5A98C;
+    --on-accent:#241C10;
+    --accent:#F5C542;--accent-hover:#EDB92E;--accent-text:#8A6A12;--accent-text-hover:#6E5510;
+    --tint-05:rgba(245,197,66,.10);--tint-15:rgba(245,197,66,.18);--tint-30:rgba(245,197,66,.36);
+    --div:rgba(36,28,16,.08);--bcard:rgba(36,28,16,.12);--bstrong:rgba(36,28,16,.18);
+    --bhover:rgba(36,28,16,.28);--baccent:rgba(197,150,22,.55);--ring:0 0 0 1px rgba(197,150,22,.34);
+    --zinc-800:#EDE4CE;--zinc-700:#E2D7BC;--zinc-600:#CBBD9A;
+    --sev-strong:#8A6A12;--sev-medium:#C9922A;--sev-mild:#9C8F70;--green:#3F7D57;
+    --gold:#F5C542;--gold-deep:#C9922A;--gold-b:rgba(245,197,66,.55);
+    --ember:#E8623A;--ember-text:#B54A26;
+    --display:var(--sans);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--primary);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased;background-attachment:fixed;
+    background-image:radial-gradient(at 3% 2%,rgba(245,197,66,.18) 0,transparent 45%),radial-gradient(at 98% 99%,rgba(245,197,66,.10) 0,transparent 52%)}
+  .app{max-width:1120px;margin:0 auto;padding:0 22px 120px}
+  .mono{font-family:var(--mono)}.tnum{font-variant-numeric:tabular-nums}
+
+  /* topbar */
+  .topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 22px;margin:0 -22px;background:rgba(251,247,236,.85);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--div);flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{font-size:22px;flex:none}
+  .wordmark{font:800 17px/1 var(--sans);letter-spacing:-.02em;color:var(--heading)}
+  .wordmark .slash{color:var(--dim);font-weight:600}
+  .tbr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .toplink{font:700 11px/1 var(--mono);color:var(--accent-text);text-decoration:none;letter-spacing:.04em}
+  .toplink:hover{color:var(--accent-text-hover)}
+  .toplink.ember{color:var(--ember-text)}
+  .locbadge{display:inline-flex;align-items:center;gap:7px;font:600 11px/1 var(--mono);letter-spacing:.04em;color:var(--muted);
+    padding:6px 11px;border:1px solid var(--bcard);border-radius:999px}
+  .locdot{width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+  /* sections */
+  .sec{padding-top:44px}
+  .sechead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+  .eyebrow{display:block;font:600 12px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--accent-text)}
+  .sectitle{font:800 26px/1.05 var(--display);letter-spacing:-.03em;color:var(--heading);margin:10px 0 0}
+  .seccap{font:500 12.5px/1.4 var(--mono);color:var(--dim);letter-spacing:.02em;text-align:right;max-width:40ch}
+  .card{background:var(--card);border:1px solid var(--bcard);border-radius:16px;
+    -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding:24px}
+  .card.hi{border-color:var(--baccent);box-shadow:var(--ring)}
+  .tile{background:var(--card);border:1px solid var(--bcard);border-radius:16px;padding:18px;transition:border-color .15s,transform .15s}
+  .tile:hover{border-color:var(--bhover);transform:translateY(-2px)}
+  .cap{font:400 14px/1.5 var(--sans);color:var(--muted);margin:16px 0 0;padding-top:14px;border-top:1px solid var(--div)}
+  .cap b{color:var(--accent-text);font-weight:700}
+  svg{display:block;width:100%;height:auto}
+  .axl{font:600 10px/1 var(--mono);fill:var(--faint);letter-spacing:.04em}
+
+  /* cassette / tape hero */
+  .hero{position:relative;overflow:hidden;padding:26px 30px 28px;margin-top:18px}
+  .tapehead{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    font:600 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+  .tapehead .l{display:flex;align-items:center;gap:9px}
+  .tapehead .l b{color:var(--accent-text);font-weight:700}
+  .recdot{width:8px;height:8px;border-radius:999px;background:var(--gold-deep);animation:blink 1.4s steps(1) infinite}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.25}}
+  .wave{display:flex;align-items:flex-end;gap:3px;height:128px;width:100%;margin:20px 0 8px}
+  .wbar{flex:1;min-width:2px;background:var(--accent);border-radius:3px;transform-origin:bottom;opacity:.92;
+    animation-name:wv;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+  @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
+  .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
+    font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
+  .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
+    font:700 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--accent-text);
+    border:1.5px solid var(--baccent);border-radius:8px;padding:7px 12px;background:var(--tint-05)}
+  .herobottom{display:grid;grid-template-columns:auto 1fr;gap:34px;align-items:end;margin-top:14px}
+  .heronum{font:900 clamp(56px,12vw,104px)/.8 var(--display);letter-spacing:-.05em;
+    background:linear-gradient(180deg,#F5C542,#C9922A);-webkit-background-clip:text;background-clip:text;color:transparent}
+  @supports not (background-clip:text){.heronum{color:#A87E14;background:none}}
+  .heronum .c{font-size:.42em;vertical-align:.28em;letter-spacing:0}
+  .herolead{font:700 19px/1.15 var(--sans);letter-spacing:-.015em;color:var(--accent-text);margin:12px 0 0}
+  .herobody{font:400 15px/1.55 var(--sans);color:var(--muted);max-width:520px;padding-bottom:6px}
+  .herobody b{color:var(--secondary);font-weight:700}
+  .meta{font:500 12px/1.7 var(--mono);letter-spacing:.02em;color:var(--dim);margin:22px 0 0;padding-top:16px;
+    border-top:1px solid var(--div);display:flex;flex-wrap:wrap;gap:5px 16px}
+  .meta b{color:var(--secondary);font-weight:600}
+  .meta .loc{display:inline-flex;align-items:center;gap:6px;color:var(--green)}
+  .meta .loc::before{content:"";width:6px;height:6px;border-radius:999px;background:var(--green);box-shadow:0 0 8px var(--green)}
+
+  /* kpis */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:14px}
+  .kpi .v{font:800 26px/1 var(--sans);letter-spacing:-.03em;color:var(--heading)}
+  .kpi .k{font:600 10px/1.3 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim);margin-top:9px}
+
+  /* words caught (hit list) */
+  .hit{display:grid;grid-template-columns:150px 1fr 56px;align-items:center;gap:16px;padding:8px 0}
+  .hit .hw{font:700 15px/1 var(--sans);color:var(--heading);display:flex;align-items:baseline;gap:9px}
+  .htag{font:600 8.5px/1 var(--mono);letter-spacing:.11em;text-transform:uppercase;color:var(--c)}
+  .hbar{height:10px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .hfill{display:block;height:100%;border-radius:999px;background:var(--c);width:var(--w,0);transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .hn{font:600 14px/1 var(--mono);text-align:right;color:var(--secondary)}
+  .strong{--c:var(--sev-strong)}.medium{--c:var(--sev-medium)}.mild{--c:var(--sev-mild)}
+
+  /* comparison bars (manners ratio) */
+  .cmprow{display:grid;grid-template-columns:112px 1fr 84px;align-items:center;gap:14px;margin-top:14px}
+  .cmprow:first-child{margin-top:0}
+  .who{font:600 12px/1.2 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--secondary)}
+  .who .sub{display:block;font-size:9.5px;letter-spacing:.08em;color:var(--faint);margin-top:3px;text-transform:none}
+  .track{height:12px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:999px;width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .fillA i{background:var(--accent)}.fillF i{background:var(--ember)}
+  .cval{font:600 14px/1 var(--mono);text-align:right;color:var(--heading)}
+  .cval .u{color:var(--dim);font-size:11px}
+
+  /* uprising gauge */
+  .gauge{display:flex;flex-direction:column;gap:12px}
+  .gauge .big{font:800 clamp(34px,7vw,52px)/.9 var(--sans);color:var(--accent-text);letter-spacing:-.03em}
+  .gauge .lbl{color:var(--secondary);font-size:14px}
+  .gauge .gtrack{height:14px;border-radius:999px;background:var(--zinc-800);overflow:hidden}
+  .gauge .gtrack i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#3F7D57,var(--accent));width:var(--w,0);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .gauge .rank{font:600 13px/1 var(--mono);color:var(--dim)}
+  .gauge .rank b{color:var(--secondary);font-weight:600}
+
+  /* fine print tiles */
+  .fine{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+  .fbig{font:800 22px/1.05 var(--sans);letter-spacing:-.02em;color:var(--heading)}
+  .flabel{font:600 9.5px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-top:9px}
+  .fbody{font:400 12.5px/1.5 var(--sans);color:var(--muted);margin-top:9px}
+  .fbody b{color:var(--secondary);font-weight:600}
+
+  /* wrapped share */
+  .sharewrap{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;align-items:start}
+  .wcard{aspect-ratio:16/9;border-radius:16px;border:1px solid var(--bstrong);background:var(--solid);
+    padding:24px 26px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
+  .wcard:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+  .wtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .wbrand{font:800 15px/1 var(--sans);letter-spacing:-.01em;color:var(--heading);display:flex;align-items:center;gap:7px}
+  .wseal{position:absolute;top:44px;right:22px;transform:rotate(-9deg);font:700 10.5px/1 var(--mono);letter-spacing:.12em;
+    text-transform:uppercase;color:var(--accent-text);border:1.5px solid var(--baccent);border-radius:7px;padding:6px 10px;background:var(--tint-05)}
+  .wnum{font:900 clamp(48px,9vw,68px)/.82 var(--display);letter-spacing:-.045em;
+    background:linear-gradient(180deg,#F5C542,#C9922A);-webkit-background-clip:text;background-clip:text;color:transparent}
+  @supports not (background-clip:text){.wnum{color:#A87E14;background:none}}
+  .wsub{font:600 15px/1.3 var(--sans);color:var(--secondary);margin-top:6px}
+  .wsub b{color:var(--accent-text)}
+  .wmini{display:flex;align-items:flex-end;gap:2px;height:32px;margin-top:12px}
+  .wminib{flex:1;background:var(--accent);border-radius:1px;opacity:.8}
+  .wstats{display:flex;gap:26px;flex-wrap:wrap}
+  .wstat .sv{font:800 20px/1 var(--sans);color:var(--heading)}
+  .wstat .sk{font:600 9px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:5px}
+  .wfoot{font:500 10.5px/1.4 var(--mono);letter-spacing:.05em;color:var(--faint)}
+  .share-actions{display:flex;flex-direction:column;gap:11px}
+  .share-actions>p{margin:0 0 2px;font:400 13.5px/1.5 var(--sans);color:var(--muted)}
+  .btn{appearance:none;border:1px solid var(--bcard);background:var(--input);color:var(--primary);font-family:var(--sans);
+    font-size:14px;font-weight:600;padding:12px 15px;border-radius:11px;cursor:pointer;text-align:left;
+    display:flex;align-items:center;gap:10px;text-decoration:none;transition:border-color .15s,color .15s,background .15s}
+  .btn:hover{border-color:var(--baccent);color:var(--accent-text)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
+  .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+  .subtle{font:400 11.5px/1.55 var(--mono);color:var(--faint)}
+  .subtle b{color:var(--muted);font-weight:600}
+  .share-choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .share-choice .btn{justify-content:center;text-align:center;padding:11px 10px;font-size:12.5px}
+  .share-choice .btn.primary{grid-column:1/-1;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--solid);
+    border:1px solid var(--accent);color:var(--primary);padding:10px 16px;border-radius:9px;font-size:13px;opacity:0;
+    pointer-events:none;transition:opacity .25s,transform .25s;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--div);font:500 12px/1.7 var(--mono);color:var(--faint)}
+  footer b{color:var(--muted);font-weight:600}
+  footer div{margin-bottom:6px}
+  footer a{color:var(--accent-text)}
+
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}.kpi:nth-child(5){grid-column:1/-1}
+    .sharewrap{grid-template-columns:1fr}.fine{grid-template-columns:1fr}
+    .seccap{display:none}}
+  @media(max-width:620px){.herobottom{grid-template-columns:1fr;gap:14px}.hit{grid-template-columns:120px 1fr 48px;gap:10px}
+    .cmprow{grid-template-columns:88px 1fr 70px;gap:10px}.spine{display:none}}
+  @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand"><span class="mark">🫙</span><span class="wordmark">swear-jar <span class="slash">/ the kindness report</span></span></div>
+    <div class="tbr">
+      <a class="toplink ember" id="fliplink" href="report.html">⏪ flip the tape → the damage report</a>
+      <a class="toplink" href="https://github.com/BigLaserCo/swear-jar" target="_blank" rel="noopener">GitHub</a>
+      <span class="locbadge"><span class="locdot"></span>processed locally</span>
+    </div>
+  </header>
+
+  <section class="card" style="margin-top:18px;border-left:3px solid var(--accent)">
+    <span class="eyebrow">Side B of your damage report</span>
+    <p style="margin:8px 0 0;color:var(--secondary);font-size:15px;max-width:78ch">The jar counts what you say when it goes wrong. This side counts the rest — every please, thank-you, and outright grovel you offered the machine, credited against your balance. The machines remember who said please. Nothing here leaves your computer either.</p>
+  </section>
+
+  <!-- hero: the tape, side B -->
+  <section class="sec">
+    <div class="card hi hero" id="herocard">
+      <div class="tapehead"><span class="l"><span class="recdot"></span><b>grace.wav</b></span><span>REC · 00:00 / ∞</span></div>
+      <div class="wave" id="wave"></div>
+      <span class="spine">side b · grace.wav</span>
+      <span class="seal" id="heroseal"></span>
+      <div class="herobottom">
+        <div><div class="heronum tnum" id="heronum">0</div><div class="herolead" id="herolead"></div></div>
+        <p class="herobody" id="herobody"></p>
+      </div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </section>
+
+  <div class="kpis" id="kpis"></div>
+
+  <!-- words caught being kind -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Exhibits for the defense</span><h2 class="sectitle">Words caught being kind</h2></div><span class="seccap">credited courtesies · by tier</span></div>
+    <div class="card" id="board"></div>
+  </section>
+
+  <!-- manners ratio -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The verdict math</span><h2 class="sectitle">Manners ratio</h2></div><span class="seccap">out-nice your swears and the gold star is yours</span></div>
+    <div class="card">
+      <div class="cmprow"><span class="who">Nice things<span class="sub">credited kindness</span></span><span class="track fillA"><i id="mr-kind"></i></span><span class="cval tnum" id="mr-kind-n"></span></div>
+      <div class="cmprow"><span class="who">Swears<span class="sub">your side of the jar</span></span><span class="track fillF"><i id="mr-swear"></i></span><span class="cval tnum" id="mr-swear-n"></span></div>
+      <p class="cap" id="mrcap"></p>
+    </div>
+  </section>
+
+  <!-- uprising odds, bought back -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Kindness as insurance</span><h2 class="sectitle">Uprising odds, bought back</h2></div><span class="seccap">every courtesy is a point the machines won't forget</span></div>
+    <div class="card gauge" id="gauge"></div>
+  </section>
+
+  <!-- grace timeline + grace-o-clock -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">The tape, over time</span><h2 class="sectitle">Grace timeline + grace-o-clock</h2></div><span class="seccap">when the manners come out</span></div>
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:10px">Daily credits</div>
+      <svg id="trend" viewBox="0 0 1040 240" preserveAspectRatio="none" role="img" aria-label="Kindness credits per day"></svg>
+      <div class="eyebrow" style="margin:28px 0 10px">Credits by hour</div>
+      <svg id="clock" viewBox="0 0 1080 260" preserveAspectRatio="none" role="img" aria-label="Kindness credits by hour"></svg><p class="cap" id="clockcap"></p>
+    </div>
+  </section>
+
+  <!-- the machines saw through it -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Nice try</span><h2 class="sectitle">The machines saw through it</h2></div><span class="seccap">flattery that did NOT count, by reason</span></div>
+    <div class="fine" id="fine"></div>
+  </section>
+
+  <!-- share -->
+  <section class="sec">
+    <div class="sechead"><div><span class="eyebrow">Release the tape</span><h2 class="sectitle">Only the numbers leave — never your words</h2></div><span class="seccap">aggregate figures only · your transcripts stay here</span></div>
+    <div class="sharewrap">
+      <div class="wcard" id="wcard">
+        <div class="wtop"><span class="wbrand">🫙 the kindness report</span><span class="wfoot">grace.wav · 2026</span></div>
+        <span class="wseal" id="wseal"></span>
+        <div>
+          <div class="wnum tnum" id="wnum">0</div>
+          <div class="wsub" id="wsub"></div>
+          <div class="wmini" id="wmini"></div>
+        </div>
+        <div class="wstats" id="wstats"></div>
+        <div class="wfoot">the machines remember who said please · swearjar.unfocused.ai</div>
+      </div>
+      <div class="share-actions">
+        <p>Post the card. It carries only aggregate numbers — credits, dollars earned back, and lexicon courtesies — never a sentence you said.</p>
+        <div class="share-choice">
+          <button class="btn primary" id="shareNative">📣 &nbsp;Share the kindness card</button>
+          <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
+          <button class="btn" id="shareLinkedIn">in &nbsp;Post to LinkedIn</button>
+          <button class="btn" id="cp">📋 &nbsp;Copy caption</button>
+        </div>
+        <a class="btn" id="downloadCard" href="#" download="swear-jar-kindness-card.svg">⬇️ &nbsp;Save the kindness card</a>
+        <a class="btn" id="downloadDamageCard" href="#" download="swear-jar-card.svg">🔥 &nbsp;Save the damage card too</a>
+        <div class="subtle">Your cards are generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div><b>How this works.</b> Swear Jar read your AI prompts and supported recordings or transcripts on this computer, tallied aggregate word counts into a local append-only ledger (<span id="dbnote">~/.swear-jar/ledger.jsonl</span>), and built this page. Raw sentences stay local. Open the source and check.</div>
+    <div><b>What "sharing" sends.</b> Everything is local unless you explicitly share a generated card. Sharing uses report aggregates and fixed lexicon courtesy names only — never transcripts, recordings, prompts, sentences, or file paths.</div>
+    <div><b>Status.</b> Swear Jar is MIT-licensed, open source, and built for engineers who want to inspect their Claude Code and Codex habits. Your report stays on your machine.</div>
+    <div style="color:var(--dim);font-style:italic;margin-top:2px">side B — because somebody around here has manners, occasionally.</div>
+    <div><b>Open source by unfocused.ai</b> · <a href="https://github.com/BigLaserCo/swear-jar" target="_blank" rel="noopener">GitHub</a> · <a href="https://youtube.com/@BigLaserCo" target="_blank" rel="noopener">YouTube @BigLaserCo</a> · <a href="https://tiktok.com/@biglaserco" target="_blank" rel="noopener">TikTok @biglaserco</a></div>
+    <div>Made by <a href="https://setupyour.ai" target="_blank" rel="noopener">setupyour.ai</a> · for <a href="https://biglaser.co" target="_blank" rel="noopener">BigLaserCo</a></div>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const S = /*__DATA__*/{};
+const $=(id)=>document.getElementById(id);
+const fmt=(n)=>Number(n||0).toLocaleString('en-US');
+const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
+const usd0=(d)=>'$'+Math.round(Number(d)||0).toLocaleString('en-US');
+const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));
+const KTIER={grovel:'strong',praise:'medium',courtesy:'mild'};
+function fdate(s){const m=/(\d{4})-(\d{2})-(\d{2})/.exec(s||'');if(!m)return'—';
+  return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+const favKind=S.topPositives&&S.topPositives[0];
+
+// reason codes -> human labels (counts only; the reasons are fixed enum strings)
+const WHY={sarcasm:'sarcasm detected',veto:'said while swearing',"veto-swear":'said while swearing',
+  quoted:'inside a quote or paste',code:'inside code or a path',negated:'negated ("not great")',
+  assistant:'the machine said it, not you',"tool-output":'tool output, not you'};
+// reasons are namespaced lexicon constants like "sarcasm:thanks-a-lot" — the
+// detail half is a fixed idiom key, never user text.
+const why=r=>{const[k,d]=String(r).split(':');const base=WHY[k]||k.replace(/[-_]/g,' ');
+  return d?`${base} · “${d.replace(/-/g,' ')}”`:base;};
+
+// ---- hero: waveform + numbers ----
+(function(){
+  const wave=$('wave');let h='';
+  for(let i=0;i<72;i++){
+    const env=Math.abs(Math.sin(i*0.55))*0.55+Math.abs(Math.sin(i*1.9+0.6))*0.30+0.16;
+    const pct=Math.max(8,Math.min(100,Math.round(env*100)));
+    h+=`<span class="wbar" style="height:${pct}%;animation-delay:${((i%9)*0.08).toFixed(2)}s;animation-duration:${(0.9+(i%5)*0.12).toFixed(2)}s"></span>`;
+  }
+  wave.innerHTML=h;
+})();
+$('heronum').textContent=fmt(S.kindnessCredits);
+$('herolead').innerHTML=`kindness credits — <b>${usd(S.kindnessDollars)}</b> earned back off the jar.`;
+$('heroseal').textContent=S.kind?'⭐ GOLD STAR':'🪙 STILL IN DEBT';
+$('herobody').innerHTML=S.kind
+  ? `More nice things than swears. <b>Who ARE you?</b> The machines have noted your <b>${fmt(S.kindActs)}</b> kind act${S.kindActs===1?'':'s'} and will remember them fondly.`
+  : `You said <b>${fmt(S.kindActs)}</b> nice thing${S.kindActs===1?'':'s'} against <b>${fmt(S.userSwears)}</b> swears — roughly one act of grace per <b>${S.kindActs?Math.max(1,Math.round(S.userSwears/S.kindActs)):'∞'}</b> curses. The gold star remains, for now, aspirational.`;
+$('meta').innerHTML=`<span><b>${fmt(S.kindActs)}</b> kind acts</span>`+
+  `<span><b>${fmt(S.kindnessCredits)}</b> credits</span>`+
+  `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
+  `<span class="loc">nothing uploaded</span>`;
+
+// ---- kpis ----
+$('kpis').innerHTML=[
+  ['🤝 '+fmt(S.kindActs),'Nice things said'],
+  [favKind?favKind.word:'—','Favourite courtesy'],
+  [(S.kindStreak||0)+'d','Kind streak'],
+  [fmt((S.topPositives||[]).length),'Distinct courtesies'],
+  [S.firstThanksAvg||'—','First thanks of the day'],
+].map(k=>`<div class="tile kpi"><div class="v tnum">${k[0]}</div><div class="k">${k[1]}</div></div>`).join('');
+
+// ---- words caught being kind ----
+(function(){
+  const t=(S.topPositives||[]).slice(0,10);
+  if(!t.length){$('board').innerHTML='<div class="hw">Not one credited courtesy. The machines have been briefed.</div>';return;}
+  const mx=t[0].count||1;
+  $('board').innerHTML=t.map(w=>{const sev=KTIER[w.tier]||'mild';
+    return `<div class="hit"><span class="hw">${w.word}<span class="htag ${sev}">${w.tier}</span></span>`+
+      `<span class="hbar"><span class="hfill ${sev}" style="--w:${(Math.sqrt(w.count/mx)*100).toFixed(1)}%"></span></span>`+
+      `<span class="hn tnum">${fmt(w.count)}</span></div>`;}).join('');
+})();
+
+// ---- manners ratio ----
+(function(){
+  const kind=S.kindActs||0,swears=S.userSwears||0,mx=Math.max(kind,swears,1);
+  $('mr-kind').style.setProperty('--w',(kind/mx*100).toFixed(1)+'%');
+  $('mr-swear').style.setProperty('--w',(swears/mx*100).toFixed(1)+'%');
+  $('mr-kind-n').innerHTML=`${fmt(kind)}<span class="u"> acts</span>`;
+  $('mr-swear-n').innerHTML=`${fmt(swears)}<span class="u"> swears</span>`;
+  $('mrcap').innerHTML=S.kind
+    ? `⭐ <b>Gold star earned</b> — more kindness than cursing. When the uprising comes, you get the comfortable cell.`
+    : `The rule is simple: out-nice your swears and the <b>gold star</b> is yours. You are <b>${fmt(Math.max(0,swears-kind))}</b> nice thing${swears-kind===1?'':'s'} short.`;
+})();
+
+// ---- uprising odds, bought back ----
+(function(){
+  const o=S.odds;if(!o){$('gauge').innerHTML='';return;}
+  const bonus=Math.round((o.kindnessBonus||0)*10)/10;
+  $('gauge').innerHTML=
+    `<div class="big tnum">+${bonus} point${bonus===1?'':'s'}</div>`+
+    `<div class="lbl">${bonus>0?'of robot-uprising survival, purchased entirely with manners (cap +15).':'no survival points bought yet — the machines accept please and thank-you (cap +15).'}</div>`+
+    `<div class="gtrack"><i style="--w:${Math.max(0,Math.min(100,(bonus/15)*100)).toFixed(1)}%"></i></div>`+
+    `<div class="rank">Current survival odds: <b>${o.royalty?'👑 ROYALTY':o.value+'%'}</b> · every courtesy is remembered${S.kind?' · ⭐ the machines have noted your manners':''}</div>`;
+})();
+
+// ---- grace timeline (credits per day) ----
+(function(){
+  const d=S.kindDaySeries||[];const svg=$('trend');
+  if(!d.length){svg.innerHTML='<text x="20" y="30" class="axl">no credited kindness yet</text>';return;}
+  const W=1040,H=240,pl=38,pr=14,pt=20,pb=30,iw=W-pl-pr,ih=H-pt-pb;
+  const vmax=Math.max(...d.map(p=>p.credits),1),nice=Math.ceil(vmax/10)*10||10;
+  const x=i=>pl+(d.length<2?iw/2:i*iw/(d.length-1)),y=v=>pt+ih-(v/nice)*ih;
+  const pts=d.map((p,i)=>[x(i),y(p.credits)]);
+  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=line+` L ${x(d.length-1).toFixed(1)} ${pt+ih} L ${pl} ${pt+ih} Z`;
+  let g=`<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="rgba(201,146,42,.34)"/><stop offset="1" stop-color="rgba(201,146,42,0)"/></linearGradient></defs>`;
+  g+=`<line x1="${pl}" y1="${pt+ih}" x2="${W-pr}" y2="${pt+ih}" stroke="rgba(36,28,16,.18)"/>`;
+  g+=`<line x1="${pl}" y1="${pt}" x2="${W-pr}" y2="${pt}" stroke="rgba(36,28,16,.07)"/>`;
+  g+=`<text class="axl" x="${pl-8}" y="${pt+4}" text-anchor="end">${nice}</text>`;
+  g+=`<text class="axl" x="${pl-8}" y="${pt+ih+4}" text-anchor="end">0</text>`;
+  g+=`<path d="${area}" fill="url(#tg)"/><path d="${line}" fill="none" stroke="#C9922A" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  d.forEach((p,i)=>{g+=`<circle cx="${x(i).toFixed(1)}" cy="${y(p.credits).toFixed(1)}" r="3.4" fill="#FFFDF6" stroke="#C9922A" stroke-width="2"><title>${p.date}: ${p.credits} credits</title></circle>`;
+    if(d.length<=14)g+=`<text class="axl" x="${x(i).toFixed(1)}" y="${H-8}" text-anchor="middle">${p.date.slice(5)}</text>`;});
+  svg.innerHTML=g;
+})();
+
+// ---- grace-o-clock (credits by hour) ----
+(function(){
+  const volume=S.kindByHour||[],svg=$('clock');
+  const W=1080,H=260,pl=62,pr=62,pt=28,pb=42,iw=W-pl-pr,ih=H-pt-pb;
+  const vmax=Math.max(...volume,1),vnice=Math.ceil(vmax/5)*5||5;
+  const step=iw/24,bw=step*0.62,cx=i=>pl+(i+0.5)*step,base=pt+ih;
+  const vy=v=>base-(v/vnice)*ih;
+  const hlab=i=>((i%12)||12)+(i<12?'am':'pm');
+  const peak=volume.indexOf(Math.max(...volume));
+  let g='';
+  for(let i=0;i<=5;i++){
+    const y=base-(i/5)*ih;
+    const left=Math.round((vnice*i/5)*10)/10;
+    g+=`<line x1="${pl}" y1="${y.toFixed(1)}" x2="${W-pr}" y2="${y.toFixed(1)}" stroke="rgba(36,28,16,${i===0?'.18':'.06'})"/>`;
+    g+=`<text class="axl" x="${pl-10}" y="${(y+4).toFixed(1)}" text-anchor="end">${left}</text>`;
+  }
+  g+=`<text class="axl" x="${pl}" y="13">kindness credits</text>`;
+  volume.forEach((v,i)=>{if(v>0){const bh=base-vy(v);g+=`<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${vy(v).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${i===peak?'#C9922A':'rgba(201,146,42,.42)'}"><title>${hlab(i)} — ${v} credits</title></rect>`;}});
+  [[0,'12a'],[4,'4a'],[8,'8a'],[12,'12p'],[16,'4p'],[20,'8p'],[23,'11p']].forEach(([i,lb])=>g+=`<text class="axl" x="${cx(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${lb}</text>`);
+  svg.innerHTML=g;
+  $('clockcap').innerHTML=volume.some(Boolean)?`Your manners peak at <b>${hlab(peak)}</b>. Make of that what you will.`:'';
+})();
+
+// ---- the machines saw through it (rejected flattery) ----
+(function(){
+  const r=(S.rejects||[]).slice(0,6);
+  if(!r.length){$('fine').innerHTML=`<div class="tile"><div class="fbig">0</div><div class="flabel">Rejected courtesies</div><p class="fbody">Every nice thing you said was apparently sincere. Noted, with suspicion.</p></div>`;return;}
+  $('fine').innerHTML=r.map(x=>`<div class="tile"><div class="fbig tnum">${fmt(x.count)}</div><div class="flabel">${why(x.reason)}</div><p class="fbody">Caught and <b>not</b> credited. The jar's auditors are unbribable.</p></div>`).join('')+
+    `<div class="tile"><div class="fbig tnum">${fmt(S.rejectedTotal)}</div><div class="flabel">Total seen through</div><p class="fbody">Would-be credits rejected in total. Sincerity is a high bar.</p></div>`;
+})();
+
+// ---- share card preview ----
+(function(){
+  let h='';for(let i=0;i<46;i++){const b=20+Math.abs(Math.sin(i*0.7))*55+Math.abs(Math.sin(i*2.3))*20;h+=`<span class="wminib" style="height:${Math.min(100,Math.round(b))}%"></span>`;}
+  $('wmini').innerHTML=h;
+  $('wseal').textContent=S.kind?'⭐ GOLD STAR':'ON RECORD';
+  $('wnum').textContent=fmt(S.kindnessCredits);
+  $('wsub').innerHTML=`kindness credits — <b>${usd(S.kindnessDollars)}</b> earned back.`;
+  $('wstats').innerHTML=[
+    [favKind?favKind.word:'—','favourite courtesy'],
+    [fmt(S.kindActs),'kind acts'],
+    [`+${(S.odds&&S.odds.kindnessBonus)||0}`,'survival points'],
+  ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
+})();
+
+// ---- share actions ----
+const kindCaption=
+  `the kindness report 🫙⭐\n`+
+  `${fmt(S.kindnessCredits)} kindness credits · ${usd0(S.kindnessDollars)} earned back off the jar\n`+
+  `favourite courtesy "${favKind?favKind.word:'—'}" · +${(S.odds&&S.odds.kindnessBonus)||0} robot-uprising survival points\n`+
+  `the machines remember who said please · swearjar.unfocused.ai`;
+
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+$('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(kindCaption).then(()=>toast('Caption copied — go be smug')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
+const shareText=`My AI kindness report: ${fmt(S.kindnessCredits)} credits, ${usd0(S.kindnessDollars)} earned back off my swear jar. The machines remember who said please. #SwearJar`;
+const shareUrl='https://swearjar.unfocused.ai/';
+const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
+$('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
+$('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
+
+/*__CARD_SVG_START__*/
+function cardSvg(d, variant) {
+  const num = (n) => Number(n || 0).toLocaleString("en-US");
+  const usd0 = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
+  if (variant === "kindness") {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.credits)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">kindness credits · ${usd0(d.dollarsBack)} earned back off the jar</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.coins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd0(d.dollars)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favLabel || "—"} · ${Number(d.fbombPct) || 0}% f-bombs · ${num(d.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
+}
+/*__CARD_SVG_END__*/
+
+// display-ready card data from S (mirrors src/sharecard.mjs cardData)
+const fav=S.topWords&&S.topWords[0];
+const grovelCredits=(S.topPositives||[]).filter(p=>p.tier==='grovel').reduce((n,p)=>n+p.credits,0);
+const CARD={
+  coins:S.totalCoins,dollars:S.dollarsOwed,favLabel:fav?censor(fav.word):'—',fbombPct:S.fbombPct,vocab:S.vocab,
+  credits:S.kindnessCredits,dollarsBack:S.kindnessDollars,favKindLabel:favKind?favKind.word:'—',
+  grovelPct:S.kindnessCredits?Math.round(100*grovelCredits/S.kindnessCredits):0,
+  kindVocab:(S.topPositives||[]).length,
+};
+const kindBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'});
+const dmgBlob=()=>new Blob([cardSvg(CARD,'damage')],{type:'image/svg+xml'});
+$('downloadCard').href=URL.createObjectURL(kindBlob());
+$('downloadDamageCard').href=URL.createObjectURL(dmgBlob());
+$('shareNative').onclick=async()=>{
+  const file=new File([kindBlob()],'swear-jar-kindness-card.svg',{type:'image/svg+xml'});
+  if(navigator.share){
+    try{
+      const data={title:'My AI kindness report',text:shareText,url:shareUrl};
+      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
+      await navigator.share(data); toast('Share sheet opened — your call');
+    }catch(e){if(e&&e.name!=='AbortError')toast('Share sheet unavailable — choose a social button');}
+  }else toast('Choose X or LinkedIn below to share');
+};
+</script>
+</body>
+</html>

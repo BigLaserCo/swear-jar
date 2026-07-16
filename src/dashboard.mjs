@@ -16,6 +16,7 @@ import { hostedWrappedUrl } from "./hosted.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const TEMPLATE_PATH = path.join(HERE, "..", "assets", "report_template.html");
+const KINDNESS_TEMPLATE_PATH = path.join(HERE, "..", "assets", "kindness_template.html");
 const MARKER = "/*__DATA__*/{}";
 
 // Line/paragraph separators are valid in JSON but terminate a JS statement
@@ -41,7 +42,9 @@ export function loadTemplate(templatePath = TEMPLATE_PATH) {
 // string to show it, omit or pass `false` to hide it (local-only). BOTH render
 // as an <a href> a human clicks — the page still auto-requests nothing.
 export function renderDashboard(stats, opts = {}) {
-  const { donateUrl, templatePath, hostedUrl } = opts;
+  const { donateUrl, hostedUrl } = opts;
+  // opts.kind: "damage" (default) | "kindness" — side A or side B of the tape.
+  const templatePath = opts.templatePath || (opts.kind === "kindness" ? KINDNESS_TEMPLATE_PATH : TEMPLATE_PATH);
   const template = loadTemplate(templatePath);
   const payload = { ...stats };
   const donate = donateUrl === false ? null : donateUrl === undefined ? DONATE_URL : donateUrl;
@@ -72,7 +75,7 @@ export function writeDashboard(records, opts = {}) {
     }
   }
   const html = renderDashboard(stats, { ...opts, hostedUrl });
-  const outPath = opts.outPath || path.join(dataDir(), "report.html");
+  const outPath = opts.outPath || path.join(dataDir(), opts.kind === "kindness" ? "kindness.html" : "report.html");
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, html, "utf8");
   return outPath;
