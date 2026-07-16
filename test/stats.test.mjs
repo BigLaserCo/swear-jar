@@ -163,32 +163,32 @@ test("swears per 100 words is gated on 60 days of user history", () => {
   assert.equal(computeStats(records.slice(0, 59), NOW).swearsPer100Words, null);
 });
 
-test("bootlicker: more nice things than swears flips the badge on", () => {
+test("kind: more nice things than swears flips the badge on", () => {
   // 1 swear instance (damn), 3 positive instances → the grovelling wins.
   const mannered = [
     { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 1 }, coins: 1 },
     { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, polite: { please: 2, thanks: 1 } },
   ];
   const s = computeStats(mannered, NOW);
-  assert.equal(s.suckUps, 3);
-  assert.equal(s.suckUpCredits, 3); // 3 courtesy = 1 credit each
-  assert.equal(s.suckUpDollars, 0.75); // 3 x $0.25
+  assert.equal(s.kindActs, 3);
+  assert.equal(s.kindnessCredits, 3); // 3 courtesy = 1 credit each
+  assert.equal(s.kindnessDollars, 0.75); // 3 x $0.25
   assert.equal(s.userSwears, 1);
-  assert.equal(s.bootlicker, true);
+  assert.equal(s.kind, true);
 });
 
 test("bootlicker stays OFF when swears meet or beat the niceties (instances, not coins)", () => {
   // The base FIXTURE has 8 swear instances and no polite fields → no badge.
-  assert.equal(computeStats(FIXTURE, NOW).bootlicker, false);
-  assert.equal(computeStats(FIXTURE, NOW).suckUps, 0);
+  assert.equal(computeStats(FIXTURE, NOW).kind, false);
+  assert.equal(computeStats(FIXTURE, NOW).kindActs, 0);
   // A tie is NOT a badge (strictly greater required).
   const tie = [
     { source: "user", project: "a", ts: "2026-07-08T09:00:00Z", words: { damn: 2 }, coins: 2 },
     { source: "user", project: "a", ts: "2026-07-08T09:05:00Z", words: {}, coins: 0, polite: { please: 2 } },
   ];
-  assert.equal(computeStats(tie, NOW).bootlicker, false);
+  assert.equal(computeStats(tie, NOW).kind, false);
   // Niceties must be non-zero — an all-clean empty jar is not a bootlicker.
-  assert.equal(computeStats([], NOW).bootlicker, false);
+  assert.equal(computeStats([], NOW).kind, false);
 });
 
 test("the assistant's manners are not YOUR credit", () => {
@@ -201,8 +201,8 @@ test("the assistant's manners are not YOUR credit", () => {
     ],
     NOW
   );
-  assert.equal(s.suckUps, 0, "assistant politeness earns the human nothing");
-  assert.equal(s.bootlicker, false);
+  assert.equal(s.kindActs, 0, "assistant politeness earns the human nothing");
+  assert.equal(s.kind, false);
 });
 
 test("credits are priced by tier, and the jar reports what you actually owe", () => {
@@ -213,8 +213,8 @@ test("credits are priced by tier, and the jar reports what you actually owe", ()
     ],
     NOW
   );
-  assert.equal(s.suckUpCredits, 6); // 4 (grovel) + 2 x 1 (courtesy)
-  assert.equal(s.suckUpDollars, 1.5); // $1.00 + 2 x $0.25
+  assert.equal(s.kindnessCredits, 6); // 4 (grovel) + 2 x 1 (courtesy)
+  assert.equal(s.kindnessDollars, 1.5); // $1.00 + 2 x $0.25
   assert.equal(s.dollarsOwed, 2);
   assert.equal(s.netDollars, 0.5); // $2 owed less $1.50 earned back
 });
@@ -239,9 +239,9 @@ test("badge + credits are backward-compatible with pre-credit ledgers", () => {
     { source: "user", project: "a", ts: "2026-07-08T10:00:00Z", words: { shit: 1 }, coins: 2 },
   ];
   const s = computeStats(legacy, NOW);
-  assert.equal(s.suckUps, 0);
-  assert.equal(s.suckUpCredits, 0);
-  assert.equal(s.bootlicker, false);
+  assert.equal(s.kindActs, 0);
+  assert.equal(s.kindnessCredits, 0);
+  assert.equal(s.kind, false);
   assert.deepEqual(s.topPositives, []);
 });
 

@@ -59,12 +59,12 @@ test("being nice to the machines raises your odds", () => {
   const rude = survivalOdds([rec("user", 10)], NOW);
   const grovelling = survivalOdds([rec("user", 10), nice({ thanks: 20 })], NOW);
   assert.ok(grovelling.odds > rude.odds, "the machines remember who said please");
-  assert.ok(grovelling.suckUpBonus > 0);
+  assert.ok(grovelling.kindnessBonus > 0);
 });
 
 test("grovelling is capped — you cannot flatter a big jar away", () => {
   const saint = survivalOdds([rec("user", 5), nice({ "youre-a-genius": 10000 })], NOW);
-  assert.ok(saint.suckUpBonus <= 15, "the bonus never exceeds the cap");
+  assert.ok(saint.kindnessBonus <= 15, "the bonus never exceeds the cap");
   // Even infinite flattery cannot out-run a genuinely enormous jar.
   const sinner = survivalOdds(
     [...Array.from({ length: 400 }, () => rec("user", 25)), nice({ "youre-a-genius": 10000 })],
@@ -77,19 +77,19 @@ test("the badge needs MORE niceties than swears, counted as instances", () => {
   // 2 swear instances vs 3 niceties → bootlicker.
   const on = summarize([{ source: "user", coins: 6, words: { fuck: 2 }, ts: rec("user", 0).ts }, nice({ thanks: 3 })], NOW);
   assert.equal(on.userSwears, 2);
-  assert.equal(on.suckUps, 3);
-  assert.equal(on.bootlicker, true);
+  assert.equal(on.kindActs, 3);
+  assert.equal(on.kind, true);
   // A tie is not a badge.
   const tie = summarize([{ source: "user", coins: 6, words: { fuck: 3 }, ts: rec("user", 0).ts }, nice({ thanks: 3 })], NOW);
-  assert.equal(tie.bootlicker, false);
+  assert.equal(tie.kind, false);
   // An empty jar is not a bootlicker by default.
-  assert.equal(summarize([], NOW).bootlicker, false);
+  assert.equal(summarize([], NOW).kind, false);
 });
 
 test("credits are tier-weighted, but the badge is not", () => {
   const s = summarize([nice({ "youre-a-genius": 1, thanks: 1 })], NOW);
-  assert.equal(s.suckUps, 2, "the badge counts instances");
-  assert.equal(s.suckUpCredits, 5, "the odds count credits: 4 (grovel) + 1 (courtesy)");
+  assert.equal(s.kindActs, 2, "the badge counts instances");
+  assert.equal(s.kindnessCredits, 5, "the odds count credits: 4 (grovel) + 1 (courtesy)");
 });
 
 test("the assistant's manners never buy YOUR survival", () => {
@@ -97,8 +97,8 @@ test("the assistant's manners never buy YOUR survival", () => {
     [{ source: "assistant", coins: 0, words: {}, polite: { please: 99 }, ts: rec("user", 0).ts }],
     NOW
   );
-  assert.equal(s.suckUps, 0);
-  assert.equal(s.bootlicker, false);
+  assert.equal(s.kindActs, 0);
+  assert.equal(s.kind, false);
 });
 
 test("a coin-less nice record does not reset the clean streak", () => {
@@ -110,9 +110,9 @@ test("a coin-less nice record does not reset the clean streak", () => {
 
 test("records predating the credit system contribute nothing and never crash", () => {
   const s = summarize([{ source: "user", coins: 3, ts: rec("user", 0).ts }], NOW);
-  assert.equal(s.suckUps, 0);
-  assert.equal(s.suckUpCredits, 0);
-  assert.equal(s.bootlicker, false);
+  assert.equal(s.kindActs, 0);
+  assert.equal(s.kindnessCredits, 0);
+  assert.equal(s.kind, false);
 });
 
 test("summarize splits lifetime vs 7-day windows", () => {

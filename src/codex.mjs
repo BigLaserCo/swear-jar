@@ -42,7 +42,7 @@ import fs from "node:fs";
 import { loadCustomWords } from "./custom.mjs";
 import path from "node:path";
 import os from "node:os";
-import { detect } from "./detect.mjs";
+import { detect, detectPositive } from "./detect.mjs";
 import {
   seenUuids,
   appendRecords,
@@ -191,6 +191,11 @@ export function scanCodexFile(filePath) {
       const { words, coins, dollars } = detect(text, { customWords: loadCustomWords() });
       const wordCount = source === "user" ? countWords(text) : 0;
       if (!coins && !wordCount) continue;
+      // Suck-up credits, same detector and same rules as the Claude path (see
+      // src/detect.mjs). Codex sessions are AI sessions: grovelling there buys
+      // exactly as much uprising insurance as grovelling anywhere else.
+      const swearCount = Object.values(words).reduce((n, v) => n + (Number(v) || 0), 0);
+      const pos = detectPositive(text, { swearCount });
 
       const uuid = `codex:${basename}:${startLine + i}`;
       if (seen.has(uuid)) continue;
@@ -210,6 +215,8 @@ export function scanCodexFile(filePath) {
         word_count: wordCount,
         coins,
         dollars,
+        ...(Object.keys(pos.words).length ? { polite: pos.words } : {}),
+        ...(Object.keys(pos.rejected).length ? { rejects: pos.rejected } : {}),
       };
       if (coins) added.push(record);
       else denominatorRecords.push(record);

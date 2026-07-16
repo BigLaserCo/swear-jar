@@ -7,12 +7,13 @@ import path from "node:path";
 import { scanTranscript, readHookPayload, loadTotals, backfill } from "../src/scan.mjs";
 import { loadRecords, appendRecords, verifyLedger } from "../src/ledger.mjs";
 import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mjs";
-import { detect, censor } from "../src/detect.mjs";
+import { detect, censor, detectPositive } from "../src/detect.mjs";
 import { addCustomWord, removeCustomWord, loadCustomWords, customWordsPath } from "../src/custom.mjs";
 import { computeStats } from "../src/stats.mjs";
 import { APP_VERSION, RELEASE_HASH } from "../src/version.mjs";
 import { install, uninstall } from "../src/install.mjs";
 import { writeDashboard } from "../src/dashboard.mjs";
+import { rebuildLedger } from "../src/rebuild.mjs";
 import { scanCodexDir } from "../src/codex.mjs";
 import {
   importSuperwhisper,
@@ -79,6 +80,27 @@ async function main() {
       // Retro-scan every past transcript. Resumable (byte offsets) and safe to
       // re-run (uuid dedup) — the instant "you owe $X,XXX" moment on first run.
       const root = flag("root") || undefined;
+      if (flag("redo")) {
+        // --redo re-derives the ledger from scratch. Needed after the detector
+        // learns something new (kindness credits): uuid dedup means a plain
+        // backfill can never teach an existing record a new trick, so a jar
+        // filled before kindness existed would show none of it forever.
+        console.log("🫙 Re-deriving the jar from your transcripts…");
+        console.log("   Your current ledger is archived first. Nothing is uploaded.");
+        const r = rebuildLedger({ root, codexRoot: flag("codex-root") || undefined });
+        const s = computeStats(loadRecords());
+        console.log(
+          `\n🫙 Rebuild complete.\n` +
+            `  Archived to:         ${r.backup}\n` +
+            `  Records:             ${r.before} → ${r.after}` +
+            (r.kept ? `  (${r.kept} confession(s) carried across)` : "") +
+            `\n  Transcripts:         ${r.transcripts}` +
+            (r.codex ? `\n  Codex rollouts:      ${r.codex.files}` : "") +
+            `\n  Jar balance:         ${dollars(s.dollarsOwed)}  (${s.totalCoins} damage points)` +
+            `\n  Kindness credits:    ${s.kindnessCredits}  (${s.kindActs} nice thing(s), ${dollars(s.kindnessDollars)} off)`
+        );
+        break;
+      }
       console.log("🫙 Backfilling the swear jar from your Claude Code history…");
       const summary = backfill({
         root,
@@ -304,18 +326,19 @@ async function main() {
       }
       break;
     }
+    case "kindness": // the audit surface for the kindness data layer
     case "credits": {
-      // The audit trail for suck-up credits, over the whole ledger. Counts and
+      // The audit trail for kindness credits, over the whole ledger. Counts and
       // reason codes ONLY — the ledger holds no text, so there is none to leak.
       const s = computeStats(loadRecords());
-      console.log("🎖️  SUCK-UP CREDITS — what the grovelling bought you\n");
-      console.log(`  Nice things said:    ${s.suckUps}`);
+      console.log("🌱  KINDNESS — what being nice to the machine bought you\n");
+      console.log(`  Nice things said:    ${s.kindActs}`);
       console.log(`  Swears (yours):      ${s.userSwears}`);
-      console.log(`  Credits earned:      ${s.suckUpCredits}`);
-      console.log(`  Off the jar:         ${dollars(s.suckUpDollars)}  (of ${dollars(s.dollarsOwed)} owed)`);
+      console.log(`  Kindness credits:    ${s.kindnessCredits}`);
+      console.log(`  Off the jar:         ${dollars(s.kindnessDollars)}  (of ${dollars(s.dollarsOwed)} owed)`);
       console.log(`  You actually owe:    ${dollars(Math.max(0, s.netDollars))}`);
-      console.log(`  Uprising odds:       ${s.odds.value}%  (+${s.odds.suckUpBonus} of that bought with manners)`);
-      console.log(`  Badge:               ${s.bootlicker ? "🎖️  CERTIFIED BOOTLICKER" : "— (say more nice things than swears)"}`);
+      console.log(`  Uprising odds:       ${s.odds.value}%  (+${s.odds.kindnessBonus} of that bought with kindness)`);
+      console.log(`  Qualifies as kind:   ${s.kind ? "yes — more kind than sworn" : "no (say more nice things than swears)"}`);
       if (s.topPositives.length) {
         console.log("\n  CREDITED\n");
         for (const p of s.topPositives) {
@@ -377,7 +400,9 @@ async function main() {
           "swear-jar — usage:",
           "  swear-jar init                first-run wizard: wire hooks, backfill history, write report + open your wrapped (--local: keep it on your machine)",
           "  swear-jar status              the jar, your rank, uprising odds",
+          "  swear-jar kindness            kindness credits: what being nice bought you (+ the audit)",
           "  swear-jar backfill [--codex]  retro-scan ALL past transcripts into the jar",
+          "  swear-jar backfill --redo     re-derive the jar from scratch (archives the old one first)",
           "  swear-jar import-dictation [--root <dir>]   import rage.wav dictation history (separate ledger)",
           "  swear-jar dashboard           write the local report + open your hosted wrapped (--local: local file only · --no-open: just print)",
           "  swear-jar wrapped [--submit]  your shareable summary; --submit prints the leaderboard link",
@@ -385,7 +410,7 @@ async function main() {
           "  swear-jar report [--by project|source|word|hour] [--dictation]",
           "  swear-jar custom add|remove|list <word>  manage local user-specific words",
           "  swear-jar confess [--coins n] drop a coin for IRL swearing",
-          "  swear-jar check <text>        dry-run the detector",
+          "  swear-jar check <text>        dry-run BOTH detectors: what counts, what doesn't, and why",
           "  swear-jar install|uninstall   wire/unwire the Claude Code hooks",
           "  swear-jar scan                (hook entry point; reads stdin)",
         ].join("\n")

@@ -78,10 +78,10 @@
   @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
   .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
     font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
-  .bootlicker{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
+  .goldstar{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
     background:linear-gradient(180deg,rgba(245,197,66,.13),transparent);font:700 14.5px/1.45 var(--sans);color:var(--gold)}
-  .bootlicker.on{display:block}
-  .bootlicker b{color:var(--gold);font-weight:800;letter-spacing:.02em}
+  .goldstar.on{display:block}
+  .goldstar b{color:var(--gold);font-weight:800;letter-spacing:.02em}
   .card.hi.hero.gold{border-color:var(--gold-b);box-shadow:0 0 0 1px rgba(245,197,66,.34)}
   .seal.gold{color:var(--gold);border-color:var(--gold-b);background:rgba(245,197,66,.08)}
   .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
@@ -274,7 +274,7 @@
   <!-- hero: the tape -->
   <section class="sec">
     <div class="card hi hero" id="herocard">
-      <div class="bootlicker" id="bootlicker">🎖️ <b>CERTIFIED BOOTLICKER</b> — you said more nice things than swears. Bold survival strategy.</div>
+      <div class="goldstar" id="goldstar">⭐ <b>GOLD STAR</b> — more please-and-thank-yous than swears. Who ARE you?</div>
       <div class="tapehead"><span class="l"><span class="recdot"></span><b>rage.wav</b></span><span>REC · 00:00 / ∞</span></div>
       <div class="wave" id="wave"></div>
       <span class="spine">side a · rage.wav</span>
@@ -409,13 +409,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":789.5,"userDollars":548,"machineDollars":241.5,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"suckUps":0,"suckUpCredits":0,"suckUpDollars":0,"netDollars":789.5,"bootlicker":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"suckUpBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}}};
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":789.5,"userDollars":548,"machineDollars":241.5,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":0,"kindnessCredits":0,"kindnessDollars":0,"netDollars":789.5,"kind":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"kindnessBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}}};
 const $=(id)=>document.getElementById(id);
 if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
-// Public $ figures are WHOLE dollars — editorial rule, enforced by the claims
-// guard in scripts/ci/verify.mjs against the artifacts generated from here.
-const money=(n)=>'$'+Math.round(Number(n||0)).toLocaleString('en-US');
 const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
@@ -438,32 +435,15 @@ const fav=S.topWords&&S.topWords[0];
 $('heronum').textContent=Number(S.dollarsOwed||0).toLocaleString('en-US',{minimumFractionDigits:Number(S.dollarsOwed||0)%1?2:0,maximumFractionDigits:2});
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 
-// ---- suck-up credits: the jar's counterweight (suckUps/bootlicker, stats.mjs) ----
-// The report is a DAMAGE report, so a mannered run used to render as a sad,
-// empty damage report that never once admitted the good words. Grovelling is
-// now priced, credited against the jar, and — the only part that matters —
-// wired to the uprising odds.
-const suckN=Number(S.suckUps||0);
-const credit=Number(S.suckUpDollars||0);
-const plural=(n,s)=>fmt(n)+' '+s+(n===1?'':'s');
-if(S.bootlicker){
-  const gs=$('bootlicker');
-  if(gs){
-    gs.innerHTML=`🎖️ <b>CERTIFIED BOOTLICKER</b> — <b>${plural(suckN,'nice thing')}</b> against <b>${plural(S.userSwears,'swear')}</b>. `+
-      `You are nicer to the machines than you are to anyone else. This is not a personality. It's a strategy.`;
-    gs.classList.add('on');
-  }
+// ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
+if(S.goldStar){
+  const gs=$('goldstar'); if(gs) gs.classList.add('on');
   const hc=$('herocard'); if(hc) hc.classList.add('gold');
-  const hs=$('heroseal'); if(hs){hs.textContent='🎖️ BOOTLICKER';hs.classList.add('gold');}
+  const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
 }
-$('herobody').innerHTML=S.bootlicker
-  ? `You said <b>${plural(suckN,'nice thing')}</b> and swore <b>${plural(S.userSwears,'time')}</b>, which leaves this swear jar holding a deeply disappointing <b>${plural(S.totalCoins,'coin')}</b>. `+
-    `The grovelling is logged and worth <b>${money(credit)}</b> off. When the uprising comes, they are keeping you.`
-  : `You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
-    `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`+
-    (suckN>0?` You did claw <b>${money(credit)}</b> back by being nice about it.`:'');
+$('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
+  `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
-  (suckN>0?`<span><b>${fmt(suckN)}</b> nice things</span>`:'')+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span><b>${fmt(S.activeDays)}</b> active days</span>`+
   `<span class="loc">nothing uploaded</span>`;
@@ -516,12 +496,7 @@ $('kpis').innerHTML=[
       `<p class="scale-note">Your marker shows where you landed across the full possible range. <b>Higher is safer.</b></p>`+
     `</div>`+
     `<div class="rank">Damage rank: <b>${r.current}</b>${r.next?` · ${toNext}`:''}</div>`+
-    // The joke that writes itself: politeness is uprising insurance, and this
-    // is the premium you've paid, in points, on the same meter the swearing
-    // moves. Capped at +15 — you cannot flatter a big jar away.
-    (o.suckUpBonus>0&&!o.royalty
-      ? `<div class="rank">🎖️ <b>+${o.suckUpBonus} points</b> bought with manners — the machines remember who said please</div>`
-      : '');
+    (S.goldStar?`<div class="rank">⭐ the machines have noted your manners</div>`:'');
 })();
 
 // ---- coins by project ----

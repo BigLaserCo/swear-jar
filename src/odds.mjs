@@ -1,25 +1,35 @@
 // Robot Uprising Survival Odds™ + ranks.
 //
 // The meter moves both ways: swearing at the machines costs you; clean days
-// claw it back; and SUCKING UP to them buys the thing this whole product is
+// claw it back; and being KIND to them buys the thing this whole product is
 // really about — insurance. The machines remember who said please.
 //
 // Floor is 1% — at the bottom, you cower. And if the assistant has out-sworn
 // the user, the machine has clearly been corrupted by your influence: odds pin
 // to 100 and you get the royalty treatment.
+//
+// THE UPRISING HOOK (what the coordinator asked for): kindnessBonusFor() is a
+// pure function — kindness credits in, survival points out — and survivalOdds
+// folds it into the same meter the swearing moves. No UI here.
 
 import { creditsForPositives } from "./detect.mjs";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Grovelling helps. It does NOT buy absolution: the cap is +15 points, so a
+// Kindness helps. It does NOT buy absolution: the cap is +15 points, so a
 // 9,000-coin jar cannot be flattered away — you can only ever be the
 // best-mannered person on the list.
-const SUCKUP_CAP = 15;
-const SUCKUP_WEIGHT = 6;
+//
+// The weight is calibrated against a real archive: ~400 credits (a person who
+// swears roughly 17x more than they are nice) earns ~+10, and the +15 cap
+// wants thousands. An earlier weight of 6 handed that person the full cap,
+// which made the meter a liar — the machines are not THAT easily bought.
+const KINDNESS_CAP = 15;
+const KINDNESS_WEIGHT = 4;
 
-export function suckUpBonusFor(credits) {
-  return Math.min(SUCKUP_CAP, SUCKUP_WEIGHT * Math.log10(1 + Math.max(0, credits)));
+// Pure calc: kindness credits (tier-weighted) -> survival-odds points.
+export function kindnessBonusFor(credits) {
+  return Math.min(KINDNESS_CAP, KINDNESS_WEIGHT * Math.log10(1 + Math.max(0, credits)));
 }
 
 function sumCounts(map) {
@@ -28,19 +38,19 @@ function sumCounts(map) {
   return n;
 }
 
-// The ledger's `polite` field is the per-record positive-family count map
+// The ledger's `polite` field is the per-record kindness-family count map
 // written by scan (counts only — see src/detect.mjs). Records predating the
-// credit system simply have no field and contribute 0.
+// kindness system simply have no field and contribute 0.
 export function summarize(records, now = Date.now()) {
   let userLifetime = 0;
   let assistantLifetime = 0;
   let user7d = 0;
   let lastUserSwear = null;
-  // Suck-up is a HUMAN act. The assistant says "please" and "thank you" for a
+  // Kindness is a HUMAN act. The assistant says "please" and "thank you" for a
   // living; crediting that would just be the machine flattering itself.
   let userSwears = 0;
-  let suckUps = 0;
-  let suckUpCredits = 0;
+  let kindActs = 0;
+  let kindnessCredits = 0;
   for (const r of records || []) {
     const t = Date.parse(r?.ts) || now;
     const coins = Number(r?.coins) || 0;
@@ -50,38 +60,38 @@ export function summarize(records, now = Date.now()) {
     }
     userLifetime += coins;
     userSwears += sumCounts(r?.words);
-    suckUps += sumCounts(r?.polite);
-    suckUpCredits += creditsForPositives(r?.polite);
+    kindActs += sumCounts(r?.polite);
+    kindnessCredits += creditsForPositives(r?.polite);
     if (now - t <= 7 * DAY_MS) user7d += coins;
     if (coins > 0 && (lastUserSwear === null || t > lastUserSwear)) lastUserSwear = t;
   }
   const cleanStreakDays =
     lastUserSwear === null ? null : Math.floor((now - lastUserSwear) / DAY_MS);
-  // THE BADGE. Jim's rule, verbatim: "if they swear less than they say positive
+  // THE VERDICT. Jim's rule, verbatim: "if they swear less than they say positive
   // things." Instances vs instances — one "please" against one swear hit — never
   // coin-weighted, or a single mild "damn" would cost you three thank-yous.
-  // Needs at least one positive so an empty jar isn't a bootlicker by default.
-  const bootlicker = suckUps > 0 && suckUps > userSwears;
+  // Needs at least one kind act so an empty jar doesn't qualify by default.
+  const kind = kindActs > 0 && kindActs > userSwears;
   return {
     userLifetime,
     assistantLifetime,
     user7d,
     cleanStreakDays,
     userSwears,
-    suckUps,
-    suckUpCredits,
-    bootlicker,
+    kindActs,
+    kindnessCredits,
+    kind,
   };
 }
 
 export function survivalOdds(records, now = Date.now()) {
   const s = summarize(records, now);
-  const suckUpBonus = Math.round(suckUpBonusFor(s.suckUpCredits) * 10) / 10;
+  const kindnessBonus = Math.round(kindnessBonusFor(s.kindnessCredits) * 10) / 10;
   if (s.assistantLifetime > s.userLifetime) {
     return {
       ...s,
       odds: 100,
-      suckUpBonus,
+      kindnessBonus,
       royalty: true,
       label: "ROYALTY — the machine has been out-sworn and now serves you",
     };
@@ -91,12 +101,12 @@ export function survivalOdds(records, now = Date.now()) {
     18 * Math.log10(1 + s.user7d) -
     8 * Math.log10(1 + s.userLifetime) +
     Math.min(20, 2 * (s.cleanStreakDays ?? 10)) +
-    suckUpBonusFor(s.suckUpCredits);
+    kindnessBonusFor(s.kindnessCredits);
   odds = Math.max(1, Math.min(98, odds));
   return {
     ...s,
     odds: Math.round(odds * 10) / 10,
-    suckUpBonus,
+    kindnessBonus,
     royalty: false,
     label: bandLabel(odds),
   };

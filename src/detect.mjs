@@ -157,7 +157,7 @@ export function detect(text, { customWords = [] } = {}) {
 
 // Put-downs — NOT profanity. Counted by a separate detector so the headline
 // swear number stays honest; a caller folds them in only on request (--insults).
-// They also VETO suck-up credits: "great, another useless error" is not a
+// They also VETO kindness credits: "great, another useless error" is not a
 // compliment (see detectPositive).
 export const INSULTS = [
   pat("stupid", "insult", "\\bstupid\\w*\\b"),
@@ -191,11 +191,19 @@ export function detectInsults(text) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUCK-UP CREDITS — the other side of the ledger.
+// KINDNESS CREDITS — the positive counterpart to the swear detector.
 //
-// The jar charges you for swearing at the machine. This pays you back for
-// grovelling to it. The premise is not that you are a nice person: it is that
-// you are hedging, and the machines are keeping notes (see src/odds.mjs).
+// The jar charges you for swearing at the machine. This pays you back for being
+// kind to it (thanks/please/good job/apologies/encouragement). The premise is
+// not that you are a nice person: it is that you are hedging, and the machines
+// are keeping notes (see src/odds.mjs — the uprising hook).
+//
+// This is the DATA LAYER only. The UI (the Kindness Report, share cards) is
+// built on top of these exports:
+//   detectPositive(text)         -> {words, total, credits, dollars, rejected, veto}
+//   creditsForPositives(map)     -> tier-weighted credit count for a stored map
+//   dollarsForPositives(map)     -> dollars-back for a stored map
+//   POSITIVE / SARCASM / CREDIT_COINS / CREDIT_DOLLARS / creditTierFor / stripQuoted
 //
 // ACCURACY IS THE WHOLE PRODUCT HERE. A jar that credits "thanks a lot,
 // asshole" as good manners is a jar nobody believes twice, so this detector is
@@ -228,6 +236,13 @@ export function detectInsults(text) {
 // your own survival.
 export const CREDIT_COINS = { courtesy: 1, praise: 2, grovel: 4 };
 export const CREDIT_DOLLARS = { courtesy: 0.25, praise: 0.5, grovel: 1.0 };
+
+// Sentence-initial position, allowing for opening quotes/emphasis ("**Perfect
+// —"). Variable-length lookbehind is fine on Node 20+.
+const SENT_START = '(?<=(?:^|[.!?\\n])[\\s"\'*_]{0,4})';
+// A bare approval ends the word cleanly: punctuation or end-of-input. NOT a
+// hyphen or slash — that would be a slug ("awesome-visvesvaraya"), not praise.
+const APPROVAL_END = "(?=[\\s.,!?;:]|$)";
 
 // Sarcasm idioms. Order matters: these run before POSITIVE and blank their
 // span, so "thanks a lot" can never be re-counted as a "thanks".
@@ -263,19 +278,28 @@ export const POSITIVE = [
   pat("bow-down", "grovel", "\\b(?:i(?:'m|’m| am) not worthy|all hail|our (?:new )?(?:robot )?overlords?)\\b"),
 
   // ── praise (2 credits / $0.50) — a job well done, acknowledged
+  //
+  // Every entry here is DIRECTED at the machine or its work. A bare adjective
+  // is not: auditing the real archive, "it would be nice if…", "a very perfect
+  // example", "that'd be amazing" (about a business idea) and "exactly what
+  // you're looking for" all sailed through an earlier, greedier lexicon. None
+  // of them is you being nice to a robot, so the loose families are gone.
   pat("good-job", "praise", "\\b(?:good|great|nice|excellent|fantastic|lovely|solid) (?:job|work|stuff|call|catch|idea|find|thinking)\\b"),
   pat("well-done", "praise", "\\b(?:well|nicely|beautifully|perfectly) done\\b"),
   pat("nailed-it", "praise", "\\b(?:you )?(?:nailed|crushed|smashed) (?:it|that)\\b"),
   pat("you-rock", "praise", "\\byou (?:rock|rule)\\b"),
   pat("love-it", "praise", "\\b(?:i )?(?:love|adore) (?:it|this|that)\\b"),
-  pat("looks-great", "praise", "\\b(?:looks|sounds|works|working|reads|that(?:'s|’s)?) (?:great|perfect|beautiful|excellent|lovely|gorgeous)\\b"),
-  pat("perfect", "praise", "\\bperfect\\b"),
-  pat("beautiful", "praise", "\\b(?:beautiful|gorgeous|elegant)\\b"),
-  pat("brilliant", "praise", "\\bbrilliant\\b"),
-  pat("excellent", "praise", "\\bexcellent\\b"),
-  pat("amazing", "praise", "\\b(?:amazing|awesome|fantastic|wonderful|superb|magnificent)\\b"),
-  pat("nice", "praise", "\\bnice\\b(?! to (?:have|meet))"),
-  pat("exactly", "praise", "\\bexactly (?:what|right)\\b"),
+  pat("looks-great", "praise", "\\b(?:looks|sounds|works|working|reads|that(?:'s|’s)?) (?:great|perfect|beautiful|excellent|lovely|gorgeous|amazing|brilliant)\\b"),
+  // Standalone approval: the "Perfect." / "Amazing!" / "Nice." that opens a
+  // reply. Sentence-INITIAL and bare — which is exactly how the idiom is used
+  // and is what separates "Perfect, now do X" (approval) from "a very perfect
+  // example" (prose). The strict trailing boundary also refuses to see praise
+  // inside a machine-made slug like "awesome-visvesvaraya".
+  pat(
+    "standalone-praise",
+    "praise",
+    `${SENT_START}(?:perfect|amazing|awesome|excellent|brilliant|fantastic|wonderful|beautiful|gorgeous|superb|lovely|nice|magnificent)${APPROVAL_END}`
+  ),
 
   // ── courtesy (1 credit / $0.25) — the bare minimum, and it still counts
   pat("please", "courtesy", "\\bplease\\b"),
@@ -290,20 +314,41 @@ const CREDIT_TIER_BY_KEY = (() => {
   return m;
 })();
 
-// Fenced blocks, inline code, and quoted lines are somebody ELSE'S words —
-// pasted errors, docs, tool output. Blank them (never delete: blanking keeps
-// every later character offset honest so the negation window still lines up).
+// Everything here is somebody ELSE'S words wearing your message as a costume.
+// Blank it all before looking for niceties (never delete: blanking keeps every
+// later character offset honest, so the negation window still lines up).
+//
+// Each of these was caught red-handed auditing a real 2,500-transcript
+// archive, and each one was inflating the tally:
+//   - code fences / inline code: pasted errors and docs say "please run npm
+//     install" and "sorry, that command failed". That is a program talking.
+//   - tool-result spans: a <result> block is the ASSISTANT's own report,
+//     pasted into a user-role entry by the harness. Claude says "Perfect!" for
+//     a living — crediting that to you is the machine flattering itself with
+//     your survival odds, and it was the single biggest false positive found.
+//   - paths / URLs / branch names: a worktree called
+//     "claude/awesome-visvesvaraya-ca9ffd" is not you calling anything
+//     awesome. Machine-generated slugs are not prose.
 const CODE_FENCE_RE = /```[\s\S]*?```|~~~[\s\S]*?~~~/g;
 const INLINE_CODE_RE = /`[^`\n]*`/g;
 const QUOTE_LINE_RE = /^[ \t]*>.*$/gm;
+// Harness/tool spans that appear inside user-role entries. (scan.mjs strips a
+// further set before this — see INJECTED_TAGS there.)
+const TOOL_SPAN_RE =
+  /<(result|note|function_results|function_calls|output|stdout|stderr|error|system)>[\s\S]*?<\/\1>/gi;
+// A whitespace-delimited token carrying a slash or backslash is a path, a URL,
+// or a branch name — never a compliment.
+const PATH_TOKEN_RE = /\S*[/\\]\S*/g;
 const blank = (m) => m.replace(/[^\n]/g, " ");
 
 export function stripQuoted(text) {
   if (!text || typeof text !== "string") return "";
   return text
+    .replace(TOOL_SPAN_RE, blank)
     .replace(CODE_FENCE_RE, blank)
     .replace(INLINE_CODE_RE, blank)
-    .replace(QUOTE_LINE_RE, blank);
+    .replace(QUOTE_LINE_RE, blank)
+    .replace(PATH_TOKEN_RE, blank);
 }
 
 // A negation anywhere earlier in the SAME sentence kills the positive.

@@ -305,7 +305,7 @@ test('VETO: "thanks a lot asshole" is not a thank-you', () => {
 });
 
 test("VETO: a swear anywhere in the message kills every positive in it", () => {
-  const r = detectPositive("thank you so much, this is perfect, you absolute genius. fuck.");
+  const r = detectPositive("thank you so much. perfect. you absolute genius. fuck.");
   assert.equal(r.total, 0);
   assert.equal(r.veto, "swear-in-message");
   assert.ok(r.rejected["swear-in-message"] >= 3, "the lost positives are counted, not hidden");
@@ -370,9 +370,9 @@ test("SARCASM guards do not eat the genuine article", () => {
 test("NEGATION: a negation earlier in the sentence kills the positive", () => {
   for (const line of [
     "this is not great work",
-    "that isn't perfect",
+    "that isn't a nice catch",
     "that didn't fix it, nice work",
-    "i'm not sure this is brilliant",
+    "i don't love it",
     "never a good job from you",
   ]) {
     const r = detectPositive(line);
@@ -415,6 +415,44 @@ test("STRIP: stripping preserves offsets so the negation window still lines up",
 test("STRIP: real prose around a code block still counts", () => {
   const r = detectPositive("```\nplease\n```\nthank you for the fix");
   assert.equal(r.words.thanks, 1);
+});
+
+// ── regressions from a real 2,500-transcript audit ──────────────────────────
+// Every line below is a REAL false positive an earlier, greedier lexicon
+// credited. They are the reason bare adjectives now have to be sentence-
+// initial, and the reason tool spans and paths are stripped. Accuracy is the
+// product: one bogus credit and nobody believes the tally again.
+
+test("REGRESSION: the assistant's own <result> block is not your compliment", () => {
+  // The harness pastes tool/subagent output into user-role entries. Claude
+  // says "Perfect!" for a living — this was the single biggest false positive.
+  const r = detectPositive("<result>Perfect! Let me now compile my findings</result>");
+  assert.equal(r.total, 0);
+});
+
+test("REGRESSION: a machine-made branch name is not praise", () => {
+  assert.equal(detectPositive("fix landed on claude/awesome-visvesvaraya-ca9ffd @ e08ea57").total, 0);
+  assert.equal(detectPositive("see /users/jim/code/awesome-thing/nice-work.md").total, 0);
+});
+
+test("REGRESSION: bare adjectives mid-sentence are prose, not compliments", () => {
+  for (const line of [
+    "so customers get exactly what they are looking for",
+    "it would be nice if we could add a fun way to share",
+    "this is a very perfect example of what we need to catch",
+    "no still beta till its perfect",
+    "that would be amazing. and what control do we have over it",
+    "a black disc with white text is pretty nice",
+  ]) {
+    assert.equal(detectPositive(line).total, 0, `"${line}" is not praise`);
+  }
+});
+
+test("standalone approval — the way the idiom is actually used — still counts", () => {
+  assert.equal(detectPositive("Perfect. now do the next one").words["standalone-praise"], 1);
+  assert.equal(detectPositive("Amazing!").words["standalone-praise"], 1);
+  assert.equal(detectPositive("nice work").words["good-job"], 1);
+  assert.equal(detectPositive("looks great").words["looks-great"], 1);
 });
 
 // ── caps + pricing helpers ──────────────────────────────────────────────────
