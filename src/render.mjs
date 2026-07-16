@@ -1,6 +1,6 @@
 // Terminal rendering: the jar, the odds meter, the reports.
 
-import { censor, dollarsForWords } from "./detect.mjs";
+import { censor, dollarsForWords, dollarsForPositives } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 
 export const COIN_VALUE = 1;
@@ -33,25 +33,15 @@ export function renderMeter(odds) {
   return `[${"█".repeat(filled)}${"░".repeat(width - filled)}] ${odds}%`;
 }
 
-// Gold Star: more polite-word instances than swear instances across the ledger.
-// Instances vs instances (never coin-weighted) — the same fair unit stats.mjs
-// uses. Records predating Gold Star carry no `polite` field and count as 0.
-export function goldStarStatus(records) {
-  let polite = 0;
-  let swears = 0;
-  for (const r of records || []) {
-    for (const n of Object.values(r?.polite || {})) polite += Number(n) || 0;
-    for (const n of Object.values(r?.words || {})) swears += Number(n) || 0;
-  }
-  return { polite, swears, goldStar: polite > 0 && polite > swears };
-}
-
 export function renderStatus(records, now = Date.now()) {
   const o = survivalOdds(records, now);
   const rank = rankFor(o.userLifetime);
   const totalCoins = o.userLifetime + o.assistantLifetime;
   const totalDollars = (records || []).reduce((n, r) => n + recordDollars(r), 0);
-  const gs = goldStarStatus(records);
+  const credit = (records || []).reduce(
+    (n, r) => n + (r?.source === "assistant" ? 0 : dollarsForPositives(r?.polite)),
+    0
+  );
   const out = [];
   out.push("🫙  THE UNFOCUSED.AI SWEAR JAR");
   out.push("");
@@ -64,16 +54,22 @@ export function renderStatus(records, now = Date.now()) {
     out.push(`  Clean streak:       ${o.cleanStreakDays} day(s) without a coin`);
   }
   out.push(`  Rank:               ${rank.current}${rank.next ? `  (next at ${rank.next.at} coins)` : ""}`);
-  if (gs.goldStar) {
+  if (o.suckUps > 0) {
     out.push("");
-    out.push("  ⭐ GOLD STAR — more please-and-thank-yous than swears. Who ARE you?");
+    out.push(`  Suck-up credits:    ${o.suckUpCredits}  (${o.suckUps} nice thing(s) said, worth ${dollars(credit)} off)`);
+    out.push(`  You actually owe:   ${dollars(Math.max(0, totalDollars - credit))}  after grovelling`);
+  }
+  if (o.bootlicker) {
+    out.push("");
+    out.push("  🎖️  CERTIFIED BOOTLICKER — you are nicer to the machines than you");
+    out.push("      are to anyone else. This is not a personality. It's a strategy.");
   }
   out.push("");
   out.push("  ROBOT UPRISING SURVIVAL ODDS");
   out.push(`  ${renderMeter(o.odds)}`);
   out.push(`  ${o.royalty ? "👑 " : ""}${o.label}`);
-  if (gs.goldStar) {
-    out.push("  (the machines have noted your manners)");
+  if (o.suckUpBonus > 0 && !o.royalty) {
+    out.push(`  +${o.suckUpBonus} points bought with manners — the machines remember who said please.`);
   }
   if (o.royalty) {
     out.push("");

@@ -9,11 +9,10 @@
 // NOT computable from AI-session transcripts — we do not fake them):
 //   - swears-per-1,000-words / rage-rate  (no per-record word totals here)
 //   - "recordings" counts / % of recordings sworn  (there are no recordings)
-//   - politeness + insult tallies          (base lexicon counts swears only)
 // Their transcript-native replacements: coins-by-project, you-vs-machine,
 // uprising odds + rank.
 
-import { LEXICON, TIER_COINS } from "./detect.mjs";
+import { LEXICON, TIER_COINS, creditTierFor, dollarsForPositives, CREDIT_COINS } from "./detect.mjs";
 import { survivalOdds, rankFor } from "./odds.mjs";
 import { COIN_VALUE, recordDollars } from "./render.mjs";
 
@@ -71,8 +70,10 @@ export function computeStats(records = [], now = Date.now()) {
   let userWords = 0;
   const userHistoryDates = new Set();
 
-  // --- manners (Gold Star gag): polite-word instances across all records ---
-  let politeTotal = 0;
+  // --- suck-up credits: positive instances, by family, HUMAN records only ---
+  const posCounts = new Map(); // family -> instances
+  const rejectCounts = new Map(); // reason code -> count (the audit trail)
+  let suckUpDollars = 0;
 
   // --- distributions ---
   const byHour = new Array(24).fill(0);
@@ -117,9 +118,19 @@ export function computeStats(records = [], now = Date.now()) {
       const wordParts = parseParts(r?.ts);
       if (wordParts) userHistoryDates.add(wordParts.dateKey);
     }
-    // manners tally — pre-Gold-Star records have no `polite` field (→ 0), so
-    // old ledgers keep working. Counts only; never any text.
-    for (const n of Object.values(r?.polite || {})) politeTotal += Number(n) || 0;
+    // suck-up tally — records predating the credit system have no `polite`
+    // field (→ 0), so old ledgers keep working. Counts only; never any text.
+    // HUMAN records only: the assistant says "please" for a living, and paying
+    // it credit would just be the machine flattering itself.
+    if (!isMachine) {
+      for (const [k, n] of Object.entries(r?.polite || {})) {
+        posCounts.set(k, (posCounts.get(k) || 0) + (Number(n) || 0));
+      }
+      suckUpDollars += dollarsForPositives(r?.polite);
+      for (const [reason, n] of Object.entries(r?.rejects || {})) {
+        rejectCounts.set(reason, (rejectCounts.get(reason) || 0) + (Number(n) || 0));
+      }
+    }
 
     // signature combo: which two families the HUMAN lands in the same message.
     // We only have per-record family sets (no ordering), so this is honestly a
@@ -263,11 +274,21 @@ export function computeStats(records = [], now = Date.now()) {
   const total = userCoins + machineCoins;
   const userPct = total ? Math.round((100 * userCoins) / total) : 0;
 
-  // --- Gold Star: more manners than swears. The fair, honest unit is INSTANCES
-  // vs INSTANCES (one "please" vs one swear-hit), NOT coin-weighted — a mild
-  // "damn" is one swear, not three, when weighed against a "thank you". Needs at
-  // least one polite word so an all-clean empty jar isn't a star by default. ---
-  const goldStar = politeTotal > 0 && politeTotal > totalSwears;
+  // --- SUCK-UP CREDITS. o.suckUps / o.suckUpCredits / o.bootlicker come from
+  // odds.mjs summarize(), which is the ONE place the badge rule lives (render
+  // and this module both read it, so the terminal and the HTML can never
+  // disagree about whether you're a bootlicker). ---
+  const topPositives = [...posCounts.entries()]
+    .filter(([, c]) => c > 0)
+    .map(([word, count]) => {
+      const tier = creditTierFor(word) || "courtesy";
+      return { word, count, tier, credits: count * (CREDIT_COINS[tier] || 1) };
+    })
+    .sort((a, b) => b.count - a.count || a.word.localeCompare(b.word));
+  const rejects = [...rejectCounts.entries()]
+    .map(([reason, count]) => ({ reason, count }))
+    .sort((a, b) => b.count - a.count || a.reason.localeCompare(b.reason));
+  const rejectedTotal = rejects.reduce((n, r) => n + r.count, 0);
 
   return {
     app: "Swear Jar",
@@ -287,8 +308,15 @@ export function computeStats(records = [], now = Date.now()) {
     userWords,
     userHistoryDays,
     swearsPer100Words,
-    politeTotal,
-    goldStar,
+    // Suck-up credits — the jar's counterweight.
+    suckUps: o.suckUps, // positive INSTANCES (the badge's unit)
+    suckUpCredits: o.suckUpCredits, // tier-weighted credits (the odds' unit)
+    suckUpDollars: Math.round(suckUpDollars * 100) / 100, // earned back off the jar
+    netDollars: Math.round((totalDollars - suckUpDollars) * 100) / 100,
+    bootlicker: o.bootlicker,
+    topPositives,
+    rejects,
+    rejectedTotal,
     swearsPerDay,
     fbombPct,
     signatureCombo,
@@ -314,7 +342,13 @@ export function computeStats(records = [], now = Date.now()) {
     lastTs: lastTs ? lastTs.ts : "",
     activeDays,
     coinsPerActiveDay,
-    odds: { value: o.odds, royalty: o.royalty, label: o.label, user7d: o.user7d },
+    odds: {
+      value: o.odds,
+      royalty: o.royalty,
+      label: o.label,
+      user7d: o.user7d,
+      suckUpBonus: o.suckUpBonus, // how many points the grovelling bought you
+    },
     rank,
   };
 }

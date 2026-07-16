@@ -272,10 +272,68 @@ async function main() {
       break;
     }
     case "check": {
-      // Dry-run the detector on arbitrary text. Nothing is recorded.
+      // Dry-run BOTH detectors on arbitrary text. Nothing is recorded.
+      // This is the audit bench: it shows what was credited, what was thrown
+      // out, and exactly WHY — so you can argue with the tally instead of
+      // taking it on faith. Safe to print in full: it's your own text.
       const text = args.filter((a) => !a.startsWith("--")).join(" ");
-      const result = detect(text, { customWords: loadCustomWords() });
-      console.log(JSON.stringify(result, null, 2));
+      const swears = detect(text, { customWords: loadCustomWords() });
+      const swearCount = Object.values(swears.words).reduce((n, v) => n + v, 0);
+      const positive = detectPositive(text, { swearCount });
+      console.log(
+        JSON.stringify(
+          {
+            swears,
+            positive: {
+              credited: positive.words,
+              instances: positive.total,
+              credits: positive.credits,
+              dollars_back: positive.dollars,
+              rejected: positive.rejected,
+              veto: positive.veto,
+            },
+          },
+          null,
+          2
+        )
+      );
+      if (positive.veto === "swear-in-message") {
+        console.log("\n# vetoed: you swore in this message. \"thanks a lot, asshole\" is not a thank-you.");
+      } else if (positive.veto === "insult-in-message") {
+        console.log("\n# vetoed: you insulted the machine in this message. The compliment does not survive it.");
+      }
+      break;
+    }
+    case "credits": {
+      // The audit trail for suck-up credits, over the whole ledger. Counts and
+      // reason codes ONLY — the ledger holds no text, so there is none to leak.
+      const s = computeStats(loadRecords());
+      console.log("🎖️  SUCK-UP CREDITS — what the grovelling bought you\n");
+      console.log(`  Nice things said:    ${s.suckUps}`);
+      console.log(`  Swears (yours):      ${s.userSwears}`);
+      console.log(`  Credits earned:      ${s.suckUpCredits}`);
+      console.log(`  Off the jar:         ${dollars(s.suckUpDollars)}  (of ${dollars(s.dollarsOwed)} owed)`);
+      console.log(`  You actually owe:    ${dollars(Math.max(0, s.netDollars))}`);
+      console.log(`  Uprising odds:       ${s.odds.value}%  (+${s.odds.suckUpBonus} of that bought with manners)`);
+      console.log(`  Badge:               ${s.bootlicker ? "🎖️  CERTIFIED BOOTLICKER" : "— (say more nice things than swears)"}`);
+      if (s.topPositives.length) {
+        console.log("\n  CREDITED\n");
+        for (const p of s.topPositives) {
+          console.log(`    ${String(p.count).padStart(5)}  ${p.word.padEnd(18)} ${p.tier.padEnd(9)} ${String(p.credits).padStart(4)} credits`);
+        }
+      }
+      if (s.rejects.length) {
+        console.log(`\n  REJECTED (${s.rejectedTotal}) — every tally is inspectable, so here is what didn't count\n`);
+        for (const r of s.rejects) {
+          console.log(`    ${String(r.count).padStart(5)}  ${r.reason}`);
+        }
+        console.log("\n  swear-in-message  = you swore in the same message; the whole message earns nothing");
+        console.log("  insult-in-message = you insulted it in the same message; same rule");
+        console.log("  negated           = a negation earlier in the sentence (\"this is not great\")");
+        console.log("  sarcasm:*         = an idiom that never means it (\"thanks a lot\", \"nice try\")");
+        console.log("  family-cap        = the same nicety repeated past the per-message cap");
+      }
+      console.log("\n  Argue with any of it:  swear-jar check \"<the exact text>\"");
       break;
     }
     case "custom": {
