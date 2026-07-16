@@ -1,0 +1,389 @@
+{
+  "enabled": true,
+  "mode": "warn",
+  "branchesScanned": 0,
+  "recentLandsScanned": 70,
+  "pairsScored": 2415,
+  "collisions": [
+    {
+      "a": "land:1272ed49cd",
+      "b": "land:aac18c1c34",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.728,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.32,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.32"
+      ]
+    },
+    {
+      "a": "land:1272ed49cd",
+      "b": "land:5b844cb4ce",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6545,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.1364,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.14"
+      ]
+    },
+    {
+      "a": "land:fa28866444",
+      "b": "land:68e713f9df",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6421,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.1053,
+      "sharedFiles": [
+        "test/pack.test.mjs"
+      ],
+      "sharedAreas": [
+        "test/pack.test.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): test/pack.test.mjs",
+        "shared area(s): test/pack.test.mjs",
+        "goal similarity 0.11"
+      ]
+    },
+    {
+      "a": "land:aac18c1c34",
+      "b": "land:5b844cb4ce",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6414,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.1034,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.10"
+      ]
+    },
+    {
+      "a": "land:0cb3433943",
+      "b": "land:21206132f4",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6364,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.0909,
+      "sharedFiles": [
+        "README.md"
+      ],
+      "sharedAreas": [
+        "README.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): README.md",
+        "shared area(s): README.md",
+        "goal similarity 0.09"
+      ]
+    },
+    {
+      "a": "land:5b844cb4ce",
+      "b": "land:5c947c2bce",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6348,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.087,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.09"
+      ]
+    },
+    {
+      "a": "land:a61e630815",
+      "b": "land:5695a2ea14",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.625,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.0625,
+      "sharedFiles": [
+        ".gitignore"
+      ],
+      "sharedAreas": [
+        ".gitignore"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): .gitignore",
+        "shared area(s): .gitignore",
+        "goal similarity 0.06"
+      ]
+    },
+    {
+      "a": "land:6b57df139b",
+      "b": "land:1585d9b4c4",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6222,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.0556,
+      "sharedFiles": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedAreas": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "2 shared file(s): src/scan.mjs, test/scan.test.mjs",
+        "shared area(s): src/scan.mjs, test/scan.test.mjs",
+        "goal similarity 0.06"
+      ]
+    },
+    {
+      "a": "land:1272ed49cd",
+      "b": "land:5c947c2bce",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.616,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.04,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.04"
+      ]
+    },
+    {
+      "a": "land:aac18c1c34",
+      "b": "land:5c947c2bce",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.6125,
+      "surfaceScore": 1,
+      "goalSimilarity": 0.0313,
+      "sharedFiles": [
+        "SPEC.md"
+      ],
+      "sharedAreas": [
+        "SPEC.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): SPEC.md",
+        "shared area(s): SPEC.md",
+        "goal similarity 0.03"
+      ]
+    },
+    {
+      "a": "land:6b57df139b",
+      "b": "land:14574d21bf",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.4753,
+      "surfaceScore": 0.7088,
+      "goalSimilarity": 0.125,
+      "sharedFiles": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedAreas": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "2 shared file(s): src/scan.mjs, test/scan.test.mjs",
+        "shared area(s): src/scan.mjs, test/scan.test.mjs",
+        "goal similarity 0.13"
+      ]
+    },
+    {
+      "a": "land:e3816a7c69",
+      "b": "land:d102c6eba9",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.4747,
+      "surfaceScore": 0.4835,
+      "goalSimilarity": 0.4615,
+      "sharedFiles": [
+        "assets/report_template.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "docs/submit.html",
+        "test/browser-scan.test.mjs",
+        "web/README.md",
+        "web/app.html",
+        "web/browser-scan.mjs"
+      ],
+      "sharedAreas": [
+        "assets/report_template.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "docs/submit.html",
+        "test/browser-scan.test.mjs",
+        "web/README.md",
+        "web/app.html",
+        "web/browser-scan.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "8 shared file(s): assets/report_template.html, docs/demo.html, docs/index.html, docs/submit.html, test/browser-scan.test.mjs, …",
+        "shared area(s): assets/report_template.html, docs/demo.html, docs/index.html, docs/submit.html",
+        "goal similarity 0.46"
+      ]
+    },
+    {
+      "a": "land:14574d21bf",
+      "b": "land:1585d9b4c4",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.4674,
+      "surfaceScore": 0.7088,
+      "goalSimilarity": 0.1053,
+      "sharedFiles": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedAreas": [
+        "src/scan.mjs",
+        "test/scan.test.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "2 shared file(s): src/scan.mjs, test/scan.test.mjs",
+        "shared area(s): src/scan.mjs, test/scan.test.mjs",
+        "goal similarity 0.11"
+      ]
+    },
+    {
+      "a": "land:9d7c36b395",
+      "b": "land:05865ed438",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.435,
+      "surfaceScore": 0.6465,
+      "goalSimilarity": 0.1176,
+      "sharedFiles": [
+        "src/detect.mjs",
+        "test/detect.test.mjs"
+      ],
+      "sharedAreas": [
+        "src/detect.mjs",
+        "test/detect.test.mjs"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "2 shared file(s): src/detect.mjs, test/detect.test.mjs",
+        "shared area(s): src/detect.mjs, test/detect.test.mjs",
+        "goal similarity 0.12"
+      ]
+    },
+    {
+      "a": "land:b294c2601f",
+      "b": "land:21206132f4",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.4309,
+      "surfaceScore": 0.5181,
+      "goalSimilarity": 0.3,
+      "sharedFiles": [
+        "README.md"
+      ],
+      "sharedAreas": [
+        "README.md"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "1 shared file(s): README.md",
+        "shared area(s): README.md",
+        "goal similarity 0.30"
+      ]
+    },
+    {
+      "a": "land:d102c6eba9",
+      "b": "land:170de9d89e",
+      "aKind": "recent-land",
+      "bKind": "recent-land",
+      "collision": true,
+      "score": 0.4287,
+      "surfaceScore": 0.2903,
+      "goalSimilarity": 0.6364,
+      "sharedFiles": [
+        "assets/report_template.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "web/app.html"
+      ],
+      "sharedAreas": [
+        "assets/report_template.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "web/app.html"
+      ],
+      "sharedTickets": [],
+      "reasons": [
+        "4 shared file(s): assets/report_template.html, docs/demo.html, docs/index.html, web/app.html",
+        "shared area(s): assets/report_template.html, docs/demo.html, docs/index.html, web/app.html",
+        "goal similarity 0.64"
+      ]
+    }
+  ]
+}

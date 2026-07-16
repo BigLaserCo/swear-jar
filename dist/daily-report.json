@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-07-16",
+  "generatedAt": "2026-07-16T08:14:58.408Z",
+  "windowHours": 24,
+  "activity": {
+    "intentsWritten": 0,
+    "intentsImported": 0,
+    "enqueued": 0,
+    "dequeued": 0,
+    "mergeResults": 0,
+    "drains": 3,
+    "trainRuns": 0,
+    "greenRuns": 0,
+    "redRuns": 0,
+    "deadLetters": 0,
+    "quarantined": 0,
+    "redriven": 0,
+    "worktreeImports": 0,
+    "enqueueRefused": 0,
+    "backlogIntentsFiled": 0
+  },
+  "queue": {
+    "depth": 0,
+    "blockedCount": 0,
+    "blocked": []
+  },
+  "pendingIntents": {
+    "count": 0,
+    "staleCount": 0,
+    "agedCount": 0,
+    "entries": []
+  },
+  "alarms": {
+    "count": 0
+  },
+  "jam": {
+    "status": null,
+    "red": false
+  },
+  "strand": {
+    "status": "green",
+    "red": false,
+    "count": 0
+  },
+  "alarmTransport": "missing",
+  "gateManifest": null,
+  "lastRun": null,
+  "attention": true
+}

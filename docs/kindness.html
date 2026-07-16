@@ -175,6 +175,16 @@
     pointer-events:none;transition:opacity .25s,transform .25s;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* buy-me-a-coffee (karma pays nothing — the tip jar is still right here) */
+  .donate{background:linear-gradient(180deg,#F6EFDE,var(--section));border:1px solid var(--bcard);border-left:3px solid var(--accent);
+    border-radius:16px;padding:26px;text-align:center}
+  .donate h3{margin:0 0 8px;font:800 20px/1.1 var(--sans);letter-spacing:-.01em;color:var(--heading)}
+  .donate p{color:var(--muted);font-size:14px;max-width:54ch;margin:0 auto 18px}
+  .give{display:inline-flex;align-items:center;gap:9px;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:16px;
+    padding:13px 24px;border-radius:11px;text-decoration:none;transition:background .15s,transform .15s}
+  .give:hover{background:var(--accent-hover);transform:translateY(-2px)}
+  .donate .fine-note{margin-top:15px;font:400 11px/1.6 var(--mono);color:var(--faint)}
+
   footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--div);font:500 12px/1.7 var(--mono);color:var(--faint)}
   footer b{color:var(--muted);font-weight:600}
   footer div{margin-bottom:6px}
@@ -294,7 +304,7 @@
         <div class="wfoot">the machines remember who said please · swearjar.unfocused.ai</div>
       </div>
       <div class="share-actions">
-        <p>Post the card. It carries only aggregate numbers — credits, dollars earned back, and lexicon courtesies — never a sentence you said.</p>
+        <p>Post the card. It carries only aggregate numbers — karma points and lexicon courtesies — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the kindness card</button>
           <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
@@ -305,6 +315,16 @@
         <a class="btn" id="downloadDamageCard" href="#" download="swear-jar-card.svg">🔥 &nbsp;Save the damage card too</a>
         <div class="subtle">Your cards are generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
       </div>
+    </div>
+  </section>
+
+  <!-- the coffee question (hidden unless a donate URL is configured) -->
+  <section class="sec" id="coffee-sec">
+    <div class="donate">
+      <h3>☕ Would you still like to buy me a coffee anyway?</h3>
+      <p id="coffee-copy"></p>
+      <a class="give" id="coffee-btn" href="#" target="_blank" rel="noopener">Buy the coffee →</a>
+      <div class="fine-note">Karma stays free. The coffee is optional, appreciated, and buys you nothing either.</div>
     </div>
   </section>
 
@@ -351,13 +371,13 @@ const why=r=>{const[k,d]=String(r).split(':');const base=WHY[k]||k.replace(/[-_]
   wave.innerHTML=h;
 })();
 $('heronum').textContent=fmt(S.kindnessCredits);
-$('herolead').innerHTML=`kindness credits — <b>${usd(S.kindnessDollars)}</b> earned back off the jar.`;
+$('herolead').innerHTML=`karma points. redeemable for <b>absolutely nothing</b> — attaboy.`;
 $('heroseal').textContent=S.kind?'⭐ GOLD STAR':'🪙 STILL IN DEBT';
 $('herobody').innerHTML=S.kind
   ? `More nice things than swears. <b>Who ARE you?</b> The machines have noted your <b>${fmt(S.kindActs)}</b> kind act${S.kindActs===1?'':'s'} and will remember them fondly.`
   : `You said <b>${fmt(S.kindActs)}</b> nice thing${S.kindActs===1?'':'s'} against <b>${fmt(S.userSwears)}</b> swears — roughly one act of grace per <b>${S.kindActs?Math.max(1,Math.round(S.userSwears/S.kindActs)):'∞'}</b> curses. The gold star remains, for now, aspirational.`;
 $('meta').innerHTML=`<span><b>${fmt(S.kindActs)}</b> kind acts</span>`+
-  `<span><b>${fmt(S.kindnessCredits)}</b> credits</span>`+
+  `<span><b>${fmt(S.kindnessCredits)}</b> karma points</span>`+
   `<span><b>${fdate(S.firstTs)} – ${fdate(S.lastTs)}</b></span>`+
   `<span class="loc">nothing uploaded</span>`;
 
@@ -462,7 +482,7 @@ $('kpis').innerHTML=[
   $('wmini').innerHTML=h;
   $('wseal').textContent=S.kind?'⭐ GOLD STAR':'ON RECORD';
   $('wnum').textContent=fmt(S.kindnessCredits);
-  $('wsub').innerHTML=`kindness credits — <b>${usd(S.kindnessDollars)}</b> earned back.`;
+  $('wsub').innerHTML=`karma points — worth <b>exactly nothing</b>. good for you.`;
   $('wstats').innerHTML=[
     [favKind?favKind.word:'—','favourite courtesy'],
     [fmt(S.kindActs),'kind acts'],
@@ -473,24 +493,33 @@ $('kpis').innerHTML=[
 // ---- share actions ----
 const kindCaption=
   `the kindness report 🫙⭐\n`+
-  `${fmt(S.kindnessCredits)} kindness credits · ${usd0(S.kindnessDollars)} earned back off the jar\n`+
+  `${fmt(S.kindnessCredits)} karma points · redeemable for absolutely nothing\n`+
   `favourite courtesy "${favKind?favKind.word:'—'}" · +${(S.odds&&S.odds.kindnessBonus)||0} robot-uprising survival points\n`+
   `the machines remember who said please · swearjar.unfocused.ai`;
 
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(kindCaption).then(()=>toast('Caption copied — go be smug')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
-const shareText=`My AI kindness report: ${fmt(S.kindnessCredits)} credits, ${usd0(S.kindnessDollars)} earned back off my swear jar. The machines remember who said please. #SwearJar`;
+const shareText=`My AI kindness report: ${fmt(S.kindnessCredits)} karma points, redeemable for absolutely nothing. The machines remember who said please. #SwearJar`;
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
 $('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
 $('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
+
+// ---- the coffee question (config-injected URL; hidden if unset) ----
+(function(){
+  const url=S.donate_url;
+  if(!url){document.getElementById('coffee-sec').style.display='none';return;}
+  $('coffee-copy').innerHTML=`Your <b>${fmt(S.kindnessCredits)}</b> karma points are worth exactly $0. `+
+    `Good for you. Attaboy. You get jack for them. That said — the jar takes coffee.`;
+  $('coffee-btn').href=url;
+})();
 
 /*__CARD_SVG_START__*/
 function cardSvg(d, variant) {
   const num = (n) => Number(n || 0).toLocaleString("en-US");
   const usd0 = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
   if (variant === "kindness") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.credits)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">kindness credits · ${usd0(d.dollarsBack)} earned back off the jar</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.credits)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">karma points · redeemable for absolutely nothing</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.coins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd0(d.dollars)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favLabel || "—"} · ${Number(d.fbombPct) || 0}% f-bombs · ${num(d.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
 }
@@ -501,7 +530,7 @@ const fav=S.topWords&&S.topWords[0];
 const grovelCredits=(S.topPositives||[]).filter(p=>p.tier==='grovel').reduce((n,p)=>n+p.credits,0);
 const CARD={
   coins:S.totalCoins,dollars:S.dollarsOwed,favLabel:fav?censor(fav.word):'—',fbombPct:S.fbombPct,vocab:S.vocab,
-  credits:S.kindnessCredits,dollarsBack:S.kindnessDollars,favKindLabel:favKind?favKind.word:'—',
+  credits:S.kindnessCredits,favKindLabel:favKind?favKind.word:'—',
   grovelPct:S.kindnessCredits?Math.round(100*grovelCredits/S.kindnessCredits):0,
   kindVocab:(S.topPositives||[]).length,
 };

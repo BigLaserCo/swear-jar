@@ -97,7 +97,8 @@ async function main() {
             `\n  Transcripts:         ${r.transcripts}` +
             (r.codex ? `\n  Codex rollouts:      ${r.codex.files}` : "") +
             `\n  Jar balance:         ${dollars(s.dollarsOwed)}  (${s.totalCoins} damage points)` +
-            `\n  Kindness credits:    ${s.kindnessCredits}  (${s.kindActs} nice thing(s), ${dollars(s.kindnessDollars)} off)`
+            `
+  Karma points:        ${s.kindnessCredits}  (${s.kindActs} nice thing(s) — redeemable for nothing)`
         );
         break;
       }
@@ -348,8 +349,8 @@ async function main() {
       console.log(`  Nice things said:    ${s.kindActs}`);
       console.log(`  Swears (yours):      ${s.userSwears}`);
       console.log(`  Kindness credits:    ${s.kindnessCredits}`);
-      console.log(`  Off the jar:         ${dollars(s.kindnessDollars)}  (of ${dollars(s.dollarsOwed)} owed)`);
-      console.log(`  You actually owe:    ${dollars(Math.max(0, s.netDollars))}`);
+      console.log(`  Karma value:         $0.00 (karma is priceless and also worthless)`);
+      console.log(`  You still owe:       ${dollars(s.dollarsOwed)} (kindness does not discount the jar)`);
       console.log(`  Uprising odds:       ${s.odds.value}%  (+${s.odds.kindnessBonus} of that bought with kindness)`);
       console.log(`  Qualifies as kind:   ${s.kind ? "yes — more kind than sworn" : "no (say more nice things than swears)"}`);
       if (s.topPositives.length) {

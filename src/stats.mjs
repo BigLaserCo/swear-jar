@@ -365,7 +365,7 @@ export function computeStats(records = [], now = Date.now()) {
     // Kindness credits — the jar's counterweight (the design reads these).
     kindActs: o.kindActs, // positive INSTANCES (the verdict's unit)
     kindnessCredits: o.kindnessCredits, // tier-weighted credits (the odds' unit)
-    kindnessDollars: Math.round(kindnessDollars * 100) / 100, // earned back off the jar
+    kindnessDollars: Math.round(kindnessDollars * 100) / 100, // data only — NEVER shown as money back (Jim: karma, not credit)
     netDollars: Math.round((totalDollars - kindnessDollars) * 100) / 100,
     kind: o.kind, // qualifies as kind: more kind acts than swears
     topPositives, // [{word,count,tier,credits}] — credited, by family

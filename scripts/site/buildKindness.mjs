@@ -259,7 +259,7 @@ function main() {
   const rel = path.relative(ROOT, OUT);
   console.log(`kindness sample built → ${rel}`);
   console.log(
-    `  ${records.length} synthetic records · ${stats.kindActs} kind acts · ${stats.kindnessCredits} credits · $${stats.kindnessDollars} back · kind=${stats.kind}`
+    `  ${records.length} synthetic records · ${stats.kindActs} kind acts · ${stats.kindnessCredits} karma points · kind=${stats.kind}`
   );
 }
 

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-07-16T08:14:58.529Z",
+  "status": "green",
+  "ok": true,
+  "policy": {
+    "minReleaseAgeHours": 24,
+    "maxReleaseAgeHours": 168,
+    "reverifyReleaseWindow": 3,
+    "unitTestTimeOnFinding": true,
+    "noHumanHoldFallback": true
+  },
+  "summary": {
+    "releaseReportCount": 0,
+    "eligibleReleaseCount": 0,
+    "checkedTicketCount": 0,
+    "findingCount": 0,
+    "unitTestRequiredCount": 0,
+    "regressedFixCount": 0,
+    "durablyConfirmedFixCount": 0,
+    "liveProbeFindingCount": 0,
+    "liveProbeFailingCount": 0,
+    "liveProbeChecked": 0
+  },
+  "releases": [],
+  "liveProbe": null,
+  "findings": []
+}

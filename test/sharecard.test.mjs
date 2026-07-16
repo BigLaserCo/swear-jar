@@ -37,12 +37,14 @@ test("damage card renders the aggregate numbers, whole dollars only", () => {
   assert.ok(!svg.includes("fuck"), "no raw swear leaks");
 });
 
-test("kindness card renders credits + earned-back, whole dollars only", () => {
+test("kindness card is karma-only: points, NEVER money (Jim red-alert 2026-07-16)", () => {
   const svg = cardSvg(D, "kindness");
   assert.ok(svg.includes("the kindness report"), "kindness heading");
-  assert.ok(svg.includes("252"), "credits");
-  assert.ok(svg.includes("$63"), "earned back rounded whole");
-  assert.ok(!/\$\d+\.\d/.test(svg), "no decimal dollars anywhere");
+  assert.ok(svg.includes("252"), "karma points");
+  assert.ok(svg.includes("karma points"), "karma framing");
+  assert.ok(svg.includes("redeemable for absolutely nothing"), "worth nothing, explicitly");
+  assert.ok(!svg.includes("$"), "NO dollar sign anywhere on the kindness card — karma is not money");
+  assert.ok(!/earned back|owed|off the jar/i.test(svg), "no money-back language");
   assert.ok(svg.includes("please"), "favourite courtesy (lexicon constant)");
   assert.ok(svg.includes("#FBF7EC"), "paper background");
   assert.ok(svg.includes("#F5C542"), "gold top bar");
@@ -77,6 +79,7 @@ test("cardData maps stats to display fields with censoring + grovel share", () =
   assert.equal(d.favKindLabel, "please");
   assert.equal(d.grovelPct, 50); // 4 of 8 credits
   assert.equal(d.kindVocab, 2);
+  assert.ok(!("dollarsBack" in d), "karma only — no money field on the kindness side");
 });
 
 // ── parity: every surface's inlined generator must byte-match the canonical ──
