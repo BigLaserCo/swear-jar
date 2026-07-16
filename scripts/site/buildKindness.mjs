@@ -219,9 +219,9 @@ function injectBanner(html) {
 
 const DEMO_TITLE = "Swear Jar — the kindness report (sample)";
 const DEMO_DESC =
-  "A clearly labeled sample Kindness Report — side B of the Swear Jar damage report, " +
-  "built from invented data. Every please and thank-you credited against the jar, " +
-  "with robot-uprising survival points bought back by manners. 100% local, zero network.";
+  "A clearly labeled sample Kindness Report — how nice are you to your AI? Every please " +
+  "and thank-you counted as karma points (worth nothing), plus your odds of surviving the " +
+  "AI uprising, boosted by manners. Built from invented data. 100% local, zero network.";
 const DEMO_CANON = "https://swearjar.unfocused.ai/kindness.html";
 const DEMO_SEO = `<link rel="canonical" href="${DEMO_CANON}">
 <meta name="description" content="${DEMO_DESC}">
