@@ -356,7 +356,10 @@
 
   // ── censor-by-default ────────────────────────────────────────────────────
   let CENSOR = true;
-  const sww = (w) => `<span class="sww" data-w="${w}">${w}</span>`;
+  // Renders ALREADY CENSORED (CENSOR starts true) — paintCensor() only handles
+  // TOGGLING. "Censored by default" is therefore a property of the markup: if
+  // anything later throws, no raw word was ever written into the DOM.
+  const sww = (w) => `<span class="sww" data-w="${w}">${CENSOR ? censor(w) : w}</span>`;
   function paintCensor() {
     document.querySelectorAll(".sww").forEach((el) => {
       el.textContent = CENSOR ? censor(el.dataset.w) : el.dataset.w;

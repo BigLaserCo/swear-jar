@@ -44,6 +44,30 @@ test("wrapped --submit builds a URL with censored top word + provenance, no raw 
   assert.equal(q.get("release_hash")?.length >= 7, true);
 });
 
+// The URL builder was extracted to src/hosted.mjs (hostedSubmitUrl) so the CLI
+// and the report's "Get on the board" button emit the SAME link. This pins that:
+// what the CLI prints must be byte-identical to what the shared builder returns.
+test("wrapped --submit prints exactly what hostedSubmitUrl() builds (one builder, two callers)", async () => {
+  const home = seededHome();
+  const printed = run(home, ["wrapped", "--submit"])
+    .split("\n")
+    .find((l) => l.includes("https://example.test/submit"))
+    .trim();
+
+  const prevHome = process.env.SWEAR_JAR_HOME;
+  process.env.SWEAR_JAR_HOME = home;
+  try {
+    const { loadRecords } = await import("../src/ledger.mjs");
+    const { computeStats } = await import("../src/stats.mjs");
+    const { hostedSubmitUrl } = await import("../src/hosted.mjs");
+    const built = hostedSubmitUrl(computeStats(loadRecords()), { base: "https://example.test/submit" });
+    assert.equal(printed, built, "the CLI prints the shared builder's URL verbatim");
+  } finally {
+    if (prevHome === undefined) delete process.env.SWEAR_JAR_HOME;
+    else process.env.SWEAR_JAR_HOME = prevHome;
+  }
+});
+
 test("verify-ledger reports intact on an untampered ledger, breaks on a hand-edit", () => {
   const home = seededHome();
   // seeded ledger has no hash chain (legacy) -> intact

@@ -8,6 +8,7 @@ import { renderDashboard, writeDashboard } from "../src/dashboard.mjs";
 import { computeStats } from "../src/stats.mjs";
 import { survivalOdds } from "../src/odds.mjs";
 import { DONATE_URL } from "../src/donate.mjs";
+import { APP_VERSION } from "../src/version.mjs";
 
 const NOW = Date.parse("2026-07-09T12:00:00Z");
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -130,6 +131,55 @@ test("gold-star state is driven by the goldStar flag in the payload, and the ban
   assert.ok(on.includes('"goldStar":true'), "goldStar:true when manners beat swears");
   // the banner element is present in the template either way (JS toggles .on)
   assert.ok(on.includes('id="goldstar"'), "gold-star banner element ships in the template");
+});
+
+// ── the version stamp: what makes a stale report identifiable ────────────────
+test("every payload is stamped with the app version (a report names the build that wrote it)", () => {
+  const html = render();
+  assert.ok(html.includes(`"app_version":${JSON.stringify(APP_VERSION)}`), "app_version stamped into the payload");
+  // A report.html on disk with no stamp predates the stamp — i.e. it is known
+  // stale (it may have been written before the censor spans existed). Both CLI
+  // paths that put a report in front of a user rewrite it from the ledger first,
+  // so a stale file is replaced the next time either command runs.
+});
+
+// ── "get on the board": the email-verified leaderboard entry ─────────────────
+test("submit_url rides with the hosted lights button, and hides whenever it does", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "swearjar-board-"));
+  try {
+    const def = fs.readFileSync(writeDashboard(FIXTURE, { now: NOW, outPath: path.join(dir, "a.html") }), "utf8");
+    assert.match(def, /"submit_url":"https:\/\/swearjar\.unfocused\.ai\/submit\.html\?/, "default carries the board link");
+    assert.ok(def.includes('"hosted_wrapped_url"'), "…alongside the lights button");
+    // --local / SWEAR_JAR_LOCAL_ONLY: no hosted URL of ANY kind is put in front of the user
+    const loc = fs.readFileSync(writeDashboard(FIXTURE, { now: NOW, outPath: path.join(dir, "b.html"), localOnly: true }), "utf8");
+    assert.ok(!loc.includes('"submit_url"'), "local-only omits the board link");
+    assert.ok(!loc.includes('"hosted_wrapped_url"'), "local-only omits the lights button");
+    // an empty jar has nothing to put on the board
+    const empty = fs.readFileSync(writeDashboard([], { now: NOW, outPath: path.join(dir, "c.html") }), "utf8");
+    assert.ok(!empty.includes('"submit_url"'), "an empty ledger omits the board link");
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("renderDashboard injects submit_url only when it is handed one", () => {
+  const URL_ = "https://example.test/submit.html?total_coins=5";
+  const on = renderDashboard(computeStats(FIXTURE, NOW), { submitUrl: URL_ });
+  assert.ok(on.includes(`"submit_url":${JSON.stringify(URL_)}`), "submit URL injected as data");
+  const off = renderDashboard(computeStats(FIXTURE, NOW), {});
+  assert.ok(!off.includes('"submit_url"'), "no submit URL by default in renderDashboard");
+});
+
+test("the board button ships in the template, opens in a new tab, and sets honest expectations", () => {
+  const html = render();
+  assert.ok(html.includes('id="board-btn"'), "board button element ships in the template");
+  assert.match(html, /id="board-btn"[^>]*target="_blank"[^>]*rel="noopener"/, "opens in a new tab, rel=noopener");
+  assert.match(html, /id="board-note"[^>]*>[^<]*email-verified/i, "names the email-verified, aggregate-only terms");
+  // it is an <a href> the human clicks — the page still requests nothing on load
+  assert.ok(
+    !/\bfetch\s*\(|XMLHttpRequest|sendBeacon|new\s+WebSocket|new\s+EventSource/.test(html),
+    "no scripted network calls"
+  );
 });
 
 test("dashboard never opens a browser (no open/spawn in source)", () => {

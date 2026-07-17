@@ -13,8 +13,10 @@ import assert from "node:assert/strict";
 
 import {
   HOSTED_BASE,
+  SUBMIT_BASE_DEFAULT,
   buildWrappedPayload,
   hostedWrappedUrl,
+  hostedSubmitUrl,
   resolveClosing,
   disclosureLine,
 } from "../src/hosted.mjs";
@@ -26,6 +28,7 @@ import {
 } from "../funnel/schema.mjs";
 import { computeStats } from "../src/stats.mjs";
 import { detect } from "../src/detect.mjs";
+import { APP_VERSION } from "../src/version.mjs";
 
 // ── a fixture salted with things that MUST NOT travel ─────────────────────────
 const SENTINEL_PROJECT = "top-secret-startup";
@@ -218,6 +221,78 @@ test("resolveClosing: hosted by default, local escapes, non-TTY prints both", ()
   assert.deepEqual(m({ canOpen: false }), { mode: "print", hostedApplicable: true });
   assert.deepEqual(m({ canOpen: false, localOnly: true }), { mode: "print", hostedApplicable: false });
   assert.deepEqual(m({ canOpen: false, ledgerEmpty: true }), { mode: "print", hostedApplicable: false });
+});
+
+// ── the leaderboard submit URL (the report's "get on the board" button) ───────
+// Extracted from bin/swear-jar.mjs so the CLI (`wrapped --submit`) and the report
+// button emit the SAME link. Like every other URL here it is PURE string work:
+// it builds a link, it never submits — the user opens it and verifies their email
+// on the page.
+const SUBMIT_KEYS = [
+  "active_days",
+  "app_version",
+  "dollars",
+  "fbomb_pct",
+  "release_hash",
+  "swears_per_day",
+  "top_word",
+  "total_coins",
+];
+const withSubmitEnv = (value, fn) => {
+  const prev = process.env.SWEAR_JAR_SUBMIT_URL;
+  if (value === undefined) delete process.env.SWEAR_JAR_SUBMIT_URL;
+  else process.env.SWEAR_JAR_SUBMIT_URL = value;
+  try {
+    return fn();
+  } finally {
+    if (prev === undefined) delete process.env.SWEAR_JAR_SUBMIT_URL;
+    else process.env.SWEAR_JAR_SUBMIT_URL = prev;
+  }
+};
+
+test("hostedSubmitUrl pre-fills exactly the aggregate numbers + provenance", () => {
+  const url = hostedSubmitUrl(statsFor(fixture()), { base: "https://example.test/submit.html" });
+  assert.ok(url.startsWith("https://example.test/submit.html?"), "starts at the submit base");
+  const q = new URL(url).searchParams;
+  assert.deepEqual([...q.keys()].sort(), SUBMIT_KEYS, "exactly the pre-fill field set — nothing else");
+  assert.equal(q.get("total_coins"), "17");
+  assert.equal(q.get("app_version"), APP_VERSION);
+  assert.ok((q.get("release_hash") || "").length >= 7, "carries the release hash for provenance");
+  assert.equal(q.get("agent"), null, "agent type is intentionally not public");
+});
+
+test("the submit URL censors the top word and carries no project, cwd, session or raw text", () => {
+  const url = hostedSubmitUrl(statsFor(fixture()), { base: "https://example.test/submit.html" });
+  assert.equal(new URL(url).searchParams.get("top_word"), "f**k", "censored, never the raw word");
+  for (const secret of [SENTINEL_PROJECT, SENTINEL_CWD, SENTINEL_SESSION, "hunter2", "muppet", "password"]) {
+    assert.ok(!url.includes(secret), `URL must not contain "${secret}"`);
+  }
+  assert.ok(!url.includes("fuck"), "no uncensored swear in the URL");
+});
+
+test("an empty jar still builds a valid submit URL (no top word)", () => {
+  const url = hostedSubmitUrl(
+    { totalCoins: 0, dollarsOwed: 0, swearsPerDay: 0, fbombPct: 0, activeDays: 0, topWords: [] },
+    { base: "https://example.test/submit.html" }
+  );
+  assert.equal(new URL(url).searchParams.get("top_word"), "—");
+  assert.equal(new URL(url).searchParams.get("total_coins"), "0");
+});
+
+test("the submit base defaults to the hosted page and SWEAR_JAR_SUBMIT_URL overrides it at call time", () => {
+  const stats = statsFor(fixture());
+  assert.equal(SUBMIT_BASE_DEFAULT, "https://swearjar.unfocused.ai/submit.html");
+  withSubmitEnv(undefined, () => {
+    assert.ok(hostedSubmitUrl(stats).startsWith(SUBMIT_BASE_DEFAULT + "?"), "defaults to the hosted submit page");
+  });
+  // read at CALL time, not at import — a fork/test can override after load
+  withSubmitEnv("https://fork.test/s.html", () => {
+    assert.ok(hostedSubmitUrl(stats).startsWith("https://fork.test/s.html?"), "env overrides the base");
+  });
+  // an explicit base beats the env
+  withSubmitEnv("https://fork.test/s.html", () => {
+    assert.ok(hostedSubmitUrl(stats, { base: "https://arg.test/x" }).startsWith("https://arg.test/x?"), "opts.base wins");
+  });
 });
 
 // ── the disclosure line names every field before we open ──────────────────────

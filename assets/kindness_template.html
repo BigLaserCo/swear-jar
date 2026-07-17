@@ -303,13 +303,14 @@
         <p>Post the card. It carries only aggregate numbers — karma points and lexicon courtesies — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the kindness card</button>
-          <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
-          <button class="btn" id="shareLinkedIn">in &nbsp;Post to LinkedIn</button>
+          <button class="btn" id="shareX">𝕏 &nbsp;Copy card &amp; open X</button>
+          <button class="btn" id="shareLinkedIn">in &nbsp;Copy card &amp; open LinkedIn</button>
           <button class="btn" id="cp">📋 &nbsp;Copy caption</button>
         </div>
-        <a class="btn" id="downloadCard" href="#" download="swear-jar-kindness-card.svg">⬇️ &nbsp;Save the kindness card</a>
+        <a class="btn" id="downloadCardPng" href="#">🖼️ &nbsp;Save the kindness card (PNG)</a>
+        <a class="btn" id="downloadCard" href="#" download="swear-jar-kindness-card.svg">⬇️ &nbsp;Save the kindness card (SVG)</a>
         <a class="btn" id="downloadDamageCard" href="#" download="swear-jar-card.svg">🔥 &nbsp;Save the damage card too</a>
-        <div class="subtle">Your cards are generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
+        <div class="subtle">Your cards are drawn here, in this page, and turned into a PNG on this machine. &ldquo;Share the kindness card&rdquo; hands that image to your share sheet, or copies it to your clipboard. X and LinkedIn cannot accept an attachment from a link, so the card is copied for you to paste into the post yourself. Nothing is uploaded and nothing is sent automatically.</div>
       </div>
     </div>
   </section>
@@ -502,8 +503,8 @@ $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(kindCapti
 const shareText=`My AI kindness report: I said ${fmt(S.kindActs)} nice things to my AI (${fmt(S.kindnessCredits)} karma points, worth nothing) and I'm ${(S.odds?(S.odds.royalty?'ROYALTY':S.odds.value+'%'):'—')} likely to survive the uprising. #SwearJar`;
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
-$('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
-$('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
+// NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
+// exist — what gets shared is the generated CARD, never a URL standing in for it.
 
 // ---- the coffee question (config-injected URL; hidden if unset) ----
 (function(){
@@ -538,16 +539,87 @@ const kindBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'});
 const dmgBlob=()=>new Blob([cardSvg(CARD,'damage')],{type:'image/svg+xml'});
 $('downloadCard').href=URL.createObjectURL(kindBlob());
 $('downloadDamageCard').href=URL.createObjectURL(dmgBlob());
-$('shareNative').onclick=async()=>{
-  const file=new File([kindBlob()],'swear-jar-kindness-card.svg',{type:'image/svg+xml'});
-  if(navigator.share){
-    try{
-      const data={title:'My AI kindness report',text:shareText,url:shareUrl};
-      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
-      await navigator.share(data); toast('Share sheet opened — your call');
-    }catch(e){if(e&&e.name!=='AbortError')toast('Share sheet unavailable — choose a social button');}
-  }else toast('Choose X or LinkedIn below to share');
+
+// ---- the card, as a PNG: the thing that actually travels ----
+// Web Share Level 2 rejects image/svg+xml on every platform, so attaching an SVG
+// File silently drops it and the share degrades to a bare link — the card never
+// goes anywhere. Rasterizing to PNG first is what makes the CARD itself
+// shareable. Pure browser APIs: Blob -> Image -> offscreen canvas -> toBlob. No
+// network, no library. The SVG handed in is the already-censored one (CARD.favLabel
+// went through censor()), so the PNG inherits that guarantee unchanged.
+const CARD_W=1200,CARD_H=675,CARD_SCALE=2;   // 2x = crisp on retina
+function svgToPngBlob(svg){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas');
+        c.width=CARD_W*CARD_SCALE;c.height=CARD_H*CARD_SCALE;
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(b=>b?resolve(b):reject(new Error('toBlob returned nothing')),'image/png');
+      }catch(err){URL.revokeObjectURL(url);reject(err);}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('card image failed to rasterize'));};
+    img.src=url;
+  });
+}
+const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD,'kindness'));
+
+// Best-effort by design: an unsupported browser or a denied permission returns
+// false so the caller tells the user the truth instead of claiming the image
+// went somewhere it didn't.
+async function copyPngToClipboard(blob){
+  if(!(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem))return false;
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);return true;}
+  catch(e){return false;}
+}
+function savePng(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+$('downloadCardPng').onclick=async(e)=>{
+  e.preventDefault();
+  try{savePng(await cardPngBlob(),'swear-jar-kindness-card.png');}
+  catch(err){toast('PNG export failed — the SVG save still works');}
 };
+
+// The generated CARD travels — never a URL standing in for it. Order: the native
+// share sheet with the PNG attached (Instagram, Messages, AirDrop all live behind
+// this one sheet — there is no Instagram web intent, so this IS the Instagram
+// path), then the clipboard, then a download. Each step says what actually happened.
+$('shareNative').onclick=async()=>{
+  let blob;
+  try{blob=await cardPngBlob();}
+  catch(e){toast('Could not build the card image — use “Save the kindness card” below');return;}
+  const file=new File([blob],'swear-jar-kindness-card.png',{type:'image/png'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],text:shareText});toast('Share sheet opened — the card goes with it');return;}
+    catch(e){if(e&&e.name==='AbortError')return;}   // user dismissed it; anything else falls through
+  }
+  if(await copyPngToClipboard(blob)){toast('Card image copied — paste it anywhere');return;}
+  savePng(blob,'swear-jar-kindness-card.png');
+  toast('Card image saved — attach it to your post');
+};
+
+// No web intent can attach an image — not X's, not LinkedIn's. So the honest flow
+// is: put the card on the clipboard FIRST, then open the composer for the user to
+// paste it. The intent carries the caption (X) / the homepage (LinkedIn's endpoint
+// requires a url param) — that link is attribution, NOT the card, and the copy
+// never claims the card was posted for you.
+async function shareToComposer(intentUrl,network){
+  let copied=false;
+  try{copied=await copyPngToClipboard(await cardPngBlob());}catch(e){copied=false;}
+  toast(copied
+    ?`Card image copied — paste it into your ${network} post`
+    :`Save the card below, then attach it to your ${network} post`);
+  openSocial(intentUrl);
+}
+$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl),'X');
+$('shareLinkedIn').onclick=()=>shareToComposer('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl),'LinkedIn');
 </script>
 </body>
 </html>

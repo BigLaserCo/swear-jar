@@ -19,11 +19,18 @@ import {
   CAPS,
 } from "../funnel/schema.mjs";
 import { APP_VERSION, RELEASE_HASH } from "./version.mjs";
+import { censor } from "./detect.mjs";
 
 // Every hosted surface lives at swearjar.unfocused.ai (SPEC m3 §7). Override for
 // forks / a self-hosted mirror / tests via SWEAR_JAR_HOSTED_URL.
 export const HOSTED_BASE =
   process.env.SWEAR_JAR_HOSTED_URL || "https://swearjar.unfocused.ai/wrapped";
+
+// The leaderboard SUBMIT page — the email-verified, opt-in "get on the board"
+// moment. Distinct from HOSTED_BASE (the read-only wrapped view): submitting is
+// a deliberate act the user completes ON that page, never something the client
+// performs. Override for forks / tests via SWEAR_JAR_SUBMIT_URL.
+export const SUBMIT_BASE_DEFAULT = "https://swearjar.unfocused.ai/submit.html";
 
 // URLs must fit comfortably in any browser/proxy; the spec budgets ≤2KB and the
 // worst-case real payload is ~1.1KB. This is a hard assert, not a hope.
@@ -103,6 +110,30 @@ export function hostedWrappedUrl(stats, _records = [], opts = {}) {
     throw new Error(`hosted wrapped URL exceeds ${MAX_URL} chars (${url.length})`);
   }
   return url;
+}
+
+// stats -> the PRE-FILLED leaderboard submit URL. Pure string work: it builds a
+// link, it never submits — the user opens it, verifies their email, and confirms
+// on the page. Carries the same aggregate numbers the disclosure line names, with
+// the top word run through detect.mjs `censor()` ("fuck" -> "f**k") so no raw
+// swear ever reaches the wire, plus app_version/release_hash for provenance.
+//
+// The env var is read at CALL time (not at import) so a caller that sets
+// SWEAR_JAR_SUBMIT_URL after this module loads still gets its override.
+export function hostedSubmitUrl(stats, opts = {}) {
+  const base = opts.base || process.env.SWEAR_JAR_SUBMIT_URL || SUBMIT_BASE_DEFAULT;
+  const top = stats?.topWords?.[0] ? censor(stats.topWords[0].word) : "—";
+  const params = new URLSearchParams({
+    total_coins: String(stats.totalCoins),
+    dollars: String(stats.dollarsOwed),
+    swears_per_day: String(stats.swearsPerDay),
+    top_word: top,
+    fbomb_pct: String(stats.fbombPct),
+    active_days: String(stats.activeDays),
+    app_version: APP_VERSION,
+    release_hash: RELEASE_HASH,
+  });
+  return `${base}?${params.toString()}`;
 }
 
 // The host shown to the user (never a network lookup — just URL parsing).

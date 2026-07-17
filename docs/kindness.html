@@ -320,13 +320,14 @@
         <p>Post the card. It carries only aggregate numbers — karma points and lexicon courtesies — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the kindness card</button>
-          <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
-          <button class="btn" id="shareLinkedIn">in &nbsp;Post to LinkedIn</button>
+          <button class="btn" id="shareX">𝕏 &nbsp;Copy card &amp; open X</button>
+          <button class="btn" id="shareLinkedIn">in &nbsp;Copy card &amp; open LinkedIn</button>
           <button class="btn" id="cp">📋 &nbsp;Copy caption</button>
         </div>
-        <a class="btn" id="downloadCard" href="#" download="swear-jar-kindness-card.svg">⬇️ &nbsp;Save the kindness card</a>
+        <a class="btn" id="downloadCardPng" href="#">🖼️ &nbsp;Save the kindness card (PNG)</a>
+        <a class="btn" id="downloadCard" href="#" download="swear-jar-kindness-card.svg">⬇️ &nbsp;Save the kindness card (SVG)</a>
         <a class="btn" id="downloadDamageCard" href="#" download="swear-jar-card.svg">🔥 &nbsp;Save the damage card too</a>
-        <div class="subtle">Your cards are generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
+        <div class="subtle">Your cards are drawn here, in this page, and turned into a PNG on this machine. &ldquo;Share the kindness card&rdquo; hands that image to your share sheet, or copies it to your clipboard. X and LinkedIn cannot accept an attachment from a link, so the card is copied for you to paste into the post yourself. Nothing is uploaded and nothing is sent automatically.</div>
       </div>
     </div>
   </section>
@@ -353,7 +354,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":351,"totalRecords":400,"dollarsOwed":159.5,"userDollars":112,"machineDollars":47.5,"userCoins":241,"machineCoins":110,"userPct":69,"machinePct":31,"totalSwears":229,"userSwears":165,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":190,"kindnessCredits":252,"kindnessDollars":63,"netDollars":96.5,"kind":true,"topPositives":[{"word":"please","count":65,"tier":"courtesy","credits":65},{"word":"thanks","count":47,"tier":"courtesy","credits":47},{"word":"appreciate","count":16,"tier":"courtesy","credits":16},{"word":"good-job","count":13,"tier":"praise","credits":26},{"word":"looks-great","count":12,"tier":"praise","credits":24},{"word":"sorry","count":12,"tier":"courtesy","credits":12},{"word":"nailed-it","count":10,"tier":"praise","credits":20},{"word":"well-done","count":6,"tier":"praise","credits":12},{"word":"youre-a-genius","count":4,"tier":"grovel","credits":16},{"word":"standalone-praise","count":2,"tier":"praise","credits":4},{"word":"youre-the-best","count":2,"tier":"grovel","credits":8},{"word":"love-it","count":1,"tier":"praise","credits":2}],"rejects":[{"reason":"sarcasm:thanks-a-lot","count":13},{"reason":"sarcasm:thanks-for-nothing","count":5},{"reason":"sarcasm:oh-great","count":2}],"rejectedTotal":20,"kindByHour":[16,4,20,21,15,11,10,14,17,12,12,5,9,12,3,0,7,1,3,6,12,23,14,5],"kindByDow":[24,15,40,53,38,43,39],"kindDaySeries":[{"date":"2026-04-11","credits":3},{"date":"2026-04-12","credits":1},{"date":"2026-04-14","credits":2},{"date":"2026-04-15","credits":6},{"date":"2026-04-16","credits":4},{"date":"2026-04-17","credits":1},{"date":"2026-04-18","credits":2},{"date":"2026-04-19","credits":1},{"date":"2026-04-21","credits":1},{"date":"2026-04-22","credits":3},{"date":"2026-04-23","credits":6},{"date":"2026-04-24","credits":1},{"date":"2026-04-25","credits":6},{"date":"2026-04-26","credits":3},{"date":"2026-04-27","credits":5},{"date":"2026-04-28","credits":2},{"date":"2026-04-29","credits":6},{"date":"2026-04-30","credits":3},{"date":"2026-05-01","credits":2},{"date":"2026-05-02","credits":3},{"date":"2026-05-04","credits":1},{"date":"2026-05-05","credits":2},{"date":"2026-05-06","credits":4},{"date":"2026-05-07","credits":2},{"date":"2026-05-09","credits":6},{"date":"2026-05-10","credits":4},{"date":"2026-05-12","credits":1},{"date":"2026-05-13","credits":3},{"date":"2026-05-14","credits":2},{"date":"2026-05-15","credits":2},{"date":"2026-05-16","credits":1},{"date":"2026-05-18","credits":1},{"date":"2026-05-19","credits":5},{"date":"2026-05-20","credits":2},{"date":"2026-05-21","credits":6},{"date":"2026-05-22","credits":8},{"date":"2026-05-23","credits":2},{"date":"2026-05-24","credits":7},{"date":"2026-05-26","credits":2},{"date":"2026-05-27","credits":8},{"date":"2026-05-28","credits":3},{"date":"2026-05-29","credits":2},{"date":"2026-05-31","credits":4},{"date":"2026-06-01","credits":3},{"date":"2026-06-02","credits":4},{"date":"2026-06-03","credits":5},{"date":"2026-06-04","credits":1},{"date":"2026-06-05","credits":7},{"date":"2026-06-06","credits":2},{"date":"2026-06-07","credits":1},{"date":"2026-06-09","credits":5},{"date":"2026-06-10","credits":2},{"date":"2026-06-11","credits":3},{"date":"2026-06-12","credits":4},{"date":"2026-06-13","credits":2},{"date":"2026-06-14","credits":2},{"date":"2026-06-15","credits":1},{"date":"2026-06-16","credits":6},{"date":"2026-06-18","credits":2},{"date":"2026-06-19","credits":10},{"date":"2026-06-20","credits":1},{"date":"2026-06-21","credits":1},{"date":"2026-06-22","credits":4},{"date":"2026-06-23","credits":5},{"date":"2026-06-24","credits":6},{"date":"2026-06-25","credits":4},{"date":"2026-06-26","credits":5},{"date":"2026-06-27","credits":6},{"date":"2026-06-30","credits":3},{"date":"2026-07-01","credits":2},{"date":"2026-07-02","credits":2},{"date":"2026-07-03","credits":1},{"date":"2026-07-04","credits":5},{"date":"2026-07-07","credits":2},{"date":"2026-07-08","credits":6}],"bestKindDay":{"date":"2026-06-19","credits":10},"kindStreak":12,"firstThanksAvg":"8:17am","politeTotal":190,"goldStar":false,"swearsPerDay":1.9,"fbombPct":14,"signatureCombo":{"a":"damn","b":"hell","count":4},"spanDays":90,"cleanDaysPct":3,"byHour":[13,9,30,28,31,15,28,13,26,25,9,12,6,4,4,1,0,1,5,13,13,23,22,20],"byHourSwears":[9,4,20,20,22,10,16,6,19,13,6,8,5,4,3,1,0,1,5,8,9,15,15,10],"byHourRecords":[21,7,29,30,33,15,19,12,27,23,17,19,19,15,4,2,4,2,4,14,15,32,18,19],"byDow":[50,20,73,65,56,33,54],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":2,"label":"Tuesday","coins":73},"byProject":[{"project":"prod-hotfix-friday","coins":78},{"project":"death-star-plans","coins":67},{"project":"todo-app-v9","coins":54},{"project":"cursed-regex","coins":37},{"project":"legacy-jenga","coins":37},{"project":"quantum-blender","coins":36},{"project":"tax-bot-3000","coins":31},{"project":"my-startup-idea","coins":11}],"topWords":[{"word":"damn","count":69,"tier":"mild","coins":69},{"word":"shit","count":58,"tier":"standard","coins":116},{"word":"hell","count":42,"tier":"mild","coins":42},{"word":"fuck","count":32,"tier":"premium","coins":96},{"word":"crap","count":19,"tier":"mild","coins":19},{"word":"bloody","count":9,"tier":"mild","coins":9}],"vocab":6,"fbombs":32,"spicyPct":27,"daySeries":[{"date":"2026-04-10","coins":2},{"date":"2026-04-11","coins":3},{"date":"2026-04-12","coins":4},{"date":"2026-04-13","coins":3},{"date":"2026-04-14","coins":0},{"date":"2026-04-15","coins":12},{"date":"2026-04-16","coins":7},{"date":"2026-04-17","coins":1},{"date":"2026-04-18","coins":12},{"date":"2026-04-19","coins":7},{"date":"2026-04-20","coins":1},{"date":"2026-04-21","coins":4},{"date":"2026-04-22","coins":15},{"date":"2026-04-23","coins":6},{"date":"2026-04-24","coins":0},{"date":"2026-04-25","coins":3},{"date":"2026-04-26","coins":1},{"date":"2026-04-27","coins":4},{"date":"2026-04-28","coins":0},{"date":"2026-04-29","coins":5},{"date":"2026-04-30","coins":0},{"date":"2026-05-01","coins":2},{"date":"2026-05-02","coins":1},{"date":"2026-05-03","coins":4},{"date":"2026-05-04","coins":5},{"date":"2026-05-05","coins":7},{"date":"2026-05-06","coins":1},{"date":"2026-05-07","coins":1},{"date":"2026-05-08","coins":2},{"date":"2026-05-09","coins":6},{"date":"2026-05-10","coins":0},{"date":"2026-05-12","coins":2},{"date":"2026-05-13","coins":4},{"date":"2026-05-14","coins":11},{"date":"2026-05-15","coins":0},{"date":"2026-05-16","coins":1},{"date":"2026-05-17","coins":4},{"date":"2026-05-18","coins":1},{"date":"2026-05-19","coins":6},{"date":"2026-05-20","coins":0},{"date":"2026-05-21","coins":4},{"date":"2026-05-22","coins":4},{"date":"2026-05-23","coins":0},{"date":"2026-05-24","coins":11},{"date":"2026-05-25","coins":0},{"date":"2026-05-26","coins":6},{"date":"2026-05-27","coins":6},{"date":"2026-05-28","coins":10},{"date":"2026-05-29","coins":7},{"date":"2026-05-30","coins":3},{"date":"2026-05-31","coins":1},{"date":"2026-06-01","coins":2},{"date":"2026-06-02","coins":5},{"date":"2026-06-03","coins":2},{"date":"2026-06-04","coins":2},{"date":"2026-06-05","coins":3},{"date":"2026-06-06","coins":3},{"date":"2026-06-07","coins":4},{"date":"2026-06-09","coins":8},{"date":"2026-06-10","coins":3},{"date":"2026-06-11","coins":6},{"date":"2026-06-12","coins":0},{"date":"2026-06-13","coins":2},{"date":"2026-06-14","coins":5},{"date":"2026-06-15","coins":0},{"date":"2026-06-16","coins":11},{"date":"2026-06-17","coins":1},{"date":"2026-06-18","coins":3},{"date":"2026-06-19","coins":3},{"date":"2026-06-20","coins":0},{"date":"2026-06-21","coins":3},{"date":"2026-06-22","coins":4},{"date":"2026-06-23","coins":6},{"date":"2026-06-24","coins":6},{"date":"2026-06-25","coins":1},{"date":"2026-06-26","coins":3},{"date":"2026-06-27","coins":7},{"date":"2026-06-28","coins":0},{"date":"2026-06-30","coins":14},{"date":"2026-07-01","coins":4},{"date":"2026-07-02","coins":5},{"date":"2026-07-03","coins":6},{"date":"2026-07-04","coins":13},{"date":"2026-07-05","coins":6},{"date":"2026-07-06","coins":0},{"date":"2026-07-07","coins":4},{"date":"2026-07-08","coins":6}],"worstDay":{"date":"2026-04-22","coins":15},"longestStreak":9,"cleanStreakDays":1,"firstSwearAvg":"8:53am","firstTs":"2026-04-10T18:17:20.000Z","lastTs":"2026-07-08T22:38:33.000Z","activeDays":87,"coinsPerActiveDay":4,"odds":{"value":21.4,"royalty":false,"label":"promising battery candidate","user7d":14,"kindnessBonus":9.6},"rank":{"current":"Prod Incident Commander","next":{"name":"Rubber Duck Abuser","at":250}}};
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":351,"totalRecords":400,"dollarsOwed":159.5,"userDollars":112,"machineDollars":47.5,"userCoins":241,"machineCoins":110,"userPct":69,"machinePct":31,"totalSwears":229,"userSwears":165,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":190,"kindnessCredits":252,"kindnessDollars":63,"netDollars":96.5,"kind":true,"topPositives":[{"word":"please","count":65,"tier":"courtesy","credits":65},{"word":"thanks","count":47,"tier":"courtesy","credits":47},{"word":"appreciate","count":16,"tier":"courtesy","credits":16},{"word":"good-job","count":13,"tier":"praise","credits":26},{"word":"looks-great","count":12,"tier":"praise","credits":24},{"word":"sorry","count":12,"tier":"courtesy","credits":12},{"word":"nailed-it","count":10,"tier":"praise","credits":20},{"word":"well-done","count":6,"tier":"praise","credits":12},{"word":"youre-a-genius","count":4,"tier":"grovel","credits":16},{"word":"standalone-praise","count":2,"tier":"praise","credits":4},{"word":"youre-the-best","count":2,"tier":"grovel","credits":8},{"word":"love-it","count":1,"tier":"praise","credits":2}],"rejects":[{"reason":"sarcasm:thanks-a-lot","count":13},{"reason":"sarcasm:thanks-for-nothing","count":5},{"reason":"sarcasm:oh-great","count":2}],"rejectedTotal":20,"kindByHour":[16,4,20,21,15,11,10,14,17,12,12,5,9,12,3,0,7,1,3,6,12,23,14,5],"kindByDow":[24,15,40,53,38,43,39],"kindDaySeries":[{"date":"2026-04-11","credits":3},{"date":"2026-04-12","credits":1},{"date":"2026-04-14","credits":2},{"date":"2026-04-15","credits":6},{"date":"2026-04-16","credits":4},{"date":"2026-04-17","credits":1},{"date":"2026-04-18","credits":2},{"date":"2026-04-19","credits":1},{"date":"2026-04-21","credits":1},{"date":"2026-04-22","credits":3},{"date":"2026-04-23","credits":6},{"date":"2026-04-24","credits":1},{"date":"2026-04-25","credits":6},{"date":"2026-04-26","credits":3},{"date":"2026-04-27","credits":5},{"date":"2026-04-28","credits":2},{"date":"2026-04-29","credits":6},{"date":"2026-04-30","credits":3},{"date":"2026-05-01","credits":2},{"date":"2026-05-02","credits":3},{"date":"2026-05-04","credits":1},{"date":"2026-05-05","credits":2},{"date":"2026-05-06","credits":4},{"date":"2026-05-07","credits":2},{"date":"2026-05-09","credits":6},{"date":"2026-05-10","credits":4},{"date":"2026-05-12","credits":1},{"date":"2026-05-13","credits":3},{"date":"2026-05-14","credits":2},{"date":"2026-05-15","credits":2},{"date":"2026-05-16","credits":1},{"date":"2026-05-18","credits":1},{"date":"2026-05-19","credits":5},{"date":"2026-05-20","credits":2},{"date":"2026-05-21","credits":6},{"date":"2026-05-22","credits":8},{"date":"2026-05-23","credits":2},{"date":"2026-05-24","credits":7},{"date":"2026-05-26","credits":2},{"date":"2026-05-27","credits":8},{"date":"2026-05-28","credits":3},{"date":"2026-05-29","credits":2},{"date":"2026-05-31","credits":4},{"date":"2026-06-01","credits":3},{"date":"2026-06-02","credits":4},{"date":"2026-06-03","credits":5},{"date":"2026-06-04","credits":1},{"date":"2026-06-05","credits":7},{"date":"2026-06-06","credits":2},{"date":"2026-06-07","credits":1},{"date":"2026-06-09","credits":5},{"date":"2026-06-10","credits":2},{"date":"2026-06-11","credits":3},{"date":"2026-06-12","credits":4},{"date":"2026-06-13","credits":2},{"date":"2026-06-14","credits":2},{"date":"2026-06-15","credits":1},{"date":"2026-06-16","credits":6},{"date":"2026-06-18","credits":2},{"date":"2026-06-19","credits":10},{"date":"2026-06-20","credits":1},{"date":"2026-06-21","credits":1},{"date":"2026-06-22","credits":4},{"date":"2026-06-23","credits":5},{"date":"2026-06-24","credits":6},{"date":"2026-06-25","credits":4},{"date":"2026-06-26","credits":5},{"date":"2026-06-27","credits":6},{"date":"2026-06-30","credits":3},{"date":"2026-07-01","credits":2},{"date":"2026-07-02","credits":2},{"date":"2026-07-03","credits":1},{"date":"2026-07-04","credits":5},{"date":"2026-07-07","credits":2},{"date":"2026-07-08","credits":6}],"bestKindDay":{"date":"2026-06-19","credits":10},"kindStreak":12,"firstThanksAvg":"8:17am","politeTotal":190,"goldStar":false,"swearsPerDay":1.9,"fbombPct":14,"signatureCombo":{"a":"damn","b":"hell","count":4},"spanDays":90,"cleanDaysPct":3,"byHour":[13,9,30,28,31,15,28,13,26,25,9,12,6,4,4,1,0,1,5,13,13,23,22,20],"byHourSwears":[9,4,20,20,22,10,16,6,19,13,6,8,5,4,3,1,0,1,5,8,9,15,15,10],"byHourRecords":[21,7,29,30,33,15,19,12,27,23,17,19,19,15,4,2,4,2,4,14,15,32,18,19],"byDow":[50,20,73,65,56,33,54],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":2,"label":"Tuesday","coins":73},"byProject":[{"project":"prod-hotfix-friday","coins":78},{"project":"death-star-plans","coins":67},{"project":"todo-app-v9","coins":54},{"project":"cursed-regex","coins":37},{"project":"legacy-jenga","coins":37},{"project":"quantum-blender","coins":36},{"project":"tax-bot-3000","coins":31},{"project":"my-startup-idea","coins":11}],"topWords":[{"word":"damn","count":69,"tier":"mild","coins":69},{"word":"shit","count":58,"tier":"standard","coins":116},{"word":"hell","count":42,"tier":"mild","coins":42},{"word":"fuck","count":32,"tier":"premium","coins":96},{"word":"crap","count":19,"tier":"mild","coins":19},{"word":"bloody","count":9,"tier":"mild","coins":9}],"vocab":6,"fbombs":32,"spicyPct":27,"daySeries":[{"date":"2026-04-10","coins":2},{"date":"2026-04-11","coins":3},{"date":"2026-04-12","coins":4},{"date":"2026-04-13","coins":3},{"date":"2026-04-14","coins":0},{"date":"2026-04-15","coins":12},{"date":"2026-04-16","coins":7},{"date":"2026-04-17","coins":1},{"date":"2026-04-18","coins":12},{"date":"2026-04-19","coins":7},{"date":"2026-04-20","coins":1},{"date":"2026-04-21","coins":4},{"date":"2026-04-22","coins":15},{"date":"2026-04-23","coins":6},{"date":"2026-04-24","coins":0},{"date":"2026-04-25","coins":3},{"date":"2026-04-26","coins":1},{"date":"2026-04-27","coins":4},{"date":"2026-04-28","coins":0},{"date":"2026-04-29","coins":5},{"date":"2026-04-30","coins":0},{"date":"2026-05-01","coins":2},{"date":"2026-05-02","coins":1},{"date":"2026-05-03","coins":4},{"date":"2026-05-04","coins":5},{"date":"2026-05-05","coins":7},{"date":"2026-05-06","coins":1},{"date":"2026-05-07","coins":1},{"date":"2026-05-08","coins":2},{"date":"2026-05-09","coins":6},{"date":"2026-05-10","coins":0},{"date":"2026-05-12","coins":2},{"date":"2026-05-13","coins":4},{"date":"2026-05-14","coins":11},{"date":"2026-05-15","coins":0},{"date":"2026-05-16","coins":1},{"date":"2026-05-17","coins":4},{"date":"2026-05-18","coins":1},{"date":"2026-05-19","coins":6},{"date":"2026-05-20","coins":0},{"date":"2026-05-21","coins":4},{"date":"2026-05-22","coins":4},{"date":"2026-05-23","coins":0},{"date":"2026-05-24","coins":11},{"date":"2026-05-25","coins":0},{"date":"2026-05-26","coins":6},{"date":"2026-05-27","coins":6},{"date":"2026-05-28","coins":10},{"date":"2026-05-29","coins":7},{"date":"2026-05-30","coins":3},{"date":"2026-05-31","coins":1},{"date":"2026-06-01","coins":2},{"date":"2026-06-02","coins":5},{"date":"2026-06-03","coins":2},{"date":"2026-06-04","coins":2},{"date":"2026-06-05","coins":3},{"date":"2026-06-06","coins":3},{"date":"2026-06-07","coins":4},{"date":"2026-06-09","coins":8},{"date":"2026-06-10","coins":3},{"date":"2026-06-11","coins":6},{"date":"2026-06-12","coins":0},{"date":"2026-06-13","coins":2},{"date":"2026-06-14","coins":5},{"date":"2026-06-15","coins":0},{"date":"2026-06-16","coins":11},{"date":"2026-06-17","coins":1},{"date":"2026-06-18","coins":3},{"date":"2026-06-19","coins":3},{"date":"2026-06-20","coins":0},{"date":"2026-06-21","coins":3},{"date":"2026-06-22","coins":4},{"date":"2026-06-23","coins":6},{"date":"2026-06-24","coins":6},{"date":"2026-06-25","coins":1},{"date":"2026-06-26","coins":3},{"date":"2026-06-27","coins":7},{"date":"2026-06-28","coins":0},{"date":"2026-06-30","coins":14},{"date":"2026-07-01","coins":4},{"date":"2026-07-02","coins":5},{"date":"2026-07-03","coins":6},{"date":"2026-07-04","coins":13},{"date":"2026-07-05","coins":6},{"date":"2026-07-06","coins":0},{"date":"2026-07-07","coins":4},{"date":"2026-07-08","coins":6}],"worstDay":{"date":"2026-04-22","coins":15},"longestStreak":9,"cleanStreakDays":1,"firstSwearAvg":"8:53am","firstTs":"2026-04-10T18:17:20.000Z","lastTs":"2026-07-08T22:38:33.000Z","activeDays":87,"coinsPerActiveDay":4,"odds":{"value":21.4,"royalty":false,"label":"promising battery candidate","user7d":14,"kindnessBonus":9.6},"rank":{"current":"Prod Incident Commander","next":{"name":"Rubber Duck Abuser","at":250}},"app_version":"0.1.0"};
 const $=(id)=>document.getElementById(id);
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
 const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
@@ -519,8 +520,8 @@ $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(kindCapti
 const shareText=`My AI kindness report: I said ${fmt(S.kindActs)} nice things to my AI (${fmt(S.kindnessCredits)} karma points, worth nothing) and I'm ${(S.odds?(S.odds.royalty?'ROYALTY':S.odds.value+'%'):'—')} likely to survive the uprising. #SwearJar`;
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
-$('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
-$('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
+// NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
+// exist — what gets shared is the generated CARD, never a URL standing in for it.
 
 // ---- the coffee question (config-injected URL; hidden if unset) ----
 (function(){
@@ -555,16 +556,87 @@ const kindBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'});
 const dmgBlob=()=>new Blob([cardSvg(CARD,'damage')],{type:'image/svg+xml'});
 $('downloadCard').href=URL.createObjectURL(kindBlob());
 $('downloadDamageCard').href=URL.createObjectURL(dmgBlob());
-$('shareNative').onclick=async()=>{
-  const file=new File([kindBlob()],'swear-jar-kindness-card.svg',{type:'image/svg+xml'});
-  if(navigator.share){
-    try{
-      const data={title:'My AI kindness report',text:shareText,url:shareUrl};
-      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
-      await navigator.share(data); toast('Share sheet opened — your call');
-    }catch(e){if(e&&e.name!=='AbortError')toast('Share sheet unavailable — choose a social button');}
-  }else toast('Choose X or LinkedIn below to share');
+
+// ---- the card, as a PNG: the thing that actually travels ----
+// Web Share Level 2 rejects image/svg+xml on every platform, so attaching an SVG
+// File silently drops it and the share degrades to a bare link — the card never
+// goes anywhere. Rasterizing to PNG first is what makes the CARD itself
+// shareable. Pure browser APIs: Blob -> Image -> offscreen canvas -> toBlob. No
+// network, no library. The SVG handed in is the already-censored one (CARD.favLabel
+// went through censor()), so the PNG inherits that guarantee unchanged.
+const CARD_W=1200,CARD_H=675,CARD_SCALE=2;   // 2x = crisp on retina
+function svgToPngBlob(svg){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas');
+        c.width=CARD_W*CARD_SCALE;c.height=CARD_H*CARD_SCALE;
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(b=>b?resolve(b):reject(new Error('toBlob returned nothing')),'image/png');
+      }catch(err){URL.revokeObjectURL(url);reject(err);}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('card image failed to rasterize'));};
+    img.src=url;
+  });
+}
+const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD,'kindness'));
+
+// Best-effort by design: an unsupported browser or a denied permission returns
+// false so the caller tells the user the truth instead of claiming the image
+// went somewhere it didn't.
+async function copyPngToClipboard(blob){
+  if(!(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem))return false;
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);return true;}
+  catch(e){return false;}
+}
+function savePng(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+$('downloadCardPng').onclick=async(e)=>{
+  e.preventDefault();
+  try{savePng(await cardPngBlob(),'swear-jar-kindness-card.png');}
+  catch(err){toast('PNG export failed — the SVG save still works');}
 };
+
+// The generated CARD travels — never a URL standing in for it. Order: the native
+// share sheet with the PNG attached (Instagram, Messages, AirDrop all live behind
+// this one sheet — there is no Instagram web intent, so this IS the Instagram
+// path), then the clipboard, then a download. Each step says what actually happened.
+$('shareNative').onclick=async()=>{
+  let blob;
+  try{blob=await cardPngBlob();}
+  catch(e){toast('Could not build the card image — use “Save the kindness card” below');return;}
+  const file=new File([blob],'swear-jar-kindness-card.png',{type:'image/png'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],text:shareText});toast('Share sheet opened — the card goes with it');return;}
+    catch(e){if(e&&e.name==='AbortError')return;}   // user dismissed it; anything else falls through
+  }
+  if(await copyPngToClipboard(blob)){toast('Card image copied — paste it anywhere');return;}
+  savePng(blob,'swear-jar-kindness-card.png');
+  toast('Card image saved — attach it to your post');
+};
+
+// No web intent can attach an image — not X's, not LinkedIn's. So the honest flow
+// is: put the card on the clipboard FIRST, then open the composer for the user to
+// paste it. The intent carries the caption (X) / the homepage (LinkedIn's endpoint
+// requires a url param) — that link is attribution, NOT the card, and the copy
+// never claims the card was posted for you.
+async function shareToComposer(intentUrl,network){
+  let copied=false;
+  try{copied=await copyPngToClipboard(await cardPngBlob());}catch(e){copied=false;}
+  toast(copied
+    ?`Card image copied — paste it into your ${network} post`
+    :`Save the card below, then attach it to your ${network} post`);
+  openSocial(intentUrl);
+}
+$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl),'X');
+$('shareLinkedIn').onclick=()=>shareToComposer('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl),'LinkedIn');
 </script>
 </body>
 </html>

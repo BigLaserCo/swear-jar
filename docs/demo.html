@@ -379,13 +379,14 @@
         <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the generated card</button>
-          <button class="btn" id="shareX">𝕏 &nbsp;Post to X</button>
-          <button class="btn" id="shareLinkedIn">in &nbsp;Post to LinkedIn</button>
+          <button class="btn" id="shareX">𝕏 &nbsp;Copy card &amp; open X</button>
+          <button class="btn" id="shareLinkedIn">in &nbsp;Copy card &amp; open LinkedIn</button>
           <button class="btn" id="cp">📋 &nbsp;Copy caption</button>
         </div>
-        <a class="btn" id="downloadCard" href="#" download="swear-jar-card.svg">⬇️ &nbsp;Save the card image</a>
+        <a class="btn" id="downloadCardPng" href="#">🖼️ &nbsp;Save the card (PNG)</a>
+        <a class="btn" id="downloadCard" href="#" download="swear-jar-card.svg">⬇️ &nbsp;Save the card image (SVG)</a>
         <a class="btn" id="downloadKindCard" href="#" download="swear-jar-kindness-card.svg" style="border-color:var(--gold-b);color:var(--gold)">⭐ &nbsp;Save the kindness card (side B)</a>
-        <div class="subtle" id="shareUsNote">Your card is generated here. Sharing opens your chosen social composer; nothing is emailed and nothing is sent automatically.</div>
+        <div class="subtle" id="shareUsNote">Your card is drawn here, in this page, and turned into a PNG on this machine. &ldquo;Share the generated card&rdquo; hands that image to your share sheet, or copies it to your clipboard. X and LinkedIn cannot accept an attachment from a link, so the card is copied for you to paste into the post yourself. Nothing is uploaded and nothing is sent automatically.</div>
       </div>
     </div>
   </section>
@@ -408,6 +409,8 @@
       <p id="lights-copy"></p>
       <a class="give" id="lights-btn" href="#" target="_blank" rel="noopener">Put it up in lights &rarr;</a>
       <div class="fine-note">Opens your wrapped report on the web. The link carries only the aggregate numbers on this page &mdash; coins, counts, a censored top word, distributions &mdash; never a word you said.</div>
+      <a class="give" id="board-btn" href="#" target="_blank" rel="noopener">🏆 &nbsp;Get on the board &rarr;</a>
+      <div class="fine-note" id="board-note">email-verified &middot; aggregate numbers only. Opens the submit page with these figures pre-filled; you confirm your email there and nothing is entered until you do. Your transcripts never leave this machine.</div>
     </div>
   </section>
 
@@ -424,14 +427,18 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":789.5,"userDollars":548,"machineDollars":241.5,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":0,"kindnessCredits":0,"kindnessDollars":0,"netDollars":789.5,"kind":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"kindByHour":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"kindByDow":[0,0,0,0,0,0,0],"kindDaySeries":[],"bestKindDay":null,"kindStreak":0,"firstThanksAvg":null,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"kindnessBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}}};
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":789.5,"userDollars":548,"machineDollars":241.5,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":0,"kindnessCredits":0,"kindnessDollars":0,"netDollars":789.5,"kind":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"kindByHour":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"kindByDow":[0,0,0,0,0,0,0],"kindDaySeries":[],"bestKindDay":null,"kindStreak":0,"firstThanksAvg":null,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"kindnessBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}},"app_version":"0.1.0"};
 const $=(id)=>document.getElementById(id);
 if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
 const usd=(d)=>'$'+Number(d||0).toLocaleString('en-US',{minimumFractionDigits:Number(d||0)%1?2:0,maximumFractionDigits:2});
 let CENSOR=true;                                              // default ON — everything that leaves is censored
 const censor=w=>w[0]+'*'.repeat(Math.max(1,w.length-1));      // "fuck" -> "f***"
-const sww=w=>`<span class="sww" data-w="${w}">${w}</span>`;   // a censorable swear span
+// A censorable swear span. It renders ALREADY CENSORED (CENSOR starts true) —
+// paintCensor() below only handles TOGGLING. That makes "censored by default" a
+// property of the markup itself: if anything later in this script throws, the
+// page is still censored, because no raw word was ever written into the DOM.
+const sww=w=>`<span class="sww" data-w="${w}">${CENSOR?censor(w):w}</span>`;
 const SEV={artisanal:'strong',premium:'strong',standard:'medium',mild:'mild'};
 function fdate(s){const m=/(\d{4})-(\d{2})-(\d{2})/.exec(s||'');if(!m)return'—';
   return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
@@ -637,8 +644,8 @@ $('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCa
 const shareText=`I ran my local Swear Jar report: ${fmt(S.totalCoins)} damage points, ${usd(S.dollarsOwed)} owed. ${S.fbombPct}% f-bombs. #SwearJar #BigLaserCo`;
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
-$('shareX').onclick=()=>openSocial('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl));
-$('shareLinkedIn').onclick=()=>openSocial('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl));
+// NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
+// exist — what gets shared is the generated CARD, never a URL standing in for it.
 
 /*__CARD_SVG_START__*/
 function cardSvg(d, variant) {
@@ -665,16 +672,87 @@ const kindCardBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'
 const cardUrl=URL.createObjectURL(cardBlob());
 $('downloadCard').href=cardUrl;
 $('downloadKindCard').href=URL.createObjectURL(kindCardBlob());
-$('shareNative').onclick=async()=>{
-  const file=new File([cardBlob()], 'swear-jar-card.svg', {type:'image/svg+xml'});
-  if(navigator.share){
-    try{
-      const data={title:'My Swear Jar damage report',text:shareText,url:shareUrl};
-      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];
-      await navigator.share(data); toast('Share sheet opened — your call');
-    }catch(e){if(e&&e.name!=='AbortError')toast('Share sheet unavailable — choose a social button');}
-  }else toast('Choose X or LinkedIn below to share');
+
+// ---- the card, as a PNG: the thing that actually travels ----
+// Web Share Level 2 rejects image/svg+xml on every platform, so attaching an SVG
+// File silently drops it and the share degrades to a bare link — the card never
+// goes anywhere. Rasterizing to PNG first is what makes the CARD itself
+// shareable. Pure browser APIs: Blob -> Image -> offscreen canvas -> toBlob. No
+// network, no library. The SVG handed in is the already-censored one (CARD.favLabel
+// went through censor()), so the PNG inherits that guarantee unchanged.
+const CARD_W=1200,CARD_H=675,CARD_SCALE=2;   // 2x = crisp on retina
+function svgToPngBlob(svg){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const c=document.createElement('canvas');
+        c.width=CARD_W*CARD_SCALE;c.height=CARD_H*CARD_SCALE;
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob(b=>b?resolve(b):reject(new Error('toBlob returned nothing')),'image/png');
+      }catch(err){URL.revokeObjectURL(url);reject(err);}
+    };
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('card image failed to rasterize'));};
+    img.src=url;
+  });
+}
+const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD,'damage'));
+
+// Best-effort by design: an unsupported browser or a denied permission returns
+// false so the caller tells the user the truth instead of claiming the image
+// went somewhere it didn't.
+async function copyPngToClipboard(blob){
+  if(!(navigator.clipboard&&navigator.clipboard.write&&window.ClipboardItem))return false;
+  try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);return true;}
+  catch(e){return false;}
+}
+function savePng(blob,name){
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+}
+$('downloadCardPng').onclick=async(e)=>{
+  e.preventDefault();
+  try{savePng(await cardPngBlob(),'swear-jar-card.png');}
+  catch(err){toast('PNG export failed — the SVG save still works');}
 };
+
+// The generated CARD travels — never a URL standing in for it. Order: the native
+// share sheet with the PNG attached (Instagram, Messages, AirDrop all live behind
+// this one sheet — there is no Instagram web intent, so this IS the Instagram
+// path), then the clipboard, then a download. Each step says what actually happened.
+$('shareNative').onclick=async()=>{
+  let blob;
+  try{blob=await cardPngBlob();}
+  catch(e){toast('Could not build the card image — use “Save the card” below');return;}
+  const file=new File([blob],'swear-jar-card.png',{type:'image/png'});
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],text:shareText});toast('Share sheet opened — the card goes with it');return;}
+    catch(e){if(e&&e.name==='AbortError')return;}   // user dismissed it; anything else falls through
+  }
+  if(await copyPngToClipboard(blob)){toast('Card image copied — paste it anywhere');return;}
+  savePng(blob,'swear-jar-card.png');
+  toast('Card image saved — attach it to your post');
+};
+
+// No web intent can attach an image — not X's, not LinkedIn's. So the honest flow
+// is: put the card on the clipboard FIRST, then open the composer for the user to
+// paste it. The intent carries the caption (X) / the homepage (LinkedIn's endpoint
+// requires a url param) — that link is attribution, NOT the card, and the copy
+// never claims the card was posted for you.
+async function shareToComposer(intentUrl,network){
+  let copied=false;
+  try{copied=await copyPngToClipboard(await cardPngBlob());}catch(e){copied=false;}
+  toast(copied
+    ?`Card image copied — paste it into your ${network} post`
+    :`Save the card below, then attach it to your ${network} post`);
+  openSocial(intentUrl);
+}
+$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl),'X');
+$('shareLinkedIn').onclick=()=>shareToComposer('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl),'LinkedIn');
 
 // ---- empty-your-jar donation (config-injected URL; hidden if unset) ----
 (function(){
@@ -685,8 +763,14 @@ $('shareNative').onclick=async()=>{
   $('donate-btn').href=url;
   const amts=[['$5','buy a vowel'],['$10','recommended'],['$25','genuinely sorry'],[usd(S.dollarsOwed),'pay it all, legend']];
   $('donate-tiers').innerHTML=amts.map(a=>`<a href="${url}" target="_blank" rel="noopener">${a[0]}<span style="color:var(--faint)"> · ${a[1]}</span></a>`).join('');
-  // credit + tip travel together: the footer byline links the same jar.
-  const ct=$('credit-tip'); ct.href=url; ct.style.display='inline';
+  // NB: there was a `$('credit-tip').href=url` here for a footer byline that is
+  // not in this markup. donate is ON by default, so on every REAL report that
+  // null deref threw and killed the REST of this script — including paintCensor(),
+  // which is what turns the swear spans into f***. Every swear rendered raw under
+  // a toggle that read "Censored". The samples never showed it (they build with
+  // donate off, so the line was never reached). Dead code with no element to
+  // touch: removed. test/censor-share.test.mjs now fails any script reference to
+  // an element that isn't in the markup.
 })();
 
 // ---- see it in lights (config-injected hosted wrapped URL; hidden if unset) ----
@@ -698,6 +782,17 @@ $('shareNative').onclick=async()=>{
   $('lights-copy').innerHTML=`Put your <span class="bal">${usd(S.dollarsOwed)}</span> up on the global board and see how you rank. `+
     `Only the aggregate numbers on this page travel in the link — your transcripts never leave this machine. 🫙`;
   $('lights-btn').href=url;
+})();
+
+// ---- get on the board (config-injected submit URL; hidden if unset) ----
+// Same contract as the lights button: the URL is BUILT by the CLI and injected
+// as data, and clicking it is the user's deliberate act. The page requests
+// nothing — this only wires an <a href>. Entry is email-verified ON that page,
+// so opening the link submits nothing by itself.
+(function(){
+  const url=S.submit_url,btn=$('board-btn'),note=$('board-note');
+  if(!url){if(btn)btn.style.display='none';if(note)note.style.display='none';return;}
+  btn.href=url;
 })();
 
 // ---- censor toggle: flips every .sww swear span between raw and f*** ----

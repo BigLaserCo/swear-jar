@@ -412,6 +412,19 @@ export async function runInit(opts = {}) {
     hostedUrl: localOnly ? false : undefined,
     localOnly,
   });
+  // Write the OTHER side of the tape next to it, exactly as `dashboard` does.
+  // The report's "flip the tape" link is a RELATIVE href (kindness.html), so
+  // without this the link lands on a missing file — or worse, on a kindness.html
+  // left behind by an older build (one with no censor spans in it). Regenerating
+  // the sibling from the same records on every run is what keeps the pair honest.
+  // Same donate/hosted decision as the primary write, and the same directory, so
+  // the relative link always resolves.
+  writeDashboard(records, {
+    outPath: opts.outPath ? path.join(path.dirname(opts.outPath), "kindness.html") : undefined,
+    hostedUrl: localOnly ? false : undefined,
+    localOnly,
+    kind: "kindness",
+  });
 
   // Compose the ONE open gate (src/open.mjs) with the pure closing decision
   // (src/hosted.mjs). Gate on the OUTPUT stream's TTY: real terminal → open;

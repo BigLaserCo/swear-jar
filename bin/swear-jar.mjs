@@ -10,7 +10,6 @@ import { renderStatus, renderReport, clinkLine, dollars } from "../src/render.mj
 import { detect, censor, detectPositive } from "../src/detect.mjs";
 import { addCustomWord, removeCustomWord, loadCustomWords, customWordsPath } from "../src/custom.mjs";
 import { computeStats } from "../src/stats.mjs";
-import { APP_VERSION, RELEASE_HASH } from "../src/version.mjs";
 import { install, uninstall } from "../src/install.mjs";
 import { writeDashboard } from "../src/dashboard.mjs";
 import { rebuildLedger } from "../src/rebuild.mjs";
@@ -23,7 +22,7 @@ import {
 import { runInit, detectSources } from "../src/init.mjs";
 import { tipLine } from "../src/donate.mjs";
 import { shouldAutoOpen, openInBrowser } from "../src/open.mjs";
-import { resolveClosing, hostedWrappedUrl, disclosureLine } from "../src/hosted.mjs";
+import { resolveClosing, hostedWrappedUrl, hostedSubmitUrl, disclosureLine } from "../src/hosted.mjs";
 
 const [, , cmd = "status", ...args] = process.argv;
 
@@ -150,9 +149,14 @@ async function main() {
       });
       // Always write the OTHER side next to it so the "flip the tape" links
       // work. Same donate/hosted decisions as the primary write, so re-running
-      // either command never degrades the sibling report.
+      // either command never degrades the sibling report. The flip link is a
+      // RELATIVE href, so with --out the sibling must land in the SAME directory
+      // as the primary — otherwise the link resolves to a missing (or stale,
+      // pre-censor) file next to it.
+      const sibling = kind === "kindness" ? "report.html" : "kindness.html";
       writeDashboard(records, {
         donateUrl: flag("no-donate") ? false : typeof donateFlag === "string" ? donateFlag : undefined,
+        outPath: flag("out") ? path.join(path.dirname(String(flag("out"))), sibling) : undefined,
         hostedUrl: localOnly ? false : undefined,
         localOnly,
         kind: kind === "kindness" ? "damage" : "kindness",
@@ -229,21 +233,10 @@ async function main() {
         `${stats.fbombPct}% f-bombs, top word "${top}". ` +
         `Uprising survival odds: ${stats.odds.value}%.`;
       if (flag("submit")) {
-        const base =
-          process.env.SWEAR_JAR_SUBMIT_URL ||
-          "https://swearjar.unfocused.ai/submit.html";
-        const params = new URLSearchParams({
-          total_coins: String(stats.totalCoins),
-          dollars: String(stats.dollarsOwed),
-          swears_per_day: String(stats.swearsPerDay),
-          top_word: top,
-          fbomb_pct: String(stats.fbombPct),
-          active_days: String(stats.activeDays),
-          app_version: APP_VERSION,
-          release_hash: RELEASE_HASH,
-        });
+        // The URL builder lives in src/hosted.mjs (hostedSubmitUrl) so the CLI
+        // and the report's "Get on the board" button emit the SAME link.
         console.log("🫙 Get on the leaderboard — open this to submit (you log in there):\n");
-        console.log(`  ${base}?${params.toString()}\n`);
+        console.log(`  ${hostedSubmitUrl(stats)}\n`);
         console.log("   Only these aggregate numbers are sent, and only after you confirm on the page.");
         console.log("   Your transcripts never leave your machine.");
       } else {
