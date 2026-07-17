@@ -1,6 +1,6 @@
 // Leaderboard submission schema — the CLI / GitHub-Action side.
 //
-// The counterpart to funnel/schema.mjs (the Cloudflare Worker's self-contained
+// The counterpart to funnel/schema.mjs (the funnel service's self-contained
 // copy). The INTEGRATOR unifies the two at merge: the FIELD NAMES + shape match
 // funnel/schema.mjs exactly, so unification is trivial. A few validation
 // parameters are intentionally stricter/renamed on this side per the leaderboard

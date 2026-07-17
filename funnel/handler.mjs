@@ -1,11 +1,15 @@
-// swear-jar leaderboard funnel — a single self-contained Cloudflare Worker.
+// swear-jar leaderboard funnel — the API: routing, validation, abuse limits.
 //
 // Submissions to the public leaderboard REQUIRE a validated email (double
-// opt-in); an OPTIONAL "join the mailing list" checkbox is the funnel. The
-// Worker is SERVER code — it is not part of the shipped app, ships nothing to
-// a user's machine, and lives outside src//bin/ on purpose (the repo CI gate
-// enforces zero network in the app itself; a submission server is the one
-// sanctioned network surface, and Resend is its one sanctioned outbound call).
+// opt-in); an OPTIONAL "join the mailing list" checkbox is the funnel. This is
+// SERVER code — it is not part of the shipped app, ships nothing to a user's
+// machine, and lives outside src//bin/ on purpose (the repo CI gate enforces
+// zero network in the app itself; a submission server is the one sanctioned
+// network surface, and Resend is its one sanctioned outbound call).
+//
+// handleRequest(request, env) takes a Fetch Request and returns a Fetch
+// Response. funnel/server.mjs listens on a socket and calls it; that split
+// keeps every rule here, in one testable place, with no transport in the way.
 //
 // Routes:
 //   POST /api/submit       validate + rate-limit + store PENDING + send ONE
@@ -14,15 +18,15 @@
 //   GET  /api/board.json   public board — confirmed rows, public-safe fields ONLY
 //   GET  /api/export.csv   admin-only (Bearer ADMIN_TOKEN) — mailing-list export
 //
-// Bindings (see funnel/wrangler.toml.example — all placeholders, no real values):
-//   KV  JAR            the one KV namespace (pending rows, confirmed rows, rate counters)
-//   var MAIL_FROM      confirmation-mail from address
-//   var PUBLIC_HOST    host used in confirm links + thanks redirect
-//   var ALLOWED_ORIGIN the ONE origin allowed to POST (the submit page's origin)
-//   var THANKS_URL     optional override for the post-confirm redirect
-//   var KNOWN_RELEASES optional comma-separated release hashes -> verified flag
-//   secret RESEND_API_KEY  server-side only; never exposed, never logged
-//   secret ADMIN_TOKEN     gates /api/export.csv
+// `env` (assembled by funnel/server.mjs from the process environment):
+//   STORE           the row store (pending rows, confirmed rows, rate counters)
+//   MAIL_FROM       confirmation-mail from address
+//   PUBLIC_HOST     host used in confirm links + thanks redirect
+//   ALLOWED_ORIGIN  the ONE origin allowed to POST (the submit page's origin)
+//   THANKS_URL      optional override for the post-confirm redirect
+//   KNOWN_RELEASES  optional comma-separated release hashes -> verified flag
+//   RESEND_API_KEY  server-side only; never exposed, never logged
+//   ADMIN_TOKEN     gates /api/export.csv
 //
 // Posture: fail-closed (unexpected error -> generic 400/500, never a stack),
 // JSON-only, strict CORS, hard 4KB body cap, per-IP + per-email rate limits,
@@ -37,7 +41,13 @@ export const EMAIL_LIMIT_PER_DAY = 3; // POST /api/submit per email
 export const PENDING_TTL_S = 48 * 60 * 60; // pending token lives 48h
 export const HANDLE_MAX = 24;
 
-// ── pure helpers (exported for tests — no CF runtime needed) ─────────────────
+// The header this handler reads the client IP from. It is INTERNAL: funnel/
+// server.mjs strips any inbound copy and re-sets it from the address the
+// trusted proxy recorded, so a submitter can never choose their own
+// rate-limit bucket. Both sides import this constant so they cannot drift.
+export const CLIENT_IP_HEADER = "x-swearjar-client-ip";
+
+// ── pure helpers (exported for tests — no server or socket needed) ───────────
 
 // Display names: strip everything outside [a-zA-Z0-9_ -], collapse whitespace,
 // cap length. HTML/injection chars simply cannot survive this alphabet.
@@ -63,7 +73,7 @@ export function normalizeEmail(s) {
   return String(s ?? "").trim().toLowerCase();
 }
 
-// KV counter keys, bucketed so the TTL and the window agree.
+// Rate-counter keys, bucketed so the TTL and the window agree.
 export function rateLimitKey(kind, id, now = Date.now()) {
   if (kind === "ip") return `rl:ip:${id}:${Math.floor(now / 3_600_000)}`; // hour bucket
   return `rl:em:${id}:${Math.floor(now / 86_400_000)}`; // day bucket
@@ -159,19 +169,20 @@ const GENERIC_404 = { ok: false, error: "not found" };
 const GENERIC_429 = { ok: false, error: "rate limited — try again later" };
 const GENERIC_500 = { ok: false, error: "server error" };
 
-// ── KV rate limiting ─────────────────────────────────────────────────────────
+// ── rate limiting ────────────────────────────────────────────────────────────
 async function bumpCounter(env, key, limit, ttlSeconds) {
-  const raw = await env.JAR.get(key);
+  const raw = await env.STORE.get(key);
   const n = Number(raw) || 0;
   if (n >= limit) return false;
-  // Best-effort counter (KV is not transactional; good enough for abuse damping).
-  await env.JAR.put(key, String(n + 1), { expirationTtl: ttlSeconds });
+  // Best-effort counter (read-then-write is not transactional; good enough for
+  // abuse damping).
+  await env.STORE.put(key, String(n + 1), { expirationTtl: ttlSeconds });
   return true;
 }
 
 // ── the one sanctioned outbound call: Resend REST API ────────────────────────
-// (Hosted email service; the key is a server-side secret binding. Nothing else
-// in this Worker — or anywhere in the repo — makes an outbound request.)
+// (Hosted email service; the key is a server-side secret. Nothing else in this
+// service — or anywhere in the repo — makes an outbound request.)
 async function sendConfirmEmail(env, email, token) {
   const confirmUrl = `https://${env.PUBLIC_HOST}/api/confirm?token=${encodeURIComponent(token)}`;
   const res = await fetch("https://api.resend.com/emails", {
@@ -214,7 +225,7 @@ async function handleSubmit(request, env) {
   if (!v.ok) return json(env, 400, { ok: false, error: "invalid submission", details: v.errors });
 
   // Rate limits: per-IP (5/hour) then per-email (3/day). Fail closed.
-  const ip = request.headers.get("cf-connecting-ip") || "0.0.0.0";
+  const ip = request.headers.get(CLIENT_IP_HEADER) || "0.0.0.0";
   if (!(await bumpCounter(env, rateLimitKey("ip", ip), IP_LIMIT_PER_HOUR, 3600))) {
     return json(env, 429, GENERIC_429);
   }
@@ -228,7 +239,7 @@ async function handleSubmit(request, env) {
   const suffix = [...rand].map((b) => b.toString(16).padStart(2, "0")).join("");
   const token = `${crypto.randomUUID()}${suffix}`;
 
-  await env.JAR.put(
+  await env.STORE.put(
     `pending:${token}`,
     JSON.stringify({
       email: v.value.email,
@@ -252,16 +263,16 @@ async function handleConfirm(request, env) {
   const token = url.searchParams.get("token") || "";
   const thanksUrl = env.THANKS_URL || `https://${env.PUBLIC_HOST}/thanks`;
 
-  // Token shape gate before touching KV.
+  // Token shape gate before touching the store.
   if (!/^[0-9a-f-]{36,100}$/i.test(token)) {
     return json(env, 400, GENERIC_400);
   }
 
-  const pendingRaw = await env.JAR.get(`pending:${token}`);
+  const pendingRaw = await env.STORE.get(`pending:${token}`);
   if (!pendingRaw) return json(env, 400, GENERIC_400); // expired/unknown — generic
 
   // Single-use: delete BEFORE confirming so a raced second click is a no-op.
-  await env.JAR.delete(`pending:${token}`);
+  await env.STORE.delete(`pending:${token}`);
 
   let pending;
   try {
@@ -272,7 +283,7 @@ async function handleConfirm(request, env) {
 
   // Keyed by normalized email: a re-submit UPDATES the same person's entry —
   // one row per verified human, never duplicates.
-  await env.JAR.put(
+  await env.STORE.put(
     `confirmed:${pending.email}`,
     JSON.stringify({
       email: pending.email,
@@ -291,9 +302,9 @@ async function handleBoard(request, env) {
   const rows = [];
   let cursor;
   do {
-    const page = await env.JAR.list({ prefix: "confirmed:", cursor });
+    const page = await env.STORE.list({ prefix: "confirmed:", cursor });
     for (const key of page.keys) {
-      const raw = await env.JAR.get(key.name);
+      const raw = await env.STORE.get(key.name);
       if (!raw) continue;
       try {
         rows.push(publicView(JSON.parse(raw))); // the ONLY door to the public
@@ -320,9 +331,9 @@ async function handleExport(request, env) {
   const lines = ["email,handle,join_list,confirmed_at,total_coins,app_version"];
   let cursor;
   do {
-    const page = await env.JAR.list({ prefix: "confirmed:", cursor });
+    const page = await env.STORE.list({ prefix: "confirmed:", cursor });
     for (const key of page.keys) {
-      const raw = await env.JAR.get(key.name);
+      const raw = await env.STORE.get(key.name);
       if (!raw) continue;
       try {
         const r = JSON.parse(raw);
@@ -354,33 +365,32 @@ async function handleExport(request, env) {
   });
 }
 
-// ── the Worker ───────────────────────────────────────────────────────────────
-export default {
-  async fetch(request, env) {
-    try {
-      const url = new URL(request.url);
-      const path = url.pathname;
+// ── the entry point ──────────────────────────────────────────────────────────
+// Request in, Response out. Every route above is reachable only through here.
+export async function handleRequest(request, env) {
+  try {
+    const url = new URL(request.url);
+    const path = url.pathname;
 
-      if (request.method === "OPTIONS") {
-        return new Response(null, { status: 204, headers: corsHeaders(env) });
-      }
-      if (request.method === "POST" && path === "/api/submit") {
-        return await handleSubmit(request, env);
-      }
-      if (request.method === "GET" && path === "/api/confirm") {
-        return await handleConfirm(request, env);
-      }
-      if (request.method === "GET" && path === "/api/board.json") {
-        return await handleBoard(request, env);
-      }
-      if (request.method === "GET" && path === "/api/export.csv") {
-        return await handleExport(request, env);
-      }
-      return json(env, 404, GENERIC_404);
-    } catch {
-      // Fail closed: generic body, no stack, no state. (No console logging of
-      // request contents anywhere — emails/IPs never reach the logs.)
-      return json(env, 500, GENERIC_500);
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders(env) });
     }
-  },
-};
+    if (request.method === "POST" && path === "/api/submit") {
+      return await handleSubmit(request, env);
+    }
+    if (request.method === "GET" && path === "/api/confirm") {
+      return await handleConfirm(request, env);
+    }
+    if (request.method === "GET" && path === "/api/board.json") {
+      return await handleBoard(request, env);
+    }
+    if (request.method === "GET" && path === "/api/export.csv") {
+      return await handleExport(request, env);
+    }
+    return json(env, 404, GENERIC_404);
+  } catch {
+    // Fail closed: generic body, no stack, no state. (No console logging of
+    // request contents anywhere — emails/IPs never reach the logs.)
+    return json(env, 500, GENERIC_500);
+  }
+}

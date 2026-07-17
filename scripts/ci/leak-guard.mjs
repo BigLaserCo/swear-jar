@@ -141,7 +141,7 @@ export function formatHit(h) {
 }
 
 // ── read the real tracked source (one read per file) ─────────────────────────
-// funnel/ (the submission Worker) and web/ (the browser app) ship publicly too,
+// funnel/ (the submission service) and web/ (the browser app) ship publicly too,
 // so they get the same internal-code scan as bin/src/scripts.
 const SCANNED_PREFIXES = ["bin/", "src/", "scripts/", "funnel/", "web/"];
 // This scanner's own source is skipped — it necessarily contains the patterns

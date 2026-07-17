@@ -1,9 +1,9 @@
-// Leaderboard submission schema — the funnel Worker's copy.
+// Leaderboard submission schema — the funnel's copy.
 //
-// Self-contained on purpose: the Cloudflare Worker imports this and NOTHING
-// else from the repo, so the Worker bundle stays a two-file module with zero
-// npm dependencies and no reach into src/ (which the CI gate scans for
-// network smells — this stays out of its way and out of the shipped app).
+// Self-contained on purpose: the funnel imports this and NOTHING else from the
+// repo, so the service stays a small module with zero npm dependencies and no
+// reach into src/ (which the CI gate scans for network smells — this stays out
+// of its way and out of the shipped app).
 //
 // NOTE FOR THE INTEGRATOR: scripts/leaderboard/schema.mjs (built on a sibling
 // branch) defines the same field set from the CLI side. The two modules are

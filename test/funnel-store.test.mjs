@@ -1,8 +1,7 @@
-// Tests for funnel/store.mjs — the file-backed row store that stands in for the
-// hosted KV binding the submission handler was written against. The contract
-// that matters: a TTL'd row is GONE on read the moment it expires (an expired
-// confirmation token must never be redeemable, sweep or no sweep), a write is
-// all-or-nothing, and a key can never escape the data dir.
+// Tests for funnel/store.mjs — the file-backed row store behind the submission
+// handler. The contract that matters: a TTL'd row is GONE on read the moment it
+// expires (an expired confirmation token must never be redeemable, sweep or no
+// sweep), a write is all-or-nothing, and a key can never escape the data dir.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,7 +24,7 @@ function withClock(dir) {
 
 const HOUR = 3_600_000;
 
-// ── the KV surface ───────────────────────────────────────────────────────────
+// ── the store surface ────────────────────────────────────────────────────────
 test("store put/get round-trips a value and reports a missing key as null", async () => {
   const store = createStore(tmpDir());
   await store.put("pending:abc", JSON.stringify({ email: "a@b.co" }));

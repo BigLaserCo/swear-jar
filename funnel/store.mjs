@@ -1,9 +1,9 @@
-// swear-jar leaderboard funnel — a file-backed KV store.
+// swear-jar leaderboard funnel — the row store.
 //
-// The submission handler (funnel/worker.mjs) was written against a Cloudflare KV
-// binding: `get / put / delete / list`, async, with a `{ expirationTtl }` option
-// on put. This module implements that SAME interface on a plain filesystem, so
-// the handler runs unchanged on a normal Linux host (see funnel/server.mjs).
+// A small file-backed key/value store: `get / put / delete / list`, all async,
+// with an `{ expirationTtl }` option on put. It holds the funnel's three kinds
+// of row — pending submissions, confirmed entries, and rate counters — and is
+// what funnel/server.mjs hands the handler as `env.STORE`.
 // Zero dependencies — Node stdlib only, like the rest of the project.
 //
 // Layout: one JSON file per key under the data dir (FUNNEL_DATA_DIR):
@@ -50,7 +50,7 @@ export function filenameToKey(file) {
   }
 }
 
-// createStore(dir, { now }) -> a KV-shaped store.
+// createStore(dir, { now }) -> the store.
 // `now` is injectable so TTL behaviour is testable without sleeping.
 export function createStore(dir, { now = () => Date.now() } = {}) {
   const root = path.resolve(dir);
@@ -123,13 +123,13 @@ export function createStore(dir, { now = () => Date.now() } = {}) {
   return {
     dir: root,
 
-    // KV.get(key) -> the stored string, or null if missing/expired.
+    // get(key) -> the stored string, or null if missing/expired.
     async get(key) {
       const rec = readRecord(key);
       return rec ? rec.v : null;
     },
 
-    // KV.put(key, value, { expirationTtl }) — ttl is in SECONDS, like KV.
+    // put(key, value, { expirationTtl }) — ttl is in SECONDS.
     // No ttl (the confirmed rows) = no expiry.
     async put(key, value, options = {}) {
       const ttl = Number(options?.expirationTtl);
@@ -137,12 +137,12 @@ export function createStore(dir, { now = () => Date.now() } = {}) {
       writeRecord(key, { v: String(value), e });
     },
 
-    // KV.delete(key) — idempotent.
+    // delete(key) — idempotent.
     async delete(key) {
       unlinkQuiet(fileFor(key));
     },
 
-    // KV.list({ prefix }) -> { keys: [{ name }], list_complete, cursor }.
+    // list({ prefix }) -> { keys: [{ name }], list_complete, cursor }.
     // One readdir covers the whole namespace at this scale, so a listing is
     // always complete in a single page and no cursor is ever handed back (the
     // handler's do/while loop exits after one pass). Expired rows are filtered

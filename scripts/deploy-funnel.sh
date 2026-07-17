@@ -44,10 +44,10 @@ fi
 
 echo "🫙 deploying funnel to ${HOST}:${APPDIR}"
 ssh "$HOST" "mkdir -p ${APPDIR}"
-# Ship only the runnable service (skip the docs + the Cloudflare example).
+# Ship only the runnable service (skip the docs).
 # --delete is safe here: the row store lives in the unit's StateDirectory
 # (/var/lib/swearjar-funnel), never under ${APPDIR}, so no data is touched.
-rsync -az --delete --exclude='*.md' --exclude='*.example' "${ROOT}/funnel/" "${HOST}:${APPDIR}/"
+rsync -az --delete --exclude='*.md' "${ROOT}/funnel/" "${HOST}:${APPDIR}/"
 
 echo "🫙 installing systemd unit"
 scp -q "${ROOT}/funnel/${UNIT}" "${HOST}:/etc/systemd/system/${UNIT}"

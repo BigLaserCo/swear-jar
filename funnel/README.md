@@ -32,16 +32,17 @@ allow-list (comma-separated env var), i.e. the numbers came from a known build.
 
 Three modules, each with one job:
 
-- **`worker.mjs`** — the whole API: routing, validation, rate limits, CORS,
-  the admin-token compare, and the one outbound mail call. It is written
-  against the Fetch API (`Request` in, `Response` out) and holds *all* the
-  logic. Nothing about it is host-specific.
-- **`server.mjs`** — the deployment entrypoint: a `node:http` server that
-  translates node's req/res to and from Fetch objects and calls the handler in
-  `worker.mjs` **verbatim**. It supplies the two things a runtime has to
-  provide: the row store and the client IP. It binds **127.0.0.1 only**.
-- **`store.mjs`** — a file-backed key/value store (one atomically-renamed JSON
-  file per row under the data dir, TTL enforced on read plus a periodic sweep).
+- **`handler.mjs`** — the whole API: routing, validation, rate limits, CORS,
+  the admin-token compare, and the one outbound mail call. `handleRequest(request, env)`
+  takes a Fetch `Request` and returns a Fetch `Response`; it holds *all* the
+  logic and never touches a socket, which is what makes it testable directly.
+- **`server.mjs`** — the entrypoint: a `node:http` server that translates
+  node's req/res to and from Fetch objects and calls `handleRequest`. It
+  assembles the handler's `env` (config + the row store as `env.STORE`) and
+  determines the client IP. It binds **127.0.0.1 only**.
+- **`store.mjs`** — the row store: a file-backed key/value store (one
+  atomically-renamed JSON file per row under the data dir, TTL enforced on read
+  plus a periodic sweep).
 
 `schema.mjs` (field set + caps) is shared by all of it. Because the handler is
 transport-agnostic, `server.mjs` re-uses it rather than reimplementing it —
@@ -51,6 +52,7 @@ there is exactly one copy of the rules, and the tests cover that one copy.
 
 Target: **any Linux host with systemd + Caddy**. Caddy already terminates TLS
 and serves the static site; the funnel is a loopback-bound service behind it.
+No build step — the service is plain Node, run straight from source.
 
 **One-time, on the host** — create the environment file. The deploy script
 requires it to exist and never creates, reads, or prints it:
@@ -71,6 +73,7 @@ sudo editor /etc/swearjar-funnel.env
 | `KNOWN_RELEASES` | no | Comma-separated release hashes that earn the `verified` badge. |
 | `PORT` | no | Loopback port. Defaults to `8788` (what the Caddy vhost proxies to). Set it if something else on the host already has that port. |
 | `FUNNEL_DATA_DIR` | no | Row store location. The unit sets it to the service's own state directory. |
+| `TRUST_PROXY` | no | `0` disables proxy-header trust (direct exposure — not this deployment). Defaults to on. |
 
 **Every deploy** — one command:
 
@@ -79,11 +82,11 @@ DEPLOY_HOST=<ssh-host> ./scripts/deploy-funnel.sh
 ```
 
 It rsyncs `funnel/` to `/opt/swearjar-funnel/`, installs + restarts the
-systemd unit (`funnel/swearjar-funnel.service`), installs the Caddy vhost
-(`infra/swearjar.caddy`, which reverse-proxies `/api/*` to the service),
-and health-checks `GET /api/board.json` on the public origin. It refuses to
-run if the environment file is missing, and exits non-zero if the service or
-the health check comes back unhealthy.
+systemd unit (`funnel/swearjar-funnel.service`, which runs `node server.mjs`),
+installs the Caddy vhost (`infra/swearjar.caddy`, which reverse-proxies
+`/api/*` to the service), and health-checks `GET /api/board.json` on the
+public origin. It refuses to run if the environment file is missing, and exits
+non-zero if the service or the health check comes back unhealthy.
 
 The service **refuses to start** if a required variable is missing, naming the
 variables it needs and never printing a value. Logs go to journald
@@ -104,9 +107,10 @@ itself stays 100% local and zero-network; this server component lives in
   client-supplied leftmost value, which is forgeable. (Caddy discards a spoofed
   inbound header by default, and preserves the chain only for proxies it is told
   to trust; the rightmost entry is Caddy's own value under either posture, so
-  this holds without depending on the proxy's configuration.) Any inbound
-  client-IP header is dropped before the handler sees the request, so a
-  submitter cannot pick their own rate-limit bucket.
+  this holds without depending on the proxy's configuration.) The handler reads
+  the IP from an internal header that `server.mjs` sets from that trusted value
+  and strips from every inbound request first, so a submitter cannot pick their
+  own rate-limit bucket.
 - **Hard body cap** — requests over 4 KB are rejected before parsing, and the
   cap is enforced on the bytes as they arrive: an oversize body stops being read
   at the limit rather than being buffered.
@@ -160,9 +164,8 @@ confirmation mail. Flow:
 
 ## Files
 
-- `funnel/worker.mjs` — the API handler (routes, rate limits, the mail call).
-- `funnel/server.mjs` — the Node entrypoint: node:http ⇄ Fetch adapter, config,
-  loopback bind.
+- `funnel/handler.mjs` — the API handler (routes, rate limits, the mail call).
+- `funnel/server.mjs` — the entrypoint: node:http ⇄ Fetch, config, loopback bind.
 - `funnel/store.mjs` — the file-backed row store (TTL + atomic writes).
 - `funnel/schema.mjs` — field set + caps + validation. NOTE: a sibling module
   `scripts/leaderboard/schema.mjs` defines the same field set for the CLI
@@ -174,10 +177,7 @@ confirmation mail. Flow:
 - `test/funnel.test.mjs` — schema + handler-helper tests, including the
   privacy-critical "publicView never contains email/join_list/IP" test.
 - `test/funnel-store.test.mjs` — the row store (TTL, atomic writes, listing).
-- `test/funnel-server.test.mjs` — config, the request adapter (body cap,
+- `test/funnel-server.test.mjs` — config, the request translation (body cap,
   forwarded-IP handling), and an end-to-end run of the real server on an
   ephemeral port with the mail call stubbed.
-
-`funnel/wrangler.toml.example` is a leftover from the original hosting target;
-`worker.mjs` still works as a Cloudflare Worker entrypoint, but the Node
-service above is **the** deployment.
+</content>

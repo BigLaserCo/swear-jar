@@ -27,7 +27,7 @@ import {
   BIND_HOST,
 } from "../funnel/server.mjs";
 import { createStore } from "../funnel/store.mjs";
-import { MAX_BODY_BYTES } from "../funnel/worker.mjs";
+import { CLIENT_IP_HEADER, MAX_BODY_BYTES } from "../funnel/handler.mjs";
 
 // Key-shaped, assembled from fragments so the repo's own secret scan stays green.
 const FAKE_KEY = ["re", "_", "test", "_", "NOTAREALKEY000"].join("");
@@ -325,9 +325,10 @@ test("the per-IP rate limit keys on the proxy-appended address, not a spoofed on
 
 test("a client cannot buy a fresh rate-limit bucket with its own client-IP header", async () => {
   await withServer(async ({ base }) => {
-    // The handler reads cf-connecting-ip; the adapter DROPS any inbound copy and
-    // re-sets it from the trusted proxy value. So this header must change nothing.
-    const spoof = (i) => ({ "CF-Connecting-IP": `1.2.3.${i}`, "X-Real-IP": `4.5.6.${i}` });
+    // The handler reads the internal client-IP header; the server DROPS any
+    // inbound copy and re-sets it from the trusted proxy value. So a client
+    // sending it — in any casing — must change nothing.
+    const spoof = (i) => ({ [CLIENT_IP_HEADER.toUpperCase()]: `1.2.3.${i}`, "X-Real-IP": `4.5.6.${i}` });
     for (let i = 0; i < 5; i++) {
       const r = await submit(base, {
         xff: "198.51.100.20",

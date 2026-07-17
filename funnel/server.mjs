@@ -5,17 +5,16 @@
 // Caddy. It binds LOOPBACK ONLY (127.0.0.1); Caddy terminates TLS on the public
 // host and reverse-proxies /api/* to it. Zero dependencies, Node stdlib only.
 //
-// This file is a TRANSPORT ADAPTER, not a second implementation. The routes,
-// validation, rate limits, CORS, token compare and the one outbound Resend call
-// all live in funnel/worker.mjs and are used here VERBATIM: that handler is
-// written against the Fetch API (Request in, Response out), and Node has had
-// global Request/Response/fetch/crypto since v18, so it runs as-is. This module
-// only translates node:http <-> Fetch and supplies the two things the runtime
-// used to provide: a KV store (funnel/store.mjs) and the client IP.
+// This file owns the socket, not the rules. The routes, validation, rate
+// limits, CORS, token compare and the one outbound Resend call all live in
+// funnel/handler.mjs, which is written against the Fetch API (Request in,
+// Response out). This module translates node:http <-> Fetch, assembles the
+// handler's `env` (the row store from funnel/store.mjs, plus config), and
+// determines the client IP the rate limits key on.
 //
-// Routes are worker.mjs's (POST /api/submit, GET /api/confirm, GET
+// Routes are the handler's (POST /api/submit, GET /api/confirm, GET
 // /api/board.json, GET /api/export.csv) plus GET /api/health, a store-free
-// liveness probe answered by this adapter for the deploy script.
+// liveness probe answered here for the deploy script.
 //
 // Config comes from the process environment (systemd EnvironmentFile — see
 // funnel/README.md). Startup FAILS CLOSED naming any missing required variable;
@@ -25,7 +24,7 @@ import http from "node:http";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
-import worker, { MAX_BODY_BYTES } from "./worker.mjs";
+import { handleRequest, CLIENT_IP_HEADER, MAX_BODY_BYTES } from "./handler.mjs";
 import { createStore, SWEEP_INTERVAL_MS } from "./store.mjs";
 
 // Loopback ONLY. Caddy is the only thing that may reach this process; nothing
@@ -43,7 +42,7 @@ const GENERIC_500 = { ok: false, error: "server error" };
 // Hop-by-hop + length headers must not be copied onto the Fetch Request (the
 // Request recomputes length; the rest are connection-scoped). The client-IP
 // headers are dropped DELIBERATELY: they are attacker-controlled, and this
-// adapter re-sets the one the handler reads from the trusted proxy value below.
+// module re-sets the one the handler reads from the trusted proxy value below.
 const DROP_HEADERS = new Set([
   "host",
   "connection",
@@ -55,7 +54,7 @@ const DROP_HEADERS = new Set([
   "te",
   "trailer",
   "content-length",
-  "cf-connecting-ip",
+  CLIENT_IP_HEADER,
   "x-real-ip",
   "x-forwarded-for",
 ]);
@@ -88,7 +87,7 @@ export function resolveConfig(source = process.env) {
     RESEND_API_KEY: read("RESEND_API_KEY"),
     ADMIN_TOKEN: read("ADMIN_TOKEN"),
   };
-  // Optional passthroughs — only set when present, so worker.mjs's own defaults
+  // Optional passthroughs — only set when present, so the handler's own defaults
   // (THANKS_URL -> https://PUBLIC_HOST/thanks) still apply.
   if (read("THANKS_URL")) env.THANKS_URL = read("THANKS_URL");
   if (read("KNOWN_RELEASES")) env.KNOWN_RELEASES = read("KNOWN_RELEASES");
@@ -214,10 +213,10 @@ function toFetchRequest(req, url, body, clientIp) {
       /* an unparseable header is simply not forwarded */
     }
   }
-  // The handler reads the client IP from this header. On Cloudflare the runtime
-  // sets it; here the adapter does, from the trusted proxy value. Any inbound
-  // copy was dropped above, so a client cannot spoof its own rate-limit bucket.
-  headers.set("cf-connecting-ip", clientIp);
+  // The handler reads the client IP from this internal header, and only this
+  // module sets it — from the trusted proxy value. Any inbound copy was dropped
+  // above, so a client cannot spoof its own rate-limit bucket.
+  headers.set(CLIENT_IP_HEADER, clientIp);
 
   const init = { method: req.method, headers };
   if (body && body.length) init.body = body;
@@ -232,8 +231,8 @@ async function writeFetchResponse(res, response) {
   res.end(body);
 }
 
-// Adapter-level JSON reply (health / 413 / 500). Mirrors the handler's headers
-// so every response on this service looks the same to a client.
+// JSON replies this module answers itself (health / 413 / 500). Mirrors the
+// handler's headers so every response on this service looks the same to a client.
 function writeJson(res, status, env, obj, extra = {}) {
   const body = Buffer.from(JSON.stringify(obj), "utf8");
   res.writeHead(status, {
@@ -265,20 +264,20 @@ async function handleNodeRequest(req, res, env, trustProxy) {
   }
   if (body === BAD_BODY) return writeJson(res, 400, env, GENERIC_400);
 
-  const response = await worker.fetch(toFetchRequest(req, url, body, clientIpFrom(req, trustProxy)), env);
+  const response = await handleRequest(toFetchRequest(req, url, body, clientIpFrom(req, trustProxy)), env);
   await writeFetchResponse(res, response);
 }
 
 // createFunnelServer({ env, store, trustProxy }) -> http.Server (not listening).
 // Exported so tests can drive the real server on an ephemeral port.
 export function createFunnelServer({ env, store, trustProxy = true }) {
-  const runtimeEnv = { ...env, JAR: store }; // JAR = the KV binding name
+  const handlerEnv = { ...env, STORE: store }; // the handler reads rows via env.STORE
   return http.createServer((req, res) => {
-    handleNodeRequest(req, res, runtimeEnv, trustProxy).catch(() => {
+    handleNodeRequest(req, res, handlerEnv, trustProxy).catch(() => {
       // Fail closed, exactly like the handler: generic body, no stack, no state,
       // and nothing about the request in the logs.
       if (res.headersSent) res.end();
-      else writeJson(res, 500, runtimeEnv, GENERIC_500);
+      else writeJson(res, 500, handlerEnv, GENERIC_500);
     });
   });
 }

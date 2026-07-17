@@ -2,7 +2,7 @@
 
 This directory is the **provenance + rendering core** for the hosted Swear Jar
 leaderboard. It does not accept submissions itself — the hosted funnel does
-(email double opt-in via `funnel/worker.mjs`). These modules take the funnel's
+(email double opt-in via `funnel/handler.mjs`). These modules take the funnel's
 already-confirmed, public-safe rows and turn them into `LEADERBOARD.md`.
 
 There is **no GitHub-issue submission path**. An earlier design used issue forms +

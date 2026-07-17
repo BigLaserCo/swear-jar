@@ -2,7 +2,7 @@
 // hosted leaderboard reuses.
 //
 // DATA SOURCE: the hosted funnel's CONFIRMED submissions — the Worker's
-// /api/board.json rows (see funnel/worker.mjs). Each row is an already-validated,
+// /api/board.json rows (see funnel/handler.mjs). Each row is an already-validated,
 // public-safe aggregate (a handle + summary numbers + a verified flag); no email,
 // no message text, no PII. There is NO GitHub-issue submission path — that older
 // design was superseded by the email-gated funnel + magic-link accounts, so a
@@ -316,7 +316,7 @@ export function renderLeaderboard(submissions, { now = DEFAULT_NOW, synthetic = 
 // The public-safe fields the board stores + renders. Anything outside this set
 // (email, join_list, an IP or any hash of it) is DROPPED, so a raw funnel row —
 // even one that somehow carried extra keys — can be folded in without leaking
-// PII. This mirrors funnel/worker.mjs's publicView() boundary.
+// PII. This mirrors funnel/handler.mjs's publicView() boundary.
 const STORE_FIELDS = [
   "handle",
   "total_coins",

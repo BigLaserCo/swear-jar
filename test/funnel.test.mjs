@@ -1,7 +1,7 @@
 // Tests for the leaderboard funnel: funnel/schema.mjs (field/caps validation)
-// and funnel/worker.mjs pure helpers (everything testable without the CF
-// runtime). The headline test is the privacy boundary: publicView(row) must
-// NEVER emit email / join_list / IP in any form.
+// and funnel/handler.mjs pure helpers (everything testable without a socket).
+// The headline test is the privacy boundary: publicView(row) must NEVER emit
+// email / join_list / IP in any form.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -25,7 +25,7 @@ import {
   verifiedFlag,
   MAX_BODY_BYTES,
   HANDLE_MAX,
-} from "../funnel/worker.mjs";
+} from "../funnel/handler.mjs";
 
 // A fully valid stats payload (top_word censored, as the app submits it).
 function goodStats(overrides = {}) {
