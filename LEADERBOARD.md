@@ -9,6 +9,8 @@ Opt-in and **aggregate-only**. Everyone here chose to share a handful of summary
 **How to join:** run `swear-jar wrapped --submit` to generate your aggregate numbers, then submit them through the hosted Swear Jar submit page. A double opt-in email confirms the entry before it appears — nothing is published until you click the link, and you can leave the optional mailing-list box unchecked.
 
 > **Verified** = came from a published release + a verified account. NOT proof the numbers weren't locally faked — a fun board, not a tamper-proof ledger.
+>
+> ⚠︎ **The ✓ is dormant right now.** It is earned by matching a submission against a list of published release hashes, and this project has no published releases yet — it is run from a clone. So every real entry currently lands **unverified**, and the ✓ marks below are part of the synthetic sample. The badge switches on by itself the day releases are cut; until then, treat the column as decoration.
 
 _Last updated: 2026-07-10 00:00:00 UTC_
 
