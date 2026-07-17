@@ -13,7 +13,7 @@
   <meta name="twitter:title" content="Swear Jar — your AI damage report">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Swear Jar","applicationCategory":"DeveloperApplication","url":"https://swearjar.unfocused.ai/","description":"An open-source novelty tool that analyzes local AI prompts and transcripts and generates a playful damage report.","license":"MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"unfocused.ai","url":"https://unfocused.ai"}</script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"No. Prompts, sentences, transcript files, recordings, and code stay on your machine. Only an explicit social share or leaderboard opt-in can send disclosed aggregate swear statistics."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"No. Prompts, sentences, transcript files, recordings, and code stay on your machine. Only disclosed aggregate numbers can travel — when you open your hosted report link, share the generated card, or join the leaderboard — and we may keep and use those aggregate numbers."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
   <link rel="stylesheet" href="site.css">
   <link rel="stylesheet" href="fab.css">
 </head>
@@ -40,7 +40,7 @@
           <a class="btn primary" href="#how">🫙 Get your damage report</a>
           <a class="btn ghost" href="demo.html">See a sample report →</a>
         </div>
-        <p class="micro">The report is generated locally and stays on your machine. Only an explicit social share or leaderboard opt-in can send disclosed aggregate swear statistics. We never take your transcripts.</p>
+        <p class="micro">The report is generated locally and stays on your machine. Only disclosed aggregate numbers can travel — a hosted report link, a shared card, or a leaderboard entry — and we may keep and use those aggregate numbers. We never take your transcripts.</p>
       </div>
       <aside class="report-card" aria-label="Sample damage report">
         <div class="card-top"><b>🫙 the damage report</b><span>synthetic demo</span></div>
@@ -75,7 +75,7 @@ node bin/swear-jar.mjs init --local</pre><button class="copy-command" type="butt
         </article>
         <article class="step">
           <div class="step-head"><span class="step-num">3</span><h3>Open the damage report</h3></div>
-          <p>Build the local report. It opens on your machine. If you later choose to share the generated card or join the leaderboard, only the disclosed aggregate stats leave.</p>
+          <p>Build the local report. It opens on your machine. If you later open your hosted report link, share the generated card, or join the leaderboard, only the disclosed aggregate numbers leave — and we may keep and use those numbers.</p>
           <div class="command"><pre>node bin/swear-jar.mjs dashboard --local</pre><button class="copy-command" type="button" data-copy="node bin/swear-jar.mjs dashboard --local">Copy</button></div>
         </article>
       </div>
@@ -87,8 +87,8 @@ node bin/swear-jar.mjs init --local</pre><button class="copy-command" type="butt
       <h2>Your words stay yours.</h2>
       <div class="privacy-grid">
         <div><b>Raw text stays local.</b><br>Prompts, sentences, recordings, transcripts, and code are analyzed on your machine.</div>
-        <div><b>Only explicit sharing may leave.</b><br>Your report is local. If you share the generated card or opt into the leaderboard, only disclosed aggregate swear statistics leave—not your sentences.</div>
-        <div><b>Login is optional.</b><br>We only associate a report with a username or email when you choose to log in.</div>
+        <div><b>Only aggregate numbers may leave.</b><br>Your report is local. A hosted report link, a shared card, or a leaderboard entry sends disclosed aggregate swear statistics — never your sentences — and we may keep and use those numbers.</div>
+        <div><b>The board is opt-in.</b><br>A leaderboard entry adds only the display name and email you type; the email exists to verify the entry (double opt-in) and is never shown.</div>
         <div><b>Read the code.</b><br>It is MIT-licensed and intentionally small. You are welcome to have your own AI inspect it for anything funky.</div>
       </div>
       <p class="readmore"><a href="terms.html">Read the privacy and terms →</a></p>

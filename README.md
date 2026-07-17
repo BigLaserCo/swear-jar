@@ -4,9 +4,11 @@ See how frustrated you get at AI — and how likely you are to survive the
 robot uprising. Swear Jar is a small, open-source, MIT-licensed novelty tool.
 
 It hooks into local prompts and can inspect supported recordings/transcripts.
-Analysis is local and the ledger stores counts only. When you deliberately open
-a social share or leaderboard opt-in, it shares aggregate metadata such as totals, distributions,
-censored summary words, and uprising stats. Raw sentences stay on your machine.
+Analysis is local and the ledger stores counts only. Opening your hosted report
+link, sharing the generated card, or joining the leaderboard sends aggregate
+metadata only — totals, distributions, censored summary words, uprising stats —
+and we may keep and use those aggregate numbers. Raw sentences stay on your
+machine.
 
 ## Install
 
