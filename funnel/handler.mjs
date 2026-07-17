@@ -19,7 +19,10 @@
 //   GET  /api/export.csv   admin-only (Bearer ADMIN_TOKEN) — mailing-list export
 //
 // `env` (assembled by funnel/server.mjs from the process environment):
-//   STORE           the row store (pending rows, confirmed rows, rate counters)
+//   DB              the database (funnel/db.mjs) — pending rows, confirmed
+//                   entries, rate counters. NB: the database's service key is
+//                   NOT here; it is closed over inside the client, so no route
+//                   below can reach it.
 //   MAIL_FROM       confirmation-mail from address
 //   PUBLIC_HOST     host used in confirm links + thanks redirect
 //   ALLOWED_ORIGIN  the ONE origin allowed to POST (the submit page's origin)
@@ -40,6 +43,7 @@ export const IP_LIMIT_PER_HOUR = 5; // POST /api/submit per IP
 export const EMAIL_LIMIT_PER_DAY = 3; // POST /api/submit per email
 export const PENDING_TTL_S = 48 * 60 * 60; // pending token lives 48h
 export const HANDLE_MAX = 24;
+export const BOARD_LIMIT = 100; // rows /api/board.json will publish
 
 // The header this handler reads the client IP from. It is INTERNAL: funnel/
 // server.mjs strips any inbound copy and re-sets it from the address the
@@ -125,19 +129,27 @@ export function validateRequest(body) {
 // THE privacy boundary. Everything /api/board.json emits goes through here.
 // Public-safe fields ONLY: handle, the stats numbers, verified flag, submitted
 // date. NEVER email, NEVER join_list, NEVER IP (or any hash of it).
+//
+// The rows fed to this come from the `board` view, which already exposes only
+// publishable columns — email is structurally absent from it, so a leak would
+// have to get past the database first. This is the SECOND allow-list, not the
+// only one: it re-states the public field set in the code that serializes it, so
+// the API's shape is pinned here even if the view is ever widened. Both layers
+// are cheap; a public board that leaks an email once is not.
+const publicNumber = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
+
 export function publicView(row) {
-  const s = row?.stats || {};
   return {
     handle: String(row?.handle || "anonymous"),
-    total_coins: s.total_coins ?? 0,
-    dollars: s.dollars ?? 0,
-    swears_per_day: s.swears_per_day ?? 0,
-    top_word: String(s.top_word || ""),
-    fbomb_pct: s.fbomb_pct ?? 0,
-    active_days: s.active_days ?? 0,
-    app_version: String(s.app_version || ""),
+    total_coins: publicNumber(row?.total_coins),
+    dollars: publicNumber(row?.dollars),
+    swears_per_day: publicNumber(row?.swears_per_day),
+    top_word: String(row?.top_word || ""),
+    fbomb_pct: publicNumber(row?.fbomb_pct),
+    active_days: publicNumber(row?.active_days),
+    app_version: String(row?.app_version || ""),
     verified: row?.verified === true,
-    submitted: String(row?.confirmed_at || "").slice(0, 10), // date only
+    submitted: String(row?.submitted || "").slice(0, 10), // date only
   };
 }
 
@@ -170,14 +182,15 @@ const GENERIC_429 = { ok: false, error: "rate limited — try again later" };
 const GENERIC_500 = { ok: false, error: "server error" };
 
 // ── rate limiting ────────────────────────────────────────────────────────────
+// One round trip: the database bumps the counter and hands back the count AFTER
+// this hit, so two concurrent submissions can never both read the same count and
+// each think they are under the limit. Returns false when this hit is over.
+// A database failure THROWS rather than returning false — which the entry point
+// turns into a 500, so a broken counter refuses submissions rather than waving
+// them through.
 async function bumpCounter(env, key, limit, ttlSeconds) {
-  const raw = await env.STORE.get(key);
-  const n = Number(raw) || 0;
-  if (n >= limit) return false;
-  // Best-effort counter (read-then-write is not transactional; good enough for
-  // abuse damping).
-  await env.STORE.put(key, String(n + 1), { expirationTtl: ttlSeconds });
-  return true;
+  const count = await env.DB.bumpRateLimit(key, ttlSeconds);
+  return count <= limit;
 }
 
 // ── the one sanctioned outbound call: Resend REST API ────────────────────────
@@ -239,17 +252,16 @@ async function handleSubmit(request, env) {
   const suffix = [...rand].map((b) => b.toString(16).padStart(2, "0")).join("");
   const token = `${crypto.randomUUID()}${suffix}`;
 
-  await env.STORE.put(
-    `pending:${token}`,
-    JSON.stringify({
-      email: v.value.email,
-      join_list: v.value.join_list,
-      handle: v.value.handle,
-      stats: v.value.stats,
-      created_at: new Date().toISOString(),
-    }),
-    { expirationTtl: PENDING_TTL_S }
-  );
+  await env.DB.putPending({
+    token,
+    email: v.value.email,
+    handle: v.value.handle,
+    stats: v.value.stats,
+    join_list: v.value.join_list,
+    release_hash: v.value.stats.release_hash,
+    app_version: v.value.stats.app_version,
+    ttlSeconds: PENDING_TTL_S,
+  });
 
   const sent = await sendConfirmEmail(env, v.value.email, token);
   if (!sent) return json(env, 500, GENERIC_500);
@@ -263,60 +275,38 @@ async function handleConfirm(request, env) {
   const token = url.searchParams.get("token") || "";
   const thanksUrl = env.THANKS_URL || `https://${env.PUBLIC_HOST}/thanks`;
 
-  // Token shape gate before touching the store.
+  // Token shape gate before touching the database.
   if (!/^[0-9a-f-]{36,100}$/i.test(token)) {
     return json(env, 400, GENERIC_400);
   }
 
-  const pendingRaw = await env.STORE.get(`pending:${token}`);
-  if (!pendingRaw) return json(env, 400, GENERIC_400); // expired/unknown — generic
-
-  // Single-use: delete BEFORE confirming so a raced second click is a no-op.
-  await env.STORE.delete(`pending:${token}`);
-
-  let pending;
-  try {
-    pending = JSON.parse(pendingRaw);
-  } catch {
-    return json(env, 400, GENERIC_400);
-  }
+  // Single-use AND unexpired, in one atomic statement: the row is returned only
+  // if it was still live, and the same statement consumes it. A raced or
+  // replayed second click takes nothing and falls into the generic 400 below,
+  // so there is no window in which a token could be redeemed twice.
+  const pending = await env.DB.takePending(token);
+  if (!pending) return json(env, 400, GENERIC_400); // expired/unknown/replayed
 
   // Keyed by normalized email: a re-submit UPDATES the same person's entry —
   // one row per verified human, never duplicates.
-  await env.STORE.put(
-    `confirmed:${pending.email}`,
-    JSON.stringify({
-      email: pending.email,
-      join_list: pending.join_list === true,
-      handle: pending.handle,
-      stats: pending.stats,
-      verified: verifiedFlag(pending.stats?.release_hash, env.KNOWN_RELEASES),
-      confirmed_at: new Date().toISOString(),
-    })
-  );
+  await env.DB.upsertEntry({
+    email: pending.email,
+    handle: pending.handle,
+    stats: pending.stats,
+    join_list: pending.join_list === true,
+    verified: verifiedFlag(pending.stats?.release_hash, env.KNOWN_RELEASES),
+    release_hash: pending.release_hash ?? pending.stats?.release_hash,
+    app_version: pending.app_version ?? pending.stats?.app_version,
+  });
 
   return new Response(null, { status: 302, headers: { Location: thanksUrl } });
 }
 
 async function handleBoard(request, env) {
-  const rows = [];
-  let cursor;
-  do {
-    const page = await env.STORE.list({ prefix: "confirmed:", cursor });
-    for (const key of page.keys) {
-      const raw = await env.STORE.get(key.name);
-      if (!raw) continue;
-      try {
-        rows.push(publicView(JSON.parse(raw))); // the ONLY door to the public
-      } catch {
-        // skip a corrupt row rather than fail the whole board
-      }
-    }
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
-
-  rows.sort((a, b) => b.total_coins - a.total_coins);
-  return json(env, 200, { ok: true, board: rows.slice(0, 100) }, {
+  // Live rows, publishable columns, board order — all decided by the database
+  // (the `board` view). publicView is still the ONLY door to the public.
+  const rows = await env.DB.listBoard({ limit: BOARD_LIMIT });
+  return json(env, 200, { ok: true, board: rows.map(publicView) }, {
     "Cache-Control": "public, max-age=300",
   });
 }
@@ -328,32 +318,20 @@ async function handleExport(request, env) {
     return json(env, 401, GENERIC_401);
   }
 
+  const csv = (s) => `"${String(s ?? "").replace(/"/g, '""')}"`;
   const lines = ["email,handle,join_list,confirmed_at,total_coins,app_version"];
-  let cursor;
-  do {
-    const page = await env.STORE.list({ prefix: "confirmed:", cursor });
-    for (const key of page.keys) {
-      const raw = await env.STORE.get(key.name);
-      if (!raw) continue;
-      try {
-        const r = JSON.parse(raw);
-        const csv = (s) => `"${String(s ?? "").replace(/"/g, '""')}"`;
-        lines.push(
-          [
-            csv(r.email),
-            csv(r.handle),
-            r.join_list === true ? "true" : "false",
-            csv(r.confirmed_at),
-            Number(r.stats?.total_coins) || 0,
-            csv(r.stats?.app_version),
-          ].join(",")
-        );
-      } catch {
-        // skip corrupt rows
-      }
-    }
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
+  for (const r of await env.DB.listEntriesForExport()) {
+    lines.push(
+      [
+        csv(r.email),
+        csv(r.handle),
+        r.join_list === true ? "true" : "false",
+        csv(r.confirmed_at),
+        Number(r.stats?.total_coins) || 0,
+        csv(r.stats?.app_version),
+      ].join(",")
+    );
+  }
 
   return new Response(lines.join("\n") + "\n", {
     status: 200,

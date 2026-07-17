@@ -9,11 +9,11 @@
 // limits, CORS, token compare and the one outbound Resend call all live in
 // funnel/handler.mjs, which is written against the Fetch API (Request in,
 // Response out). This module translates node:http <-> Fetch, assembles the
-// handler's `env` (the row store from funnel/store.mjs, plus config), and
+// handler's `env` (the database client from funnel/db.mjs, plus config), and
 // determines the client IP the rate limits key on.
 //
 // Routes are the handler's (POST /api/submit, GET /api/confirm, GET
-// /api/board.json, GET /api/export.csv) plus GET /api/health, a store-free
+// /api/board.json, GET /api/export.csv) plus GET /api/health, a database-free
 // liveness probe answered here for the deploy script.
 //
 // Config comes from the process environment (systemd EnvironmentFile — see
@@ -21,11 +21,10 @@
 // values are never printed, logged, or echoed in a response.
 
 import http from "node:http";
-import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { handleRequest, CLIENT_IP_HEADER, MAX_BODY_BYTES } from "./handler.mjs";
-import { createStore, SWEEP_INTERVAL_MS } from "./store.mjs";
+import { createDb, SWEEP_INTERVAL_MS } from "./db.mjs";
 
 // Loopback ONLY. Caddy is the only thing that may reach this process; nothing
 // else on the network can, which is what makes the proxy header trustworthy.
@@ -34,7 +33,14 @@ export const DEFAULT_PORT = 8788;
 
 // Missing any of these = refuse to start. (THANKS_URL / KNOWN_RELEASES /
 // ALLOWED_ORIGIN are optional: the handler and resolveConfig default them.)
-export const REQUIRED_ENV = ["MAIL_FROM", "PUBLIC_HOST", "RESEND_API_KEY", "ADMIN_TOKEN"];
+export const REQUIRED_ENV = [
+  "MAIL_FROM",
+  "PUBLIC_HOST",
+  "RESEND_API_KEY",
+  "ADMIN_TOKEN",
+  "SUPABASE_URL",
+  "SUPABASE_SERVICE_KEY",
+];
 
 const GENERIC_400 = { ok: false, error: "bad request" };
 const GENERIC_500 = { ok: false, error: "server error" };
@@ -63,12 +69,28 @@ const TOO_BIG = Symbol("body-too-big");
 const BAD_BODY = Symbol("body-error");
 
 // ── config ───────────────────────────────────────────────────────────────────
-// resolveConfig(env) -> { ok:true, env, port, dataDir, trustProxy } | { ok:false, missing }
+// resolveConfig(env) -> { ok:true, env, db, port, trustProxy } | { ok:false, missing }
 // Pure: no I/O, no process.exit — so it is unit-testable and the caller decides
 // how to fail. `missing` carries NAMES only, never values.
+function isHttpUrl(s) {
+  try {
+    const u = new URL(s);
+    return u.protocol === "https:" || u.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export function resolveConfig(source = process.env) {
   const read = (k) => String(source[k] ?? "").trim();
   const missing = REQUIRED_ENV.filter((k) => !read(k));
+
+  // A malformed database URL is as fatal as an absent one, and reporting it is
+  // just as safe: the NAME is the whole message either way. Catching a typo at
+  // startup beats discovering it on a submitter's first click.
+  const supabaseUrl = read("SUPABASE_URL");
+  if (supabaseUrl && !isHttpUrl(supabaseUrl)) missing.push("SUPABASE_URL");
+
   if (missing.length) return { ok: false, missing };
 
   const publicHost = read("PUBLIC_HOST");
@@ -80,6 +102,9 @@ export function resolveConfig(source = process.env) {
   // the API, and never widens the allow-list (it is one origin, never "*").
   const allowedOrigin = read("ALLOWED_ORIGIN") || `https://${publicHost}`;
 
+  // The handler's env. NOTE what is NOT here: the database service key. It goes
+  // to createDb below and is closed over inside the client, so it never enters
+  // the object the routes can see.
   const env = {
     MAIL_FROM: read("MAIL_FROM"),
     PUBLIC_HOST: publicHost,
@@ -98,8 +123,9 @@ export function resolveConfig(source = process.env) {
   return {
     ok: true,
     env,
+    // Everything createDb needs, kept apart from the handler's env.
+    db: { url: supabaseUrl, serviceKey: read("SUPABASE_SERVICE_KEY") },
     port,
-    dataDir: path.resolve(read("FUNNEL_DATA_DIR") || "./data"),
     // Caddy is the only client that can reach the loopback bind, so its
     // X-Forwarded-For is trustworthy by construction. TRUST_PROXY=0 turns that
     // off (direct exposure — not this deployment).
@@ -251,7 +277,7 @@ async function handleNodeRequest(req, res, env, trustProxy) {
   // query are read downstream; the authority is irrelevant to routing.
   const url = new URL(req.url || "/", `http://${BIND_HOST}`);
 
-  // Liveness: no store, no mail, no secrets — just "the process is up".
+  // Liveness: no database, no mail, no secrets — just "the process is up".
   if (req.method === "GET" && url.pathname === "/api/health") {
     return writeJson(res, 200, env, { ok: true, service: "swear-jar-funnel" }, {
       "Cache-Control": "no-store",
@@ -268,10 +294,10 @@ async function handleNodeRequest(req, res, env, trustProxy) {
   await writeFetchResponse(res, response);
 }
 
-// createFunnelServer({ env, store, trustProxy }) -> http.Server (not listening).
+// createFunnelServer({ env, db, trustProxy }) -> http.Server (not listening).
 // Exported so tests can drive the real server on an ephemeral port.
-export function createFunnelServer({ env, store, trustProxy = true }) {
-  const handlerEnv = { ...env, STORE: store }; // the handler reads rows via env.STORE
+export function createFunnelServer({ env, db, trustProxy = true }) {
+  const handlerEnv = { ...env, DB: db }; // the handler reads rows via env.DB
   return http.createServer((req, res) => {
     handleNodeRequest(req, res, handlerEnv, trustProxy).catch(() => {
       // Fail closed, exactly like the handler: generic body, no stack, no state,
@@ -288,19 +314,21 @@ export function startFromEnv(source = process.env, { log = console, exit = proce
   if (!cfg.ok) {
     // Names only — a missing-variable message must never echo a value.
     log.error(
-      `swear-jar funnel: refusing to start — missing required environment variable(s): ${cfg.missing.join(", ")}`
+      `swear-jar funnel: refusing to start — missing or invalid required environment variable(s): ${cfg.missing.join(", ")}`
     );
     log.error("Set them in the service EnvironmentFile (see funnel/README.md). Values are never printed.");
     return exit(1);
   }
 
-  const store = createStore(cfg.dataDir);
-  const server = createFunnelServer({ env: cfg.env, store, trustProxy: cfg.trustProxy });
+  const db = createDb(cfg.db);
+  const server = createFunnelServer({ env: cfg.env, db, trustProxy: cfg.trustProxy });
 
-  // Reclaim expired pending rows periodically. unref'd: it must never be the
-  // reason the process stays alive.
+  // Ask the database to reclaim expired pending/rate-limit rows periodically.
+  // Housekeeping only — expiry is enforced on read, so a missed sweep is never a
+  // correctness problem. unref'd: it must never be the reason the process stays
+  // alive. A failed sweep is swallowed: it must not take the service down.
   const sweeper = setInterval(() => {
-    Promise.resolve(store.sweep()).catch(() => {});
+    Promise.resolve(db.sweep()).catch(() => {});
   }, SWEEP_INTERVAL_MS);
   sweeper.unref();
 
@@ -312,7 +340,8 @@ export function startFromEnv(source = process.env, { log = console, exit = proce
   process.on("SIGINT", shutdown);
 
   server.listen(cfg.port, BIND_HOST, () => {
-    log.log(`swear-jar funnel listening on http://${BIND_HOST}:${cfg.port} — data dir ${cfg.dataDir}`);
+    // No config values in the log line — not the database URL, nothing.
+    log.log(`swear-jar funnel listening on http://${BIND_HOST}:${cfg.port}`);
   });
   return server;
 }

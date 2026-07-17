@@ -5,15 +5,13 @@
 //      and the client-IP rules (the rate limit must key on the address the
 //      trusted proxy saw, never on anything a submitter can forge).
 //   2. an end-to-end run of the REAL server on an ephemeral loopback port,
-//      driving the real handler + the real row store. The one outbound call
-//      (the mail API) is stubbed at the fetch boundary, so no test ever touches
-//      the network — the only sockets opened are to our own server.
+//      driving the real handler against an in-memory stand-in for the database.
+//      The one outbound call (the mail API) is stubbed at the fetch boundary, so
+//      no test ever touches the network or the real project — the only sockets
+//      opened are to our own server.
 
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 import http from "node:http";
 
 import {
@@ -26,7 +24,6 @@ import {
   DEFAULT_PORT,
   BIND_HOST,
 } from "../funnel/server.mjs";
-import { createStore } from "../funnel/store.mjs";
 import { CLIENT_IP_HEADER, MAX_BODY_BYTES } from "../funnel/handler.mjs";
 
 // Key-shaped, assembled from fragments so the repo's own secret scan stays green.
@@ -66,6 +63,8 @@ after(() => {
   globalThis.fetch = REAL_FETCH;
 });
 
+const FAKE_SERVICE_KEY = ["service", "_", "role", "_", "NOTAREALKEY000"].join("");
+
 const BASE_ENV = {
   MAIL_FROM: "jar@example.org",
   PUBLIC_HOST: "swearjar.example",
@@ -73,21 +72,117 @@ const BASE_ENV = {
   RESEND_API_KEY: FAKE_KEY,
   ADMIN_TOKEN: FAKE_ADMIN_TOKEN,
   KNOWN_RELEASES: "cd15e0b",
+  SUPABASE_URL: "https://db.example.test",
+  SUPABASE_SERVICE_KEY: FAKE_SERVICE_KEY,
 };
 
-// Spin the real server up on an ephemeral port with its own temp data dir.
-async function withServer(fn, { env = {}, trustProxy = true } = {}) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "swear-funnel-srv-"));
-  const store = createStore(dir);
-  const server = createFunnelServer({ env: { ...BASE_ENV, ...env }, store, trustProxy });
+// ── the database stand-in ────────────────────────────────────────────────────
+// An in-memory implementation of funnel/db.mjs's surface, so these tests drive
+// the REAL server and the REAL handler without a database (or a network). It
+// mirrors the rules the real schema enforces, so the assertions below are about
+// the funnel's behaviour rather than about this fake:
+//   * takePending is one atomic take: expired or already-taken -> nothing.
+//   * bumpRateLimit returns the count AFTER this hit.
+//   * listBoard projects the `board` VIEW — email/join_list are structurally
+//     absent from it, exactly as in funnel/schema.sql.
+//   * an entry is keyed by email, and is hidden (never destroyed).
+// The exact request shapes the real client sends are covered in funnel-db.test.mjs.
+
+// The `board` view's projection, mirrored from funnel/schema.sql.
+const boardProjection = (r) => ({
+  handle: r.handle,
+  total_coins: Number(r.stats?.total_coins ?? 0),
+  dollars: Number(r.stats?.dollars ?? 0),
+  swears_per_day: Number(r.stats?.swears_per_day ?? 0),
+  fbomb_pct: Number(r.stats?.fbomb_pct ?? 0),
+  active_days: Number(r.stats?.active_days ?? 0),
+  top_word: r.stats?.top_word ?? "",
+  app_version: r.app_version ?? "",
+  verified: r.verified === true,
+  submitted: String(r.confirmed_at ?? "").slice(0, 10),
+});
+
+function createMemoryDb({ now = () => Date.now() } = {}) {
+  const pending = new Map();
+  const entries = new Map();
+  const limits = new Map();
+  const live = () => [...entries.values()].filter((r) => r.deleted_at == null);
+
+  return {
+    entries, // exposed for assertions only
+    async putPending({ token, email, handle, stats, join_list, release_hash, app_version, ttlSeconds }) {
+      pending.set(token, {
+        token, email, handle, stats,
+        join_list: join_list === true,
+        release_hash: release_hash ?? null,
+        app_version: app_version ?? null,
+        expires_at: now() + ttlSeconds * 1000,
+      });
+    },
+    // DELETE … WHERE token = ? AND expires_at > now RETURNING *
+    async takePending(token) {
+      const row = pending.get(token);
+      if (!row) return null; // unknown, or already consumed
+      pending.delete(token); // single-use, whatever happens next
+      return row.expires_at > now() ? row : null; // expiry enforced on read
+    },
+    async upsertEntry({ email, handle, stats, join_list, verified, release_hash, app_version }) {
+      entries.set(email, {
+        email, handle, stats,
+        join_list: join_list === true,
+        verified: verified === true,
+        release_hash: release_hash ?? null,
+        app_version: app_version ?? null,
+        confirmed_at: new Date(now()).toISOString(),
+        deleted_at: null, deleted_by: null, deletion_reason: null, // restores a hidden row
+      });
+    },
+    async listBoard({ limit = 100 } = {}) {
+      return live()
+        .map(boardProjection)
+        .sort((a, b) => b.total_coins - a.total_coins)
+        .slice(0, limit);
+    },
+    async listEntriesForExport() {
+      return live().map((r) => ({
+        email: r.email, handle: r.handle, join_list: r.join_list, confirmed_at: r.confirmed_at, stats: r.stats,
+      }));
+    },
+    async bumpRateLimit(key, ttlSeconds) {
+      const cur = limits.get(key);
+      if (!cur || cur.expires_at <= now()) {
+        limits.set(key, { count: 1, expires_at: now() + ttlSeconds * 1000 });
+        return 1;
+      }
+      cur.count += 1;
+      return cur.count;
+    },
+    async sweep() {
+      for (const [k, v] of pending) if (v.expires_at <= now()) pending.delete(k);
+      for (const [k, v] of limits) if (v.expires_at <= now()) limits.delete(k);
+    },
+    async softDeleteEntry(email, actor, reason) {
+      const row = entries.get(email);
+      if (row && row.deleted_at == null) {
+        row.deleted_at = new Date(now()).toISOString();
+        row.deleted_by = actor;
+        row.deletion_reason = reason;
+      }
+    },
+  };
+}
+
+// Spin the real server up on an ephemeral port with a fresh in-memory database.
+async function withServer(fn, { env = {}, trustProxy = true, now } = {}) {
+  const db = createMemoryDb({ now });
+  const server = createFunnelServer({ env: { ...BASE_ENV, ...env }, db, trustProxy });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   mails.length = 0;
   const base = `http://127.0.0.1:${server.address().port}`;
   try {
-    await fn({ base, store, dir });
+    await fn({ base, db });
   } finally {
     await new Promise((resolve) => server.close(resolve));
-    fs.rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -114,14 +209,43 @@ const goodBody = (email, extra = {}) => ({
 test("resolveConfig refuses to start without every required variable, naming them", () => {
   const r = resolveConfig({});
   assert.equal(r.ok, false);
-  assert.deepEqual(r.missing.sort(), [...REQUIRED_ENV].sort(), "all four are named");
+  assert.deepEqual(r.missing.sort(), [...REQUIRED_ENV].sort(), "every required variable is named");
+  // The database credentials are required: without them there is nowhere to put
+  // a submission, so starting would only fail later, on a real person's click.
+  assert.ok(r.missing.includes("SUPABASE_URL") && r.missing.includes("SUPABASE_SERVICE_KEY"));
 
-  const partial = resolveConfig({ ...BASE_ENV, RESEND_API_KEY: "", ADMIN_TOKEN: "   " });
+  const partial = resolveConfig({ ...BASE_ENV, RESEND_API_KEY: "", ADMIN_TOKEN: "   ", SUPABASE_SERVICE_KEY: "" });
   assert.equal(partial.ok, false);
-  assert.deepEqual(partial.missing.sort(), ["ADMIN_TOKEN", "RESEND_API_KEY"], "blank counts as missing");
+  assert.deepEqual(
+    partial.missing.sort(),
+    ["ADMIN_TOKEN", "RESEND_API_KEY", "SUPABASE_SERVICE_KEY"],
+    "blank counts as missing"
+  );
   // The failure report is NAMES only — a value must never ride along.
   assert.ok(!JSON.stringify(partial).includes(FAKE_KEY));
   assert.ok(!JSON.stringify(partial).includes(FAKE_ADMIN_TOKEN));
+  assert.ok(!JSON.stringify(partial).includes(FAKE_SERVICE_KEY), "never echoes the database key");
+});
+
+test("resolveConfig refuses a malformed database URL, naming it and nothing else", () => {
+  // A typo here would otherwise start fine and fail on a submitter's first click.
+  for (const bad of ["not-a-url", "db.example.test", "ftp://db.example.test", "://x"]) {
+    const r = resolveConfig({ ...BASE_ENV, SUPABASE_URL: bad });
+    assert.equal(r.ok, false, `${bad} must not start the service`);
+    assert.deepEqual(r.missing, ["SUPABASE_URL"], "the NAME is the whole message");
+    assert.ok(!JSON.stringify(r).includes(bad), "not even a bad value is echoed");
+  }
+  assert.equal(resolveConfig({ ...BASE_ENV, SUPABASE_URL: "https://db.example.test" }).ok, true);
+});
+
+test("resolveConfig hands the database credentials to the client, NOT to the handler's env", () => {
+  const r = resolveConfig(BASE_ENV);
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.db, { url: "https://db.example.test", serviceKey: FAKE_SERVICE_KEY });
+  // The service-role key bypasses RLS, so no route may be able to reach it: it
+  // goes to createDb and is closed over there, never into the handler's env.
+  assert.ok(!("SUPABASE_SERVICE_KEY" in r.env), "the key is not in the handler's env");
+  assert.ok(!JSON.stringify(r.env).includes(FAKE_SERVICE_KEY), "and not under any other name");
 });
 
 test("resolveConfig defaults ALLOWED_ORIGIN to the page's own origin (same-origin deploy)", () => {
@@ -131,12 +255,11 @@ test("resolveConfig defaults ALLOWED_ORIGIN to the page's own origin (same-origi
   assert.notEqual(r.env.ALLOWED_ORIGIN, "*", "never a wildcard");
 });
 
-test("resolveConfig defaults the port, the data dir and proxy trust", () => {
+test("resolveConfig defaults the port and proxy trust", () => {
   const r = resolveConfig(BASE_ENV);
   assert.equal(r.port, DEFAULT_PORT, "8788 — what the Caddy vhost proxies to");
   assert.equal(BIND_HOST, "127.0.0.1", "loopback only: Caddy is the only client");
   assert.equal(r.trustProxy, true);
-  assert.equal(path.isAbsolute(r.dataDir), true);
   assert.equal(resolveConfig({ ...BASE_ENV, PORT: "9001" }).port, 9001);
   assert.equal(resolveConfig({ ...BASE_ENV, PORT: "not-a-port" }).port, DEFAULT_PORT);
   assert.equal(resolveConfig({ ...BASE_ENV, TRUST_PROXY: "0" }).trustProxy, false);
@@ -236,6 +359,93 @@ test("a re-submit updates the same person's row instead of duplicating it", asyn
     const { board } = await (await fetch(base + "/api/board.json")).json();
     assert.equal(board.length, 1, "one row per verified human");
     assert.equal(board[0].total_coins, 999, "the newer numbers win");
+  });
+});
+
+test("an EXPIRED confirmation link cannot be redeemed, sweep or no sweep", async () => {
+  // The 48h expiry is enforced when the token is redeemed — the pending row is
+  // matched only while expires_at is still in the future — so a stale link is
+  // dead the moment it expires, whether or not anything has swept it.
+  let clock = Date.UTC(2026, 6, 10, 12, 0, 0);
+  await withServer(
+    async ({ base }) => {
+      await submit(base, { xff: "203.0.113.40", body: goodBody("slow@example.org") });
+      const token = /token=([0-9a-f-]+)/i.exec(mails[0].body.text)[1];
+
+      clock += 48 * 3600 * 1000 + 1000; // the link is now one second stale
+      const late = await fetch(`${base}/api/confirm?token=${token}`, { redirect: "manual" });
+      assert.equal(late.status, 400, "an expired token is refused");
+      assert.deepEqual(await late.json(), { ok: false, error: "bad request" }, "generic — no hint that it expired");
+
+      const { board } = await (await fetch(base + "/api/board.json")).json();
+      assert.deepEqual(board, [], "and nothing was published");
+    },
+    { now: () => clock }
+  );
+});
+
+test("a confirmation link still works right up to its expiry", async () => {
+  // The other side of the boundary: the redemption window is the full 48h.
+  let clock = Date.UTC(2026, 6, 10, 12, 0, 0);
+  await withServer(
+    async ({ base }) => {
+      await submit(base, { xff: "203.0.113.41", body: goodBody("justintime@example.org") });
+      const token = /token=([0-9a-f-]+)/i.exec(mails[0].body.text)[1];
+
+      clock += 48 * 3600 * 1000 - 1000; // one second to spare
+      const ok = await fetch(`${base}/api/confirm?token=${token}`, { redirect: "manual" });
+      assert.equal(ok.status, 302);
+      const { board } = await (await fetch(base + "/api/board.json")).json();
+      assert.equal(board.length, 1, "published");
+    },
+    { now: () => clock }
+  );
+});
+
+test("a hidden entry leaves the board, and re-confirming puts the person back", async () => {
+  await withServer(async ({ base, db }) => {
+    const confirmOnce = async (ip) => {
+      await submit(base, { xff: ip, body: goodBody("back@example.org") });
+      const token = /token=([0-9a-f-]+)/i.exec(mails.at(-1).body.text)[1];
+      await fetch(`${base}/api/confirm?token=${token}`, { redirect: "manual" });
+    };
+    await confirmOnce("203.0.113.42");
+    assert.equal((await (await fetch(base + "/api/board.json")).json()).board.length, 1);
+
+    // Hiding is the ONLY supported removal: the row stays, marked with who/why.
+    await db.softDeleteEntry("back@example.org", "operator", "requested removal");
+    assert.deepEqual(
+      (await (await fetch(base + "/api/board.json")).json()).board,
+      [],
+      "a hidden row is off the public board"
+    );
+    assert.ok(db.entries.get("back@example.org"), "but the customer row itself is never destroyed");
+
+    // Submitting again is a person choosing to be listed again — it restores them.
+    await confirmOnce("203.0.113.43");
+    const { board } = await (await fetch(base + "/api/board.json")).json();
+    assert.equal(board.length, 1, "re-confirming un-hides the row");
+    const row = db.entries.get("back@example.org");
+    assert.equal(row.deleted_at, null);
+    assert.equal(row.deleted_by, null, "no stale actor on a live row");
+    assert.equal(row.deletion_reason, null, "no stale reason on a live row");
+  });
+});
+
+test("a database failure is a generic 500 that says nothing, and never mails", async () => {
+  // Fail closed: a broken database must not leak its errors, and must not let a
+  // submission through un-counted.
+  await withServer(async ({ base, db }) => {
+    db.bumpRateLimit = async () => {
+      throw new Error(`connect ECONNREFUSED https://db.example.test key ${FAKE_SERVICE_KEY}`);
+    };
+    const res = await submit(base, { xff: "203.0.113.44", body: goodBody("boom@example.org") });
+    assert.equal(res.status, 500);
+    const dump = (await res.text()) + JSON.stringify([...res.headers]);
+    assert.deepEqual(JSON.parse(dump.split("[")[0] || "{}"), { ok: false, error: "server error" }, "generic body");
+    assert.ok(!dump.includes(FAKE_SERVICE_KEY), "no key");
+    assert.ok(!dump.includes("ECONNREFUSED"), "no stack, no internal state");
+    assert.equal(mails.length, 0, "a submission that could not be rate-limited is never mailed");
   });
 });
 
@@ -372,7 +582,7 @@ test("export.csv is token-gated and carries the list data only for the admin", a
   });
 });
 
-test("health is a store-free liveness probe, and unknown routes 404", async () => {
+test("health is a database-free liveness probe, and unknown routes 404", async () => {
   await withServer(async ({ base }) => {
     const health = await fetch(base + "/api/health");
     assert.equal(health.status, 200);
@@ -409,6 +619,7 @@ test("no secret ever appears in a response body or header", async () => {
       const dump = (await res.text()) + JSON.stringify([...res.headers]);
       assert.ok(!dump.includes(FAKE_KEY), `${p} must not leak the mail key`);
       assert.ok(!dump.includes(FAKE_ADMIN_TOKEN), `${p} must not leak the admin token`);
+      assert.ok(!dump.includes(FAKE_SERVICE_KEY), `${p} must not leak the database service key`);
       assert.ok(!dump.includes(token), `${p} must not leak a confirmation token`);
     }
   });

@@ -282,21 +282,37 @@ test("verifiedFlag matches the known-releases allow-list, case-insensitively", (
 });
 
 // ── THE PRIVACY-CRITICAL TEST ────────────────────────────────────────────────
+// publicView reads rows from the `board` view, which already excludes email by
+// construction (funnel/schema.sql). This tests the SECOND wall: even handed a
+// row carrying forbidden fields — a widened view, a wrong query, a future
+// refactor pointing this at the entries table — publicView must emit the public
+// field set and nothing else.
 test("publicView NEVER contains email, join_list, or IP — in keys or values", () => {
   const fullRow = {
+    // the board view's real columns
+    handle: "Potty Mouth",
+    total_coins: 4215,
+    dollars: 1053.75,
+    swears_per_day: 12.4,
+    top_word: "f**k",
+    fbomb_pct: 38,
+    active_days: 340,
+    app_version: "0.1.0",
+    verified: true,
+    submitted: "2026-07-10",
+    // fields that must never survive, whatever hands them over
     email: "leak.me@example.org",
     join_list: true,
-    handle: "Potty Mouth",
-    stats: goodStats(),
-    verified: true,
-    confirmed_at: "2026-07-10T12:00:00.000Z",
     ip: "203.0.113.7",
     ip_hash: "abc123iphash",
+    stats: goodStats(),
+    deleted_by: "operator",
+    deletion_reason: "requested removal",
   };
   const pub = publicView(fullRow);
 
   // 1. Forbidden KEYS are absent.
-  for (const forbidden of ["email", "join_list", "ip", "ip_hash"]) {
+  for (const forbidden of ["email", "join_list", "ip", "ip_hash", "deleted_by", "deletion_reason"]) {
     assert.ok(!(forbidden in pub), `public row must not carry key "${forbidden}"`);
   }
 
@@ -306,6 +322,7 @@ test("publicView NEVER contains email, join_list, or IP — in keys or values", 
   assert.ok(!s.includes("203.0.113.7"), "IP value must not leak");
   assert.ok(!s.includes("abc123iphash"), "IP hash must not leak");
   assert.ok(!s.includes("join_list"), "join_list must not leak");
+  assert.ok(!s.includes("operator") && !s.includes("requested removal"), "soft-delete bookkeeping must not leak");
 
   // 3. Exactly the public-safe field set, nothing else.
   assert.deepEqual(
@@ -328,14 +345,26 @@ test("publicView NEVER contains email, join_list, or IP — in keys or values", 
   // 4. The public fields are correct.
   assert.equal(pub.handle, "Potty Mouth");
   assert.equal(pub.total_coins, 4215);
+  assert.equal(pub.dollars, 1053.75);
   assert.equal(pub.verified, true);
   assert.equal(pub.submitted, "2026-07-10", "date only, no timestamp precision");
 });
 
-test("publicView is safe on malformed/empty rows", () => {
-  for (const row of [null, undefined, {}, { stats: null }]) {
+test("publicView truncates a full timestamp to a date, whatever it is handed", () => {
+  // The view hands back a date already; this holds the promise anyway.
+  assert.equal(publicView({ submitted: "2026-07-10T12:34:56.789Z" }).submitted, "2026-07-10");
+});
+
+test("publicView coerces the numbers it publishes and is safe on malformed/empty rows", () => {
+  for (const row of [null, undefined, {}, { stats: null }, { total_coins: null }, { total_coins: "not-a-number" }]) {
     const pub = publicView(row);
     assert.equal(pub.handle, "anonymous");
+    assert.equal(pub.total_coins, 0, "a missing/garbage number publishes as 0, never NaN or null");
+    assert.equal(pub.verified, false, "verified is opt-in: only a literal true");
     assert.ok(!("email" in pub) && !("join_list" in pub) && !("ip" in pub));
+    assert.ok(!JSON.stringify(pub).includes("null"), "no nulls on the public board");
   }
+  // A numeric string from the wire is published as a number.
+  assert.equal(publicView({ total_coins: "4215" }).total_coins, 4215);
+  assert.equal(publicView({ verified: "true" }).verified, false, "no truthy coercion on verified");
 });

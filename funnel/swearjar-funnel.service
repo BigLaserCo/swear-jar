@@ -6,9 +6,12 @@
 # only thing that can reach it (see infra/swearjar.caddy).
 #
 # Configuration lives in /etc/swearjar-funnel.env, which the OPERATOR creates on
-# the host and which is never in this repo (it holds RESEND_API_KEY and
-# ADMIN_TOKEN). The service refuses to start if a required variable is missing.
-# See funnel/README.md for the field list.
+# the host and which is never in this repo (it holds RESEND_API_KEY,
+# ADMIN_TOKEN and SUPABASE_SERVICE_KEY). The service refuses to start if a
+# required variable is missing. See funnel/README.md for the field list.
+#
+# The service keeps NO state on disk: the rows live in the database, so this
+# unit needs no writable directory at all (see the hardening block).
 
 [Unit]
 Description=swear-jar leaderboard funnel
@@ -25,17 +28,14 @@ ExecStart=/usr/bin/env node server.mjs
 # it should be root-owned and mode 0600.
 EnvironmentFile=/etc/swearjar-funnel.env
 
-# StateDirectory gives the (dynamic) service user a persistent, writable
-# /var/lib/swearjar-funnel that survives restarts — that is the row store.
-StateDirectory=swearjar-funnel
-Environment=FUNNEL_DATA_DIR=/var/lib/swearjar-funnel
-
 Restart=on-failure
 RestartSec=2
 
 # ── hardening ────────────────────────────────────────────────────────────────
-# The process needs exactly two things: its state dir and outbound TCP to the
-# mail API. Everything else is taken away.
+# The process needs exactly one thing: outbound TCP (the mail API and the
+# database). It stores nothing locally, so it gets no writable directory and
+# ProtectSystem=strict leaves the whole filesystem read-only to it. Everything
+# else is taken away.
 DynamicUser=true
 NoNewPrivileges=true
 ProtectSystem=strict

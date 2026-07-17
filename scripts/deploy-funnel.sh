@@ -9,10 +9,12 @@
 # DEPLOY_HOST is an SSH host/alias you can reach (e.g. one in ~/.ssh/config).
 # The server IP is intentionally NOT baked in here (this repo is public).
 #
-# PREREQUISITE — the operator creates /etc/swearjar-funnel.env on the host
-# BEFORE the first deploy (see funnel/README.md for the fields). It holds the
-# secrets; this script only checks that it EXISTS. It never creates it, never
-# reads it, never prints it, and it is never in this repo.
+# PREREQUISITES — both are OWNER acts, done once, before the first deploy:
+#   1. the database schema (funnel/schema.sql) is applied to the project.
+#   2. /etc/swearjar-funnel.env exists on the host (see funnel/README.md for the
+#      fields). It holds the secrets; this script only checks that it EXISTS. It
+#      never creates it, never reads it, never prints it, and it is never in this
+#      repo — nor is any database credential.
 set -euo pipefail
 
 HOST="${DEPLOY_HOST:-}"
@@ -33,6 +35,7 @@ if ! ssh "$HOST" "test -f ${ENVFILE}"; then
   echo "error: ${ENVFILE} does not exist on ${HOST}." >&2
   echo "  Create it there yourself (root-owned, chmod 600) with:" >&2
   echo "    MAIL_FROM=...  PUBLIC_HOST=...  RESEND_API_KEY=...  ADMIN_TOKEN=..." >&2
+  echo "    SUPABASE_URL=...  SUPABASE_SERVICE_KEY=..." >&2
   echo "  optional: ALLOWED_ORIGIN, THANKS_URL, KNOWN_RELEASES, PORT" >&2
   echo "  See funnel/README.md. This script never creates, reads, or prints it." >&2
   exit 1
@@ -45,8 +48,10 @@ fi
 echo "🫙 deploying funnel to ${HOST}:${APPDIR}"
 ssh "$HOST" "mkdir -p ${APPDIR}"
 # Ship only the runnable service (skip the docs).
-# --delete is safe here: the row store lives in the unit's StateDirectory
-# (/var/lib/swearjar-funnel), never under ${APPDIR}, so no data is touched.
+# --delete is safe here: the service stores no rows on disk — they live in the
+# database — so nothing under ${APPDIR} is data. The schema (funnel/schema.sql)
+# rides along for reference; it is applied to the database by the operator, not
+# by this script, which holds no database credential.
 rsync -az --delete --exclude='*.md' "${ROOT}/funnel/" "${HOST}:${APPDIR}/"
 
 echo "🫙 installing systemd unit"
