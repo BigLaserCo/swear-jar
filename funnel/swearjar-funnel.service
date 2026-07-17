@@ -1,0 +1,55 @@
+# swear-jar leaderboard funnel — systemd unit.
+#
+# Installed to /etc/systemd/system/swearjar-funnel.service by
+# scripts/deploy-funnel.sh. The service runs funnel/server.mjs from
+# /opt/swearjar-funnel and binds 127.0.0.1:8787 — Caddy fronts it and is the
+# only thing that can reach it (see infra/swearjar.caddy).
+#
+# Configuration lives in /etc/swearjar-funnel.env, which the OPERATOR creates on
+# the host and which is never in this repo (it holds RESEND_API_KEY and
+# ADMIN_TOKEN). The service refuses to start if a required variable is missing.
+# See funnel/README.md for the field list.
+
+[Unit]
+Description=swear-jar leaderboard funnel
+Documentation=https://github.com/BigLaserCo/swear-jar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/swearjar-funnel
+ExecStart=/usr/bin/env node server.mjs
+
+# Secrets + config. The unit does not create this file; the operator does, and
+# it should be root-owned and mode 0600.
+EnvironmentFile=/etc/swearjar-funnel.env
+
+# StateDirectory gives the (dynamic) service user a persistent, writable
+# /var/lib/swearjar-funnel that survives restarts — that is the row store.
+StateDirectory=swearjar-funnel
+Environment=FUNNEL_DATA_DIR=/var/lib/swearjar-funnel
+
+Restart=on-failure
+RestartSec=2
+
+# ── hardening ────────────────────────────────────────────────────────────────
+# The process needs exactly two things: its state dir and outbound TCP to the
+# mail API. Everything else is taken away.
+DynamicUser=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

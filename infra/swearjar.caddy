@@ -1,9 +1,11 @@
-# swear-jar — the open-source landing + demo (static docs/, no build, no server).
-# Deployed from github.com/BigLaserCo/swear-jar docs/ → /var/www/swearjar on the
-# droplet. Caddy serves files directly; TLS auto-issued via ACME on first hit.
-# Access logs capture the /wrapped?<aggregate-params> hits (the simple, no-Worker
-# data path). Install: scp to /etc/caddy/conf.d/swearjar.caddy, then
-# `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`.
+# swear-jar — the open-source landing + demo (static docs/, no build) plus the
+# leaderboard funnel API. Deployed from github.com/BigLaserCo/swear-jar docs/ →
+# /var/www/swearjar on the host. Caddy serves the files directly; TLS is
+# auto-issued via ACME on first hit. Access logs capture the
+# /wrapped?<aggregate-params> hits (the simple data path that needs no API).
+# Install: scp to /etc/caddy/conf.d/swearjar.caddy, then
+# `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`
+# (scripts/deploy-site.sh and scripts/deploy-funnel.sh both do this for you).
 # Bare domain + www → the app (until unfocused.ai hosts its own umbrella page).
 unfocused.ai, www.unfocused.ai {
     redir https://swearjar.unfocused.ai{uri} permanent
@@ -13,13 +15,32 @@ swearjar.unfocused.ai {
     encode zstd gzip
     root * /var/www/swearjar
 
-    # Pretty URLs: /submit → submit.html, /wrapped → wrapped.html, dir → index.html
-    try_files {path} {path}.html {path}/index.html /index.html
-    file_server
+    # ── the leaderboard funnel API ───────────────────────────────────────────
+    # funnel/server.mjs, run by systemd (funnel/swearjar-funnel.service) and
+    # bound to the LOOPBACK interface only: Caddy is the sole thing that can
+    # reach it. That is what makes the X-Forwarded-For Caddy sets here
+    # trustworthy. The service rate-limits on the RIGHTMOST entry — the address
+    # Caddy itself recorded — never the forgeable client-supplied leftmost one.
+    # (Caddy discards a spoofed inbound X-Forwarded-For by default; if
+    # trusted_proxies is ever added here, rightmost stays the entry to trust.)
+    #
+    # `handle` is terminal and matched before the static block, so /api/* is
+    # proxied verbatim and never touches the try_files rewrite below (which
+    # would otherwise rewrite /api/submit to /index.html before it got here).
+    handle /api/* {
+        reverse_proxy 127.0.0.1:8787
+    }
 
-    # Never cache the HTML shell so a fresh deploy shows on the next request.
-    @html not path /assets/*
-    header @html Cache-Control "no-store, must-revalidate"
+    # ── everything else: the static site ─────────────────────────────────────
+    handle {
+        # Pretty URLs: /submit → submit.html, /wrapped → wrapped.html, dir → index.html
+        try_files {path} {path}.html {path}/index.html /index.html
+        file_server
+
+        # Never cache the HTML shell so a fresh deploy shows on the next request.
+        @html not path /assets/*
+        header @html Cache-Control "no-store, must-revalidate"
+    }
 
     # Log the aggregate-carrying wrapped hits (JSON) to stderr → journald (the
     # systemd sandbox blocks a custom /var/log file; journald is the v1 metrics

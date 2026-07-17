@@ -162,17 +162,18 @@
 
 <script>
 /* ═══════════════════════ CONFIG — edit here only ═══════════════════════════
- * API_BASE      the deployed funnel Worker origin, e.g. "https://jar.unfocused.ai"
- *               LEAVE AS THE PLACEHOLDER until the Worker is live: the page
- *               then renders disabled with a "submissions opening soon" note,
- *               so the site can ship before the Worker is deployed.
+ * API_BASE      the funnel API origin. SAME-ORIGIN with this page: Caddy serves
+ *               the site and proxies /api/* to the funnel service on the same
+ *               host, so this is simply this site's own origin. Set it to a
+ *               non-URL value to render the page disabled with a "submissions
+ *               opening soon" note (how it shipped before the API was live).
  * BRAND_CREDIT  visible footer credit.
  * THANKS_URL    where the confirm link lands people (informational here; the
- *               actual redirect is configured on the Worker).
+ *               actual redirect is configured on the funnel service).
  * REPO_URL      the project repo link in the footer.
  * ═══════════════════════════════════════════════════════════════════════════ */
 const CONFIG = {
-  API_BASE: "__API_BASE__",                    // <-- placeholder = form disabled
+  API_BASE: "https://swearjar.unfocused.ai",   // same-origin: Caddy proxies /api/*
   BRAND_CREDIT: "Swear Jar — from unfocused.ai",
   THANKS_URL: "https://swearjar.unfocused.ai/thanks",
   REPO_URL: "https://github.com/BigLaserCo/swear-jar",
