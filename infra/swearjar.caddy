@@ -28,7 +28,7 @@ swearjar.unfocused.ai {
     # proxied verbatim and never touches the try_files rewrite below (which
     # would otherwise rewrite /api/submit to /index.html before it got here).
     handle /api/* {
-        reverse_proxy 127.0.0.1:8787
+        reverse_proxy 127.0.0.1:8788
     }
 
     # ── everything else: the static site ─────────────────────────────────────

@@ -69,7 +69,7 @@ sudo editor /etc/swearjar-funnel.env
 | `ALLOWED_ORIGIN` | no | The one origin allowed to POST. Defaults to `https://$PUBLIC_HOST` — correct for this same-origin deployment. |
 | `THANKS_URL` | no | Override the post-confirm redirect. Defaults to `https://$PUBLIC_HOST/thanks`. |
 | `KNOWN_RELEASES` | no | Comma-separated release hashes that earn the `verified` badge. |
-| `PORT` | no | Loopback port. Defaults to `8787` (what the Caddy vhost proxies to). |
+| `PORT` | no | Loopback port. Defaults to `8788` (what the Caddy vhost proxies to). Set it if something else on the host already has that port. |
 | `FUNNEL_DATA_DIR` | no | Row store location. The unit sets it to the service's own state directory. |
 
 **Every deploy** — one command:

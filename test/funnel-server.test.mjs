@@ -133,7 +133,7 @@ test("resolveConfig defaults ALLOWED_ORIGIN to the page's own origin (same-origi
 
 test("resolveConfig defaults the port, the data dir and proxy trust", () => {
   const r = resolveConfig(BASE_ENV);
-  assert.equal(r.port, DEFAULT_PORT, "8787 — what the Caddy vhost proxies to");
+  assert.equal(r.port, DEFAULT_PORT, "8788 — what the Caddy vhost proxies to");
   assert.equal(BIND_HOST, "127.0.0.1", "loopback only: Caddy is the only client");
   assert.equal(r.trustProxy, true);
   assert.equal(path.isAbsolute(r.dataDir), true);

@@ -31,7 +31,7 @@ import { createStore, SWEEP_INTERVAL_MS } from "./store.mjs";
 // Loopback ONLY. Caddy is the only thing that may reach this process; nothing
 // else on the network can, which is what makes the proxy header trustworthy.
 export const BIND_HOST = "127.0.0.1";
-export const DEFAULT_PORT = 8787;
+export const DEFAULT_PORT = 8788;
 
 // Missing any of these = refuse to start. (THANKS_URL / KNOWN_RELEASES /
 // ALLOWED_ORIGIN are optional: the handler and resolveConfig default them.)
