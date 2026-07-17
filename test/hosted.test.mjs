@@ -198,7 +198,7 @@ test("families are capped at 12 and same-shape collisions merge (never overwrite
   assert.ok(Object.keys(value.families).length <= 12, "never more than 12 families");
 });
 
-// ── the round-trip (shared with the hosted Worker) ────────────────────────────
+// ── the round-trip (shared with the funnel service) ───────────────────────────
 test("encode -> decode -> validateWrapped round-trips exactly", () => {
   const recs = fixture();
   const value = buildWrappedPayload(statsFor(recs), recs);
