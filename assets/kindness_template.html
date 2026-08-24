@@ -508,13 +508,52 @@ const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
 })();
 
 /*__CARD_SVG_START__*/
-function cardSvg(d, variant) {
-  const num = (n) => Number(n || 0).toLocaleString("en-US");
-  const usd0 = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
-  if (variant === "kindness") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.kindActs)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">nice things said to an AI · ${num(d.credits)} karma points (worth nothing)</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
+const MAX_BAR_WIDTH = 480;
+
+function count(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+}
+
+function cardVerdict({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears);
+  const nice = count(kindActs);
+  if (swears === 0 && nice === 0) return "NO SIGNAL";
+  if (nice > swears) return "HOLY GOODY TWO-SHOES";
+  if (swears > nice) return "YOU KISS YOUR MOTHER WITH THAT MOUTH?";
+  return "DEAD EVEN";
+}
+
+function cardTheme(verdict) {
+  if (verdict === "HOLY GOODY TWO-SHOES") {
+    return { background: "#FBF7EC", accent: "#C9922A", ink: "#241C10", muted: "#574A32" };
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.coins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd0(d.dollars)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favLabel || "—"} · ${Number(d.fbombPct) || 0}% f-bombs · ${num(d.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
+  if (verdict === "YOU KISS YOUR MOTHER WITH THAT MOUTH?") {
+    return { background: "#17141C", accent: "#E8623A", ink: "#F3EEE7", muted: "#CFC6BA" };
+  }
+  return { background: "#F2F0EB", accent: "#5C6470", ink: "#1E252D", muted: "#4A535D" };
+}
+
+function cardSvg({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears);
+  const nice = count(kindActs);
+  const scale = Math.max(swears, nice, 1);
+  const verdict = cardVerdict({ userSwears: swears, kindActs: nice });
+  const theme = cardTheme(verdict);
+  const num = (value) => value.toLocaleString("en-US");
+  const barWidth = (value) => (MAX_BAR_WIDTH * value) / scale;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="AI Swear Jar: ${num(swears)} swears, ${num(nice)} nice acts. ${verdict}"><rect width="1200" height="675" rx="28" fill="${theme.background}"/><rect width="1200" height="12" fill="${theme.accent}"/><text x="64" y="92" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="32" font-weight="800">AI SWEAR JAR</text><text x="64" y="184" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="34" font-weight="700">I have sworn at AI ${num(swears)} times.</text><rect x="656" y="153" width="480" height="24" rx="12" fill="${theme.ink}" opacity=".14"/><rect data-share-bar="swears" x="656" y="153" width="${barWidth(swears)}" height="24" rx="12" fill="${theme.accent}"/><text x="64" y="278" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="34" font-weight="700">I have been nice to AI ${num(nice)} times.</text><rect x="656" y="247" width="480" height="24" rx="12" fill="${theme.ink}" opacity=".14"/><rect data-share-bar="nice" x="656" y="247" width="${barWidth(nice)}" height="24" rx="12" fill="${theme.accent}"/><text x="64" y="405" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="42" font-weight="900">${verdict}</text><text x="64" y="530" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="28" font-weight="700">Want to know how you measure up?</text><text x="64" y="588" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="24">swearjar.unfocused.ai</text></svg>`;
+}
+
+function cardData(stats = {}) {
+  return { userSwears: count(stats.userSwears), kindActs: count(stats.kindActs) };
+}
+
+function shareCaption({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears).toLocaleString("en-US");
+  const nice = count(kindActs).toLocaleString("en-US");
+  return `I used the open-source AI Swear Jar and found out I have sworn at AI ${swears} times.\n\nOn the other hand, I have been nice to AI ${nice} times.\n\nWant to know how you measure up?\n\nhttps://swearjar.unfocused.ai`;
 }
 /*__CARD_SVG_END__*/
 
