@@ -657,28 +657,44 @@ function shareCaption({ userSwears, kindActs } = {}) {
 }
 /*__CARD_SVG_END__*/
 
-// display-ready card data from S (mirrors src/sharecard.mjs cardData)
-const grovelCredits=(S.topPositives||[]).filter(p=>p.tier==='grovel').reduce((n,p)=>n+p.credits,0);
-const favKindTop=S.topPositives&&S.topPositives[0];
-const CARD={
-  coins:S.totalCoins,dollars:S.dollarsOwed,favLabel:fav?censor(fav.word):'—',fbombPct:S.fbombPct,vocab:S.vocab,
-  kindActs:S.kindActs,credits:S.kindnessCredits,favKindLabel:favKindTop?favKindTop.word:'—',
-  grovelPct:S.kindnessCredits?Math.round(100*grovelCredits/S.kindnessCredits):0,
-  kindVocab:(S.topPositives||[]).length,
+const CARD=cardData(S);
+const shareText=shareCaption(CARD);
+const HAS_SHARE_SIGNAL=CARD.userSwears>0||CARD.kindActs>0;
+if(!HAS_SHARE_SIGNAL)$('share-sec').hidden=true;
+if(!HAS_SHARE_SIGNAL){
+  for(const id of ['shareNative','shareX','shareLinkedIn','cp'])$(id).disabled=true;
+  for(const id of ['downloadCardPng','downloadCard'])$(id).setAttribute('aria-disabled','true');
+}
+
+(function renderComparisonCard(){
+  const max=Math.max(CARD.userSwears,CARD.kindActs,1);
+  const verdict=cardVerdict(CARD);
+  const card=$('wcard');
+  card.classList.toggle('swear-heavy',CARD.userSwears>CARD.kindActs);
+  card.classList.toggle('nice-heavy',CARD.kindActs>CARD.userSwears);
+  card.setAttribute('aria-label',`AI Swear Jar: ${fmt(CARD.userSwears)} swears, ${fmt(CARD.kindActs)} nice acts. ${verdict}`);
+  $('wSwearCount').textContent=fmt(CARD.userSwears);
+  $('wNiceCount').textContent=fmt(CARD.kindActs);
+  $('wSwearBar').style.width=(100*CARD.userSwears/max)+'%';
+  $('wNiceBar').style.width=(100*CARD.kindActs/max)+'%';
+  $('wVerdict').textContent=verdict;
+})();
+
+$('cp').onclick=async()=>{
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
+  const copied=await copyShareText(shareText);
+  toast(copied?'Post copied — go measure some mouths':'Copy failed — select and copy the post manually');
 };
-const cardBlob=()=>new Blob([cardSvg(CARD,'damage')],{type:'image/svg+xml'});
-const kindCardBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'});
-const cardUrl=URL.createObjectURL(cardBlob());
-$('downloadCard').href=cardUrl;
-$('downloadKindCard').href=URL.createObjectURL(kindCardBlob());
+const cardBlob=()=>new Blob([cardSvg(CARD)],{type:'image/svg+xml'});
+if(HAS_SHARE_SIGNAL)$('downloadCard').href=URL.createObjectURL(cardBlob());
+else $('downloadCard').setAttribute('aria-disabled','true');
 
 // ---- the card, as a PNG: the thing that actually travels ----
 // Web Share Level 2 rejects image/svg+xml on every platform, so attaching an SVG
 // File silently drops it and the share degrades to a bare link — the card never
 // goes anywhere. Rasterizing to PNG first is what makes the CARD itself
 // shareable. Pure browser APIs: Blob -> Image -> offscreen canvas -> toBlob. No
-// network, no library. The SVG handed in is the already-censored one (CARD.favLabel
-// went through censor()), so the PNG inherits that guarantee unchanged.
+// network, no library. The SVG contains only the two aggregate counts and fixed copy.
 const CARD_W=1200,CARD_H=675,CARD_SCALE=2;   // 2x = crisp on retina
 function svgToPngBlob(svg){
   return new Promise((resolve,reject)=>{
@@ -697,7 +713,7 @@ function svgToPngBlob(svg){
     img.src=url;
   });
 }
-const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD,'damage'));
+const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD));
 
 // Best-effort by design: an unsupported browser or a denied permission returns
 // false so the caller tells the user the truth instead of claiming the image
@@ -715,6 +731,7 @@ function savePng(blob,name){
 }
 $('downloadCardPng').onclick=async(e)=>{
   e.preventDefault();
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   try{savePng(await cardPngBlob(),'swear-jar-card.png');}
   catch(err){toast('PNG export failed — the SVG save still works');}
 };
@@ -724,6 +741,7 @@ $('downloadCardPng').onclick=async(e)=>{
 // this one sheet — there is no Instagram web intent, so this IS the Instagram
 // path), then the clipboard, then a download. Each step says what actually happened.
 $('shareNative').onclick=async()=>{
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   let blob;
   try{blob=await cardPngBlob();}
   catch(e){toast('Could not build the card image — use “Save the card” below');return;}
@@ -743,6 +761,7 @@ $('shareNative').onclick=async()=>{
 // requires a url param) — that link is attribution, NOT the card, and the copy
 // never claims the card was posted for you.
 async function shareToComposer(intentUrl,network){
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   let copied=false;
   try{copied=await copyPngToClipboard(await cardPngBlob());}catch(e){copied=false;}
   toast(copied
@@ -750,7 +769,7 @@ async function shareToComposer(intentUrl,network){
     :`Save the card below, then attach it to your ${network} post`);
   openSocial(intentUrl);
 }
-$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl),'X');
+$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText),'X');
 $('shareLinkedIn').onclick=()=>shareToComposer('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl),'LinkedIn');
 
 // ---- empty-your-jar donation (config-injected URL; hidden if unset) ----
