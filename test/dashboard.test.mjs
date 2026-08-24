@@ -30,8 +30,8 @@ function render() {
 test("renders the expected dollar figure, project names and odds into the payload", () => {
   const html = render();
   const stats = computeStats(FIXTURE, NOW);
-  assert.equal(stats.dollarsOwed, 5.5); // $1 fuck + $1 shit + $.50 damn + $1 machine fuck
-  assert.ok(html.includes('"dollarsOwed":5.5'), "dollar figure present");
+  assert.equal(stats.dollarsOwed, 6); // six literal swears at $1 each
+  assert.ok(html.includes('"dollarsOwed":6'), "dollar figure present");
   assert.ok(html.includes('"alpha"') && html.includes('"beta"'), "project names present");
   assert.ok(html.includes(`"value":${survivalOdds(FIXTURE, NOW).odds}`), "odds value present");
   assert.ok(html.includes('"word":"fuck"'), "top word family present");

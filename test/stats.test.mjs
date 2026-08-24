@@ -19,7 +19,7 @@ const FIXTURE = [
 test("hero totals: coins and dollars owed", () => {
   const s = computeStats(FIXTURE, NOW);
   assert.equal(s.totalCoins, 20);
-  assert.equal(s.dollarsOwed, 11); // repriced from word families: mild $.50, ordinary $1, severe $5
+  assert.equal(s.dollarsOwed, 8); // repriced from literal swear counts at $1 each
   assert.equal(s.coinValue, 1);
   assert.equal(s.totalRecords, 6);
 });

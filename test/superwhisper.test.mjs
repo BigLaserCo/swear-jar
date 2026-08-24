@@ -44,7 +44,7 @@ test("counts swears per recording via the ported lexicon", () => {
   assert.equal(res.added, 1);
   // goddamn = artisanal(5) + fuck = premium(3) = 8 coins
   assert.equal(res.coins, 8);
-  assert.equal(res.dollars, 6);
+  assert.equal(res.dollars, 2);
 
   const recs = loadDictationRecords();
   assert.equal(recs.length, 1);
