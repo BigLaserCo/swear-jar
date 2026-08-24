@@ -583,34 +583,25 @@ $('kpis').innerHTML=[
   $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');
 })();
 
-// ---- wrapped share card ----
-(function(){
-  let h='';for(let i=0;i<46;i++){const b=20+Math.abs(Math.sin(i*0.7))*55+Math.abs(Math.sin(i*2.3))*20;h+=`<span class="wminib" style="height:${Math.min(100,Math.round(b))}%"></span>`;}
-  $('wmini').innerHTML=h;
-  const pct=S.cleanDaysPct;let sealTxt='ON RECORD';
-  if(S.odds&&S.odds.royalty)sealTxt='👑 ROYALTY';else if((S.spicyPct||0)>=50)sealTxt='FLAGGED';else if(pct>=80)sealTxt='MOSTLY CLEAN';
-  $('wseal').textContent=sealTxt;
-  $('wnum').textContent=fmt(S.totalCoins);
-  $('wsub').innerHTML=`coins in the jar — <b>${usd(S.dollarsOwed)}</b> owed.`;
-  $('wstats').innerHTML=[
-    [fav?sww(fav.word):'—','favourite'],
-    [S.fbombPct+'%','f-bombs'],
-    [fmt(S.vocab),'distinct'],
-  ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
-})();
-
 // ---- share actions: generated card + social composers ----
-// The exported caption is ALWAYS censored — even if the on-screen toggle reveals
-// words locally, nothing raw ever leaves this machine.
-const wrappedCaption=
-  `rage, wrapped · 2026 🫙\n`+
-  `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
-  `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
-  `processed locally · nothing left this machine · swearjar.unfocused.ai`;
-
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-$('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
-const shareText=`I ran my local Swear Jar report: ${fmt(S.totalCoins)} damage points, ${usd(S.dollarsOwed)} owed. ${S.fbombPct}% f-bombs. #SwearJar #BigLaserCo`;
+async function copyShareText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(text);return true;}
+  }catch(e){}
+  const area=document.createElement('textarea');
+  area.value=text;
+  area.setAttribute('readonly','');
+  area.style.position='fixed';
+  area.style.opacity='0';
+  area.style.pointerEvents='none';
+  document.body.appendChild(area);
+  area.focus();area.select();area.setSelectionRange(0,area.value.length);
+  let copied=false;
+  try{copied=document.execCommand('copy');}catch(e){}
+  area.remove();
+  return copied;
+}
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
 // NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
