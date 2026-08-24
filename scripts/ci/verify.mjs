@@ -68,8 +68,8 @@ function readText(rel) {
 // ── (a) tests ───────────────────────────────────────────────────────────────
 function checkTests() {
   try {
-    execFileSync(process.execPath, ["--test"], { cwd: ROOT, stdio: "inherit" });
-    ok("(a) tests", "node --test passed");
+    execFileSync(process.execPath, ["--test", "--test-concurrency=1"], { cwd: ROOT, stdio: "inherit" });
+    ok("(a) tests", "node --test --test-concurrency=1 passed");
   } catch {
     fail("(a) tests", "node --test reported failures");
   }

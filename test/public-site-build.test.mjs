@@ -31,7 +31,8 @@ test("verification and deployment build the deterministic public site first", ()
   assert.ok(verify.indexOf("buildPublicSite.mjs") < verify.indexOf("checkTests();"), "verification builds before tests");
   const scripts = JSON.parse(read("package.json")).scripts;
   assert.equal(scripts["build:site"], "node scripts/site/buildPublicSite.mjs");
-  assert.match(scripts.test, /buildPublicSite\.mjs.*node --test/);
+  assert.match(scripts.test, /buildPublicSite\.mjs.*node --test --test-concurrency=1/);
+  assert.match(verify, /\["--test", "--test-concurrency=1"\]/, "verification runs every test serially");
 });
 
 test("generated public artifacts are ignored build outputs, not review-hidden content", () => {

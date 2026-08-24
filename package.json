@@ -40,7 +40,7 @@
   "scripts": {
     "build:browser-app": "node scripts/site/buildBrowserApp.mjs",
     "build:site": "node scripts/site/buildPublicSite.mjs",
-    "test": "node scripts/site/buildPublicSite.mjs && node --test",
+    "test": "node scripts/site/buildPublicSite.mjs && node --test --test-concurrency=1",
     "verify": "node scripts/ci/verify.mjs"
   }
 }
