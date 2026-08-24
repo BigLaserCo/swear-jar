@@ -338,23 +338,21 @@
     <div class="fine" id="fine"></div>
   </section>
 
-  <!-- wrapped share -->
-  <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">Release the tape</span><h2 class="sectitle">Only the number leaves — never your words</h2></div><span class="seccap">aggregate figures only · your transcripts stay here</span></div>
+  <!-- unified comparison share -->
+  <section class="sec" id="share-sec">
+    <div class="sechead"><div><span class="eyebrow">Your AI manners</span><h2 class="sectitle">How do the two sides stack up?</h2></div><span class="seccap">literal human counts · your transcripts stay here</span></div>
     <div class="sharewrap">
-      <div class="wcard" id="wcard">
-        <div class="wtop"><span class="wbrand">🫙 rage, wrapped</span><span class="wfoot">rage.wav · 2026</span></div>
-        <span class="wseal" id="wseal"></span>
-        <div>
-          <div class="wnum tnum" id="wnum">0</div>
-          <div class="wsub" id="wsub"></div>
-          <div class="wmini" id="wmini"></div>
+      <div class="wcard" id="wcard" role="img" aria-label="AI Swear Jar comparison">
+        <div class="wtop"><span class="wbrand">AI SWEAR JAR</span></div>
+        <div class="wcompare">
+          <div class="wrow"><span class="wlabel">I have sworn at AI</span><span class="wtrack" aria-hidden="true"><i id="wSwearBar"></i></span><strong class="wvalue tnum" id="wSwearCount">0</strong></div>
+          <div class="wrow"><span class="wlabel">I have been nice to AI</span><span class="wtrack" aria-hidden="true"><i id="wNiceBar"></i></span><strong class="wvalue tnum" id="wNiceCount">0</strong></div>
         </div>
-        <div class="wstats" id="wstats"></div>
-        <div class="wfoot">processed locally · nothing left this machine · swearjar.unfocused.ai</div>
+        <div class="wverdict" id="wVerdict"></div>
+        <div class="wfoot">Want to know how you measure up? · swearjar.unfocused.ai</div>
       </div>
       <div class="share-actions">
-        <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
+        <p>Post the card. It carries only your two aggregate counts and the verdict — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the generated card</button>
           <button class="btn" id="shareX">𝕏 &nbsp;Copy card &amp; open X</button>
