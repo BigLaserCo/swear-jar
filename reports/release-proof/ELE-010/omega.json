@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "kind": "atomic-omega-proof",
+  "ticket": "ELE-010",
+  "status": "passed",
+  "summary": "Browser Omega passed for the rewritten landing and for swear, kindness, tie, and no-signal results; the exact clipboard post, canonical 1200x675 PNG, desktop and mobile layouts, all 456 tests, and every public privacy, security, claims, license, deterministic-build, and review-size gate are green.",
+  "mergeVerdict": "VERDICT: LAND — the browser-first share flow is internally consistent, privacy-safe, postable, and verified through every affected customer path.",
+  "userVisibleOutcome": "The landing now asks how much the visitor swears at AI and sends them directly into a client-only Claude Code scanner. The result compares literal human swear instances with human kindness acts on one shared-scale chart, chooses one playful verdict, and produces one unified social card and platform-safe caption. Optional SetupYourAI and Big Laser links stay on the result page rather than inside the shared post.",
+  "browserOmega": {
+    "landingRoute": "/",
+    "appRoute": "/app/",
+    "landingHeadline": "How much do you swear at AI?",
+    "landingPrimaryAction": "Measure mine",
+    "folderPicker": "passed",
+    "states": {
+      "swearHeavy": "1 swear, 0 nice, mouth verdict, sharing visible",
+      "kindnessHeavy": "0 swears, 1 nice, goody-two-shoes verdict, sharing visible",
+      "tie": "1 swear, 1 nice, dead-even verdict, sharing visible",
+      "zeroSignal": "0 swears, 0 nice, no-signal comparison, sharing hidden, retry visible"
+    },
+    "clipboardCaption": "passed with the exact approved four-paragraph copy",
+    "downloadedCard": {
+      "path": "/Users/jim/Downloads/ai-swear-jar (4).png",
+      "format": "PNG",
+      "width": 1200,
+      "height": 675,
+      "sha256": "81b7b4fc5a3b5199af4c422baa8356e6c8e0addedf40f2c9e3182e709484f89c",
+      "canonicalRenderer": true
+    },
+    "visualArtifacts": {
+      "landingDesktop": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/ai-swear-jar-v3-landing-desktop.jpg",
+      "resultDesktop": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/ai-swear-jar-v3-swear-desktop.jpg",
+      "resultMobile": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/ai-swear-jar-v3-swear-mobile.jpg"
+    },
+    "desktopViewport": "1440x1000 passed",
+    "mobileViewport": "390x844 passed without horizontal overflow",
+    "consoleErrorsOrWarnings": 0,
+    "automaticTranscriptUploads": 0
+  },
+  "verification": {
+    "canonicalTestCommand": "npm test",
+    "canonicalVerifyCommand": "scripts/ci/verify.sh",
+    "result": "passed",
+    "testsPassed": 456,
+    "testsFailed": 0,
+    "testConcurrency": 1,
+    "noUnauthorizedNetwork": "passed",
+    "zeroRuntimeDependencies": "passed",
+    "secretScan": "passed",
+    "leakGuard": "passed",
+    "internalDocsGuard": "passed",
+    "claimsGuard": "passed",
+    "licenseGuard": "passed",
+    "rawTextPrivacyInvariant": "passed",
+    "publicRepoGates": "green",
+    "deterministicPublicBuild": "passed; generated deployment artifacts are ignored, untracked, and regenerated before verification or deployment",
+    "commitReviewSizeWall": "all 31 implementation commits passed the 13000-character review wall; the proof diff is validated before handoff",
+    "independentReview": "Terra v3 review clean; the prior generated-artifact review-size finding is resolved"
+  },
+  "handoffContext": {
+    "what": "A browser-first AI Swear Jar journey, literal two-count chart, canonical social card, exact platform-safe caption, deterministic deployment staging, one-dollar-per-swear rule, and direct SetupYourAI and Big Laser result-page bridge.",
+    "why": "The former public experience led with technical installation detail and damage metrics that did not answer the simple, postable question the product is built around.",
+    "proof": "The exact rewritten landing; four real folder-picker states; exact clipboard readback; a downloaded 1200 by 675 PNG; desktop and mobile visual inspection; clean browser consoles; 456 passing tests; deterministic generated-artifact checks; every public repository gate green; and every implementation commit below the release review size wall.",
+    "designConstraints": "Only aggregate human swear and kindness counts appear in the primary card and caption. Raw conversation text never leaves the browser. SetupYourAI and Big Laser promotion stays on the result page. Zero-signal results cannot be shared. Damage mode does not show an angel state."
+  },
+  "boundary": "Rendered local acceptance proof only. This does not claim that the release train has landed the branch or that production has been updated; those remain release-train and post-deploy verification steps."
+}
