@@ -22,6 +22,7 @@ import {
   projectFor,
 } from "../web/browser-scan.mjs";
 import { detect } from "../src/detect.mjs";
+import { computeStats } from "../src/stats.mjs";
 // The audited source of truth. Node-only (node:fs) — importable in a test, NOT in
 // a browser — which is exactly why browser-scan.mjs mirrors these three helpers.
 import {
@@ -132,15 +133,39 @@ test("scanFileText records user + assistant swears with correct coins, source, p
     line(assistantMsg("a1", "I regret to report the build is, technically, shit.")) +
     line(userMsg("u2", "thank you, a very polite message"));
   const recs = scanFileText(text, "session.jsonl");
-  assert.equal(recs.length, 2);
-  const bySource = Object.fromEntries(recs.map((r) => [r.source, r]));
-  assert.equal(bySource.user.words.fuck, 1);
-  assert.equal(bySource.user.coins, 3); // premium
-  assert.equal(bySource.assistant.words.shit, 1);
-  assert.equal(bySource.assistant.coins, 2); // standard
-  assert.equal(bySource.user.project, "example-app"); // basename of cwd
-  assert.equal(bySource.user.transcript, "session.jsonl");
-  assert.equal(bySource.user.agent, "claude");
+  assert.equal(recs.length, 3, "human messages survive even when they do not owe the jar");
+  const userSwear = recs.find((r) => r.uuid === "u1");
+  const assistantSwear = recs.find((r) => r.uuid === "a1");
+  assert.equal(userSwear.words.fuck, 1);
+  assert.equal(userSwear.coins, 3); // premium
+  assert.equal(assistantSwear.words.shit, 1);
+  assert.equal(assistantSwear.coins, 2); // standard
+  assert.equal(userSwear.project, "example-app"); // basename of cwd
+  assert.equal(userSwear.transcript, "session.jsonl");
+  assert.equal(userSwear.agent, "claude");
+});
+
+test("scanFileText preserves kindness-only human messages with canonical positive counts", () => {
+  const recs = scanFileText(
+    line(userMsg("kind-1", "thank you, this is perfect")),
+    "session.jsonl"
+  );
+  assert.equal(recs.length, 1, "a human kindness-only message is an eligible record");
+  assert.deepEqual(recs[0].words, {}, "it does not invent a swear");
+  assert.equal(recs[0].coins, 0, "kindness does not create damage coins");
+  assert.deepEqual(recs[0].polite, { thanks: 1 });
+  const stats = computeStats(recs);
+  assert.equal(stats.userSwears, 0);
+  assert.equal(stats.kindActs, 1, "the browser record feeds canonical stats");
+});
+
+test("scanFileText ignores assistant kindness for the human comparison", () => {
+  const recs = scanFileText(
+    line(assistantMsg("kind-assistant", "thank you, this is perfect")),
+    "session.jsonl"
+  );
+  assert.equal(recs.length, 0, "assistant-only kindness is not an eligible browser result record");
+  assert.equal(computeStats(recs).kindActs, 0, "only human kindness counts");
 });
 
 test("scanFileText never stores raw message text — only word-count keys", () => {
@@ -280,8 +305,8 @@ test("scanFiles fires onProgress once per file with running totals", async () =>
   await scanFiles(files, (p) => ticks.push({ files: p.files, records: p.records, coins: p.coins }));
   assert.equal(ticks.length, 3);
   assert.deepEqual(ticks[0], { files: 1, records: 1, coins: 3 });
-  assert.deepEqual(ticks[1], { files: 2, records: 1, coins: 3 }); // clean file adds nothing
-  assert.deepEqual(ticks[2], { files: 3, records: 2, coins: 3 + 4 }); // shit x2 = 4
+  assert.deepEqual(ticks[1], { files: 2, records: 2, coins: 3 }); // quiet human message proves a valid history
+  assert.deepEqual(ticks[2], { files: 3, records: 3, coins: 3 + 4 }); // shit x2 = 4
 });
 
 test("scanFiles accepts an async iterable of {name,text}", async () => {
@@ -327,7 +352,7 @@ test("web/browser-scan.mjs imports no node builtin", () => {
 });
 
 // web/app.html: the same two guarantees the public docs/ pages carry.
-const ALLOWED_REF = /^https?:\/\/github\.com\/BigLaserCo\//i;
+const ALLOWED_REF = /^https?:\/\/(?:github\.com\/BigLaserCo\/|swearjar\.unfocused\.ai|setupyour\.ai|biglaser\.co)/i;
 function appHtml() {
   return fs.readFileSync(path.join(WEB, "app.html"), "utf8");
 }
@@ -341,7 +366,7 @@ function visibleText(html) {
     .replace(/&#\d+;/g, " ");
 }
 
-test("web/app.html makes zero external requests (only github.com/BigLaserCo links)", () => {
+test("web/app.html makes zero external requests (only source links and the copied public URL)", () => {
   const html = appHtml();
   const refs = [...html.matchAll(/https?:\/\/[^\s"'`<>()]+/gi)].map((m) => m[0]);
   const disallowed = refs.filter((u) => !ALLOWED_REF.test(u));
@@ -357,24 +382,27 @@ test("web/app.html contains no uncensored lexicon words in its visible text", ()
   assert.equal(coins, 0, `visible text owes the jar ${coins} coins: ${JSON.stringify(words)}`);
 });
 
-test("web/app.html says the scan is client-side and imports the audited src modules", () => {
+test("web/app.html says the scan is client-side and imports the audited source modules", () => {
   const html = appHtml();
   assert.ok(/never leave your machine/i.test(html), "states files never leave the machine");
   assert.ok(/client-side/i.test(html), "says client-side");
   assert.ok(html.includes("./browser-scan.mjs"), "imports the browser scan layer");
-  assert.ok(html.includes("../src/detect.mjs"), "imports audited detect.mjs verbatim");
+  assert.ok(!html.includes("../funnel/schema.mjs"), "does not import dormant leaderboard schema");
   assert.ok(html.includes("../src/stats.mjs"), "imports audited stats.mjs verbatim");
-  assert.ok(html.includes("../src/version.mjs"), "imports app version for the upload payload");
-  assert.ok(html.includes("../funnel/schema.mjs"), "imports the leaderboard schema");
+  assert.ok(!/uploadBtn|API_BASE|ACCOUNTS_BASE|buildSubmission|wireUpload/.test(html), "has no dormant upload machinery");
 });
 
-test("web/app.html upload button is a disabled placeholder until CONFIG is set", () => {
+test("web/app.html pins the unified two-count result and exact share post", () => {
   const html = appHtml();
-  assert.ok(/API_BASE\s*:\s*null/.test(html), "API_BASE placeholder is null (upload disabled)");
-  assert.ok(/ACCOUNTS_BASE\s*:\s*null/.test(html), "ACCOUNTS_BASE placeholder is null");
-  assert.ok(/log in to get on the board/i.test(html), "disabled-state copy present");
-  assert.ok(/coming online soon/i.test(html), "coming-soon copy present");
-  assert.ok(/<button[^>]*id="uploadBtn"[^>]*\bdisabled\b/i.test(html), "button ships disabled in markup");
+  assert.match(html, /I have sworn at AI/);
+  assert.match(html, /I have been nice to AI/);
+  assert.match(html, /cardVerdict\(cardData\(stats\)\)/, "the browser result uses the canonical verdicts");
+  assert.match(html, /shareCaption\(cardData\(lastStats\)\)/, "the browser copies the canonical Facebook-safe post");
+  assert.match(html, /Share my result/);
+  assert.match(html, /Copy post/);
+  assert.match(html, /document\.execCommand\(["']copy["']\)/, "copy has a browser fallback when Clipboard API permission is unavailable");
+  assert.match(html, /Want AI to work better for your business\?\s*<a[^>]*>Visit SetupYourAI\.<\/a>/);
+  assert.match(html, /Built in the <a[^>]*>Big Laser workshop\.<\/a>/);
 });
 
 test("web/app.html offers all three folder doors and the hidden-folder hint", () => {
@@ -383,6 +411,39 @@ test("web/app.html offers all three folder doors and the hidden-folder hint", ()
   assert.ok(/webkitdirectory/i.test(html), "webkitdirectory fallback door");
   assert.ok(/webkitGetAsEntry/.test(html), "drag-and-drop directory walk");
   assert.ok(/Cmd\+Shift\+\./.test(html), "macOS hidden-folder (Cmd+Shift+.) hint");
-  assert.ok(/censored by default|Censored/i.test(html), "censor-by-default toggle present");
-  assert.ok(/unfocused\.ai/i.test(html), "unfocused.ai branding present");
+  assert.ok(/AI Swear Jar/i.test(html), "AI Swear Jar branding present");
+});
+
+test("empty and no-signal results always offer a visible retry path", () => {
+  const html = appHtml();
+  assert.match(html, /id="retryArea"[^>]*hidden/, "retry action starts hidden until an empty result");
+  assert.match(html, /id="retryBtn"[^>]*>Measure another folder</, "empty result can choose another folder");
+  assert.match(html, /\$\("retryArea"\)\.hidden=Boolean\(V&&V\.text!=="NO SIGNAL"\)/, "retry action is shown for empty outcomes");
+  assert.match(html, /\$\("retryBtn"\)\.addEventListener\("click",\(\)=>show\("pickView"\)\)/, "retry returns to the picker");
+});
+
+test("browser sharing rasterizes the canonical card into a PNG", () => {
+  const html = appHtml();
+  assert.match(html, /import \{ cardData, cardSvg, cardVerdict, shareCaption \} from "\.\.\/src\/sharecard\.mjs"/, "browser imports the canonical share core");
+  assert.match(html, /cardSvg\(cardData\(S\)\)/, "PNG source is the canonical SVG");
+  assert.match(html, /shareCaption\(cardData\(lastStats\)\)/, "copy action uses the canonical caption");
+  assert.doesNotMatch(html, /function (?:canvasFor|shareText)\(/, "browser has no competing card or caption generator");
+  assert.match(html, /\.download="ai-swear-jar\.png"/, "download has the expected PNG filename");
+});
+
+test("browser app builder stages the real /app/ artifact and exact browser-safe modules", () => {
+  const root = path.join(HERE, "..");
+  const app = path.join(root, "docs", "app", "index.html");
+  const scan = path.join(root, "docs", "app", "browser-scan.mjs");
+  assert.ok(fs.existsSync(app), "docs/app/index.html is staged for public deployment");
+  assert.ok(fs.existsSync(scan), "docs/app/browser-scan.mjs is staged for public deployment");
+  assert.equal(fs.readFileSync(app, "utf8"), fs.readFileSync(path.join(root, "web", "app.html"), "utf8"));
+  assert.equal(fs.readFileSync(scan, "utf8"), fs.readFileSync(path.join(root, "web", "browser-scan.mjs"), "utf8"));
+  for (const name of ["detect.mjs", "odds.mjs", "render.mjs", "sharecard.mjs", "stats.mjs", "version.mjs"]) {
+    assert.equal(
+      fs.readFileSync(path.join(root, "docs", "src", name), "utf8"),
+      fs.readFileSync(path.join(root, "src", name), "utf8"),
+      `${name} stays byte-for-byte canonical`
+    );
+  }
 });

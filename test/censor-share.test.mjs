@@ -20,13 +20,13 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
 const lineOf = (src, i) => src.slice(0, i).split("\n").length;
 
-// Surfaces that ship the censor TOGGLE: the damage report, its generated sample,
-// and the browser scanner. The kindness surfaces deliberately have none — their
-// board lists lexicon courtesies ("please"/"thanks"), never a swear.
-const TOGGLE_SURFACES = ["assets/report_template.html", "docs/demo.html", "web/app.html"];
+// Surfaces that display swear-family names and therefore ship the censor toggle.
+// The browser scanner now shows only aggregate counts, so it has no swear text to
+// reveal and deliberately needs no censor control.
+const TOGGLE_SURFACES = ["assets/report_template.html", "docs/demo.html"];
 
-// Every surface that draws the share CARD. The card is the thing that leaves the
-// machine, so its favourite-word label is censored on ALL of them, toggle or not.
+// Every self-contained report surface that draws the share CARD. The card now
+// contains no word-family label at all — only two aggregate human counts.
 const CARD_SURFACES = [
   "assets/report_template.html",
   "assets/kindness_template.html",
@@ -134,36 +134,14 @@ test("paintCensor repaints EVERY .sww span, and the raw word lives only in data-
   }
 });
 
-// ── what LEAVES is censored unconditionally ──────────────────────────────────
-test("the caption builder censors the favourite word unconditionally", () => {
-  for (const f of ["assets/report_template.html", "docs/demo.html"]) {
-    const src = read(f);
-    const cap = src.match(/const wrappedCaption=[\s\S]*?;\n/);
-    assert.ok(cap, `${f} builds the wrapped caption`);
-    assert.match(cap[0], /censor\(fav\.word\)/, `${f} caption censors the favourite`);
-    assert.ok(!/CENSOR/.test(cap[0]), `${f} caption must NOT consult the on-screen toggle`);
-  }
-});
-
-test("the card's favLabel calls censor() unconditionally on EVERY card surface", () => {
+// ── what LEAVES carries no swear text at all ─────────────────────────────────
+test("every report builds the card and caption from the two aggregate counts only", () => {
   for (const f of CARD_SURFACES) {
     const src = read(f);
-    const card = src.match(/const CARD=\{[\s\S]*?\n\};/);
-    assert.ok(card, `${f} builds the CARD display object`);
-    assert.match(card[0], /favLabel:fav\?censor\(fav\.word\):'—'/, `${f} card label is censored`);
-    assert.ok(!/CENSOR/.test(card[0]), `${f} card must NOT consult the on-screen toggle`);
-  }
-});
-
-test("the share wiring never puts a raw swear into what leaves the page", () => {
-  for (const f of CARD_SURFACES) {
-    const src = read(f);
-    const st = src.match(/const shareText=`[^`]*`/);
-    assert.ok(st, `${f} builds shareText`);
-    assert.ok(!/\.word\b/.test(st[0]), `${f} shareText reads no word — numbers and fixed copy only`);
-    assert.ok(!/CENSOR/.test(st[0]), `${f} shareText must NOT consult the on-screen toggle`);
-    // the toast/label copy must never promise a raw word either
-    assert.ok(!/uncensored/i.test(st[0]), `${f} shareText says nothing about uncensored words`);
+    assert.match(src, /const CARD\s*=\s*cardData\(S\)/, `${f} selects canonical aggregate card data`);
+    assert.match(src, /const shareText\s*=\s*shareCaption\(CARD\)/, `${f} uses the canonical caption`);
+    const core = src.slice(src.indexOf("/*__CARD_SVG_START__*/"), src.indexOf("/*__CARD_SVG_END__*/"));
+    assert.doesNotMatch(core, /favLabel|topWords|\.word\b|rawConversation|CENSOR/, `${f} share core cannot read swear text`);
   }
 });
 

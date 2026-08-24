@@ -87,12 +87,6 @@
   @keyframes wv{0%,100%{transform:scaleY(.24)}50%{transform:scaleY(1)}}
   .spine{position:absolute;top:96px;right:14px;writing-mode:vertical-rl;transform:rotate(180deg);
     font:700 10px/1 var(--mono);letter-spacing:.34em;text-transform:uppercase;color:var(--faint)}
-  .goldstar{display:none;margin:0 0 6px;padding:12px 16px;border:1px solid var(--gold-b);border-radius:12px;
-    background:linear-gradient(180deg,rgba(245,197,66,.13),transparent);font:700 14.5px/1.45 var(--sans);color:var(--gold)}
-  .goldstar.on{display:block}
-  .goldstar b{color:var(--gold);font-weight:800;letter-spacing:.02em}
-  .card.hi.hero.gold{border-color:var(--gold-b);box-shadow:0 0 0 1px rgba(245,197,66,.34)}
-  .seal.gold{color:var(--gold);border-color:var(--gold-b);background:rgba(245,197,66,.08)}
   .seal{position:absolute;top:20px;right:24px;transform:rotate(-8deg);
     font:700 11px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--accent-text);
     border:1.5px solid var(--baccent);border-radius:8px;padding:7px 12px;background:var(--tint-05)}
@@ -179,22 +173,22 @@
 
   /* wrapped share */
   .sharewrap{display:grid;grid-template-columns:1.35fr 1fr;gap:22px;align-items:start}
-  .wcard{aspect-ratio:16/9;border-radius:16px;border:1px solid var(--bstrong);background:var(--solid);
-    padding:24px 26px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
-  .wcard:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--accent)}
+  .wcard{--share-bg:#F2F0EB;--share-ink:#1E252D;--share-muted:#4A535D;--share-accent:#5C6470;
+    aspect-ratio:16/9;border-radius:16px;border:1px solid var(--bstrong);background:var(--share-bg);color:var(--share-ink);
+    padding:24px 26px;display:flex;flex-direction:column;justify-content:space-between;gap:14px;overflow:hidden;position:relative}
+  .wcard.swear-heavy{--share-bg:#17141C;--share-ink:#F3EEE7;--share-muted:#CFC6BA;--share-accent:#E8623A}
+  .wcard.nice-heavy{--share-bg:#FBF7EC;--share-ink:#241C10;--share-muted:#574A32;--share-accent:#C9922A}
+  .wcard:before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--share-accent)}
   .wtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .wbrand{font:800 15px/1 var(--sans);letter-spacing:-.01em;color:var(--heading);display:flex;align-items:center;gap:7px}
-  .wseal{position:absolute;top:44px;right:22px;transform:rotate(-9deg);font:700 10.5px/1 var(--mono);letter-spacing:.12em;
-    text-transform:uppercase;color:var(--accent-text);border:1.5px solid var(--baccent);border-radius:7px;padding:6px 10px;background:var(--tint-05)}
-  .wnum{font:900 clamp(48px,9vw,68px)/.82 var(--sans);letter-spacing:-.045em;color:var(--heading)}
-  .wsub{font:600 15px/1.3 var(--sans);color:var(--secondary);margin-top:6px}
-  .wsub b{color:var(--accent-text)}
-  .wmini{display:flex;align-items:flex-end;gap:2px;height:32px;margin-top:12px}
-  .wminib{flex:1;background:var(--accent);border-radius:1px;opacity:.8}
-  .wstats{display:flex;gap:26px;flex-wrap:wrap}
-  .wstat .sv{font:800 20px/1 var(--sans);color:var(--heading)}
-  .wstat .sk{font:600 9px/1.3 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin-top:5px}
-  .wfoot{font:500 10.5px/1.4 var(--mono);letter-spacing:.05em;color:var(--faint)}
+  .wbrand{font:800 15px/1 var(--sans);letter-spacing:.04em;color:var(--share-ink)}
+  .wcompare{display:grid;gap:14px}
+  .wrow{display:grid;grid-template-columns:minmax(130px,1fr) 1.2fr auto;align-items:center;gap:12px}
+  .wlabel{font:700 13px/1.2 var(--sans);color:var(--share-muted)}
+  .wtrack{height:12px;border-radius:999px;background:color-mix(in srgb,var(--share-ink) 14%,transparent);overflow:hidden}
+  .wtrack i{display:block;height:100%;width:0;border-radius:999px;background:var(--share-accent);transition:width .8s cubic-bezier(.2,.7,.2,1)}
+  .wvalue{min-width:42px;text-align:right;font:900 22px/1 var(--sans);color:var(--share-ink)}
+  .wverdict{font:900 clamp(17px,2.4vw,26px)/1.05 var(--sans);letter-spacing:-.02em;color:var(--share-accent)}
+  .wfoot{font:600 10.5px/1.4 var(--mono);letter-spacing:.03em;color:var(--share-muted)}
   .share-actions{display:flex;flex-direction:column;gap:11px}
   .share-actions>p{margin:0 0 2px;font:400 13.5px/1.5 var(--sans);color:var(--muted)}
   .btn{appearance:none;border:1px solid var(--bcard);background:var(--input);color:var(--primary);font-family:var(--sans);
@@ -204,6 +198,7 @@
   .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent;font-weight:700}
   .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+  .btn:disabled,.btn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;pointer-events:none}
   .subtle{font:400 11.5px/1.55 var(--mono);color:var(--faint)}
   .subtle b{color:var(--muted);font-weight:600}
   .share-choice{display:grid;grid-template-columns:1fr 1fr;gap:9px}
@@ -239,7 +234,8 @@
     .sharewrap{grid-template-columns:1fr}.moments{grid-template-columns:1fr}.fine{grid-template-columns:1fr}
     .seccap{display:none}}
   @media(max-width:620px){.herobottom{grid-template-columns:1fr;gap:14px}.hit{grid-template-columns:120px 1fr 48px;gap:10px}
-    .cmprow{grid-template-columns:88px 1fr 70px;gap:10px}.spine{display:none}}
+    .cmprow{grid-template-columns:88px 1fr 70px;gap:10px}.spine{display:none}.wcard{aspect-ratio:auto;min-height:330px}
+    .wrow{grid-template-columns:1fr auto}.wtrack{grid-column:1/-1;grid-row:2}.wvalue{grid-column:2;grid-row:1}}
   @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="canonical" href="https://swearjar.unfocused.ai/demo.html">
@@ -288,7 +284,6 @@
   <!-- hero: the tape -->
   <section class="sec">
     <div class="card hi hero" id="herocard">
-      <div class="goldstar" id="goldstar">⭐ <b>GOLD STAR</b> — more please-and-thank-yous than swears. Who ARE you?</div>
       <div class="tapehead"><span class="l"><span class="recdot"></span><b>rage.wav</b></span><span>REC · 00:00 / ∞</span></div>
       <div class="wave" id="wave"></div>
       <span class="spine">side a · rage.wav</span>
@@ -360,23 +355,21 @@
     <div class="fine" id="fine"></div>
   </section>
 
-  <!-- wrapped share -->
-  <section class="sec">
-    <div class="sechead"><div><span class="eyebrow">Release the tape</span><h2 class="sectitle">Only the number leaves — never your words</h2></div><span class="seccap">aggregate figures only · your transcripts stay here</span></div>
+  <!-- unified comparison share -->
+  <section class="sec" id="share-sec">
+    <div class="sechead"><div><span class="eyebrow">Your AI manners</span><h2 class="sectitle">How do the two sides stack up?</h2></div><span class="seccap">literal human counts · your transcripts stay here</span></div>
     <div class="sharewrap">
-      <div class="wcard" id="wcard">
-        <div class="wtop"><span class="wbrand">🫙 rage, wrapped</span><span class="wfoot">rage.wav · 2026</span></div>
-        <span class="wseal" id="wseal"></span>
-        <div>
-          <div class="wnum tnum" id="wnum">0</div>
-          <div class="wsub" id="wsub"></div>
-          <div class="wmini" id="wmini"></div>
+      <div class="wcard" id="wcard" role="img" aria-label="AI Swear Jar comparison">
+        <div class="wtop"><span class="wbrand">AI SWEAR JAR</span></div>
+        <div class="wcompare">
+          <div class="wrow"><span class="wlabel">I have sworn at AI</span><span class="wtrack" aria-hidden="true"><i id="wSwearBar"></i></span><strong class="wvalue tnum" id="wSwearCount">0</strong></div>
+          <div class="wrow"><span class="wlabel">I have been nice to AI</span><span class="wtrack" aria-hidden="true"><i id="wNiceBar"></i></span><strong class="wvalue tnum" id="wNiceCount">0</strong></div>
         </div>
-        <div class="wstats" id="wstats"></div>
-        <div class="wfoot">processed locally · nothing left this machine · swearjar.unfocused.ai</div>
+        <div class="wverdict" id="wVerdict"></div>
+        <div class="wfoot">Want to know how you measure up? · swearjar.unfocused.ai</div>
       </div>
       <div class="share-actions">
-        <p>Post the card. It carries only aggregate numbers — your balance, counts, and a censored favourite word — never a sentence you said.</p>
+        <p>Post the card. It carries only your two aggregate counts and the verdict — never a sentence you said.</p>
         <div class="share-choice">
           <button class="btn primary" id="shareNative">📣 &nbsp;Share the generated card</button>
           <button class="btn" id="shareX">𝕏 &nbsp;Copy card &amp; open X</button>
@@ -385,7 +378,6 @@
         </div>
         <a class="btn" id="downloadCardPng" href="#">🖼️ &nbsp;Save the card (PNG)</a>
         <a class="btn" id="downloadCard" href="#" download="swear-jar-card.svg">⬇️ &nbsp;Save the card image (SVG)</a>
-        <a class="btn" id="downloadKindCard" href="#" download="swear-jar-kindness-card.svg" style="border-color:var(--gold-b);color:var(--gold)">⭐ &nbsp;Save the kindness card (side B)</a>
         <div class="subtle" id="shareUsNote">Your card is drawn here, in this page, and turned into a PNG on this machine. &ldquo;Share the generated card&rdquo; hands that image to your share sheet, or copies it to your clipboard. X and LinkedIn cannot accept an attachment from a link, so the card is copied for you to paste into the post yourself. Nothing is uploaded and nothing is sent automatically.</div>
       </div>
     </div>
@@ -427,7 +419,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":789.5,"userDollars":548,"machineDollars":241.5,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":0,"kindnessCredits":0,"kindnessDollars":0,"netDollars":789.5,"kind":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"kindByHour":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"kindByDow":[0,0,0,0,0,0,0],"kindDaySeries":[],"bestKindDay":null,"kindStreak":0,"firstThanksAvg":null,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"kindnessBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}},"app_version":"0.1.0"};
+const S = {"app":"Swear Jar","generatedAt":"2026-07-10T12:00:00.000Z","coinValue":1,"totalCoins":1435,"totalRecords":400,"dollarsOwed":644,"userDollars":432,"machineDollars":212,"userCoins":983,"machineCoins":452,"userPct":69,"machinePct":31,"totalSwears":644,"userSwears":432,"userWords":0,"userHistoryDays":0,"swearsPer100Words":null,"kindActs":0,"kindnessCredits":0,"kindnessDollars":0,"netDollars":644,"kind":false,"topPositives":[],"rejects":[],"rejectedTotal":0,"kindByHour":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"kindByDow":[0,0,0,0,0,0,0],"kindDaySeries":[],"bestKindDay":null,"kindStreak":0,"firstThanksAvg":null,"politeTotal":0,"goldStar":false,"swearsPerDay":4.9,"fbombPct":28,"signatureCombo":{"a":"fuck","b":"shit","count":8},"spanDays":91,"cleanDaysPct":2,"byHour":[35,67,82,62,78,126,59,55,66,62,101,59,47,39,9,0,7,20,54,101,57,79,87,83],"byHourSwears":[14,28,40,24,35,57,29,26,30,35,39,28,22,19,4,0,3,10,22,37,25,38,44,35],"byHourRecords":[10,19,23,19,24,32,20,16,19,21,20,20,14,15,3,0,2,7,13,20,17,20,24,22],"byDow":[115,167,183,275,295,223,177],"dowLabels":["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],"worstDow":{"index":4,"label":"Thursday","coins":295},"byProject":[{"project":"death-star-plans","coins":294},{"project":"prod-hotfix-friday","coins":276},{"project":"cursed-regex","coins":217},{"project":"todo-app-v9","coins":201},{"project":"quantum-blender","coins":189},{"project":"tax-bot-3000","coins":146},{"project":"legacy-jenga","coins":96},{"project":"my-startup-idea","coins":16}],"topWords":[{"word":"fuck","count":158,"tier":"premium","coins":474},{"word":"shit","count":117,"tier":"standard","coins":234},{"word":"damn","count":55,"tier":"mild","coins":55},{"word":"hell","count":46,"tier":"mild","coins":46},{"word":"crap","count":36,"tier":"mild","coins":36},{"word":"bitch","count":35,"tier":"standard","coins":70},{"word":"dick","count":34,"tier":"standard","coins":68},{"word":"ass","count":33,"tier":"standard","coins":66},{"word":"piss","count":28,"tier":"standard","coins":56},{"word":"goddamn","count":22,"tier":"artisanal","coins":110},{"word":"bloody","count":20,"tier":"mild","coins":20},{"word":"motherfucker","count":20,"tier":"artisanal","coins":100},{"word":"bastard","count":13,"tier":"standard","coins":26},{"word":"bollocks","count":13,"tier":"standard","coins":26},{"word":"cunt","count":11,"tier":"premium","coins":33},{"word":"clusterfuck","count":3,"tier":"artisanal","coins":15}],"vocab":16,"fbombs":181,"spicyPct":51,"daySeries":[{"date":"2026-04-10","coins":10},{"date":"2026-04-11","coins":11},{"date":"2026-04-12","coins":28},{"date":"2026-04-13","coins":12},{"date":"2026-04-14","coins":29},{"date":"2026-04-15","coins":26},{"date":"2026-04-16","coins":23},{"date":"2026-04-17","coins":17},{"date":"2026-04-18","coins":25},{"date":"2026-04-19","coins":5},{"date":"2026-04-20","coins":9},{"date":"2026-04-21","coins":9},{"date":"2026-04-22","coins":21},{"date":"2026-04-23","coins":19},{"date":"2026-04-24","coins":33},{"date":"2026-04-25","coins":6},{"date":"2026-04-26","coins":11},{"date":"2026-04-27","coins":5},{"date":"2026-04-28","coins":6},{"date":"2026-04-29","coins":29},{"date":"2026-04-30","coins":18},{"date":"2026-05-01","coins":13},{"date":"2026-05-02","coins":14},{"date":"2026-05-04","coins":4},{"date":"2026-05-05","coins":20},{"date":"2026-05-06","coins":11},{"date":"2026-05-07","coins":22},{"date":"2026-05-08","coins":10},{"date":"2026-05-09","coins":10},{"date":"2026-05-10","coins":6},{"date":"2026-05-11","coins":7},{"date":"2026-05-13","coins":33},{"date":"2026-05-14","coins":24},{"date":"2026-05-15","coins":10},{"date":"2026-05-16","coins":9},{"date":"2026-05-17","coins":1},{"date":"2026-05-18","coins":9},{"date":"2026-05-19","coins":13},{"date":"2026-05-20","coins":4},{"date":"2026-05-21","coins":23},{"date":"2026-05-22","coins":21},{"date":"2026-05-23","coins":13},{"date":"2026-05-24","coins":10},{"date":"2026-05-25","coins":16},{"date":"2026-05-26","coins":26},{"date":"2026-05-27","coins":17},{"date":"2026-05-28","coins":32},{"date":"2026-05-29","coins":35},{"date":"2026-05-30","coins":29},{"date":"2026-05-31","coins":16},{"date":"2026-06-01","coins":32},{"date":"2026-06-02","coins":14},{"date":"2026-06-03","coins":13},{"date":"2026-06-04","coins":30},{"date":"2026-06-05","coins":13},{"date":"2026-06-06","coins":10},{"date":"2026-06-07","coins":9},{"date":"2026-06-08","coins":11},{"date":"2026-06-09","coins":13},{"date":"2026-06-10","coins":9},{"date":"2026-06-11","coins":16},{"date":"2026-06-12","coins":5},{"date":"2026-06-13","coins":21},{"date":"2026-06-14","coins":3},{"date":"2026-06-15","coins":11},{"date":"2026-06-16","coins":9},{"date":"2026-06-17","coins":48},{"date":"2026-06-18","coins":22},{"date":"2026-06-19","coins":12},{"date":"2026-06-20","coins":18},{"date":"2026-06-21","coins":11},{"date":"2026-06-22","coins":2},{"date":"2026-06-23","coins":8},{"date":"2026-06-24","coins":29},{"date":"2026-06-25","coins":20},{"date":"2026-06-26","coins":23},{"date":"2026-06-27","coins":5},{"date":"2026-06-28","coins":6},{"date":"2026-06-29","coins":7},{"date":"2026-06-30","coins":30},{"date":"2026-07-01","coins":15},{"date":"2026-07-02","coins":32},{"date":"2026-07-03","coins":21},{"date":"2026-07-04","coins":6},{"date":"2026-07-05","coins":9},{"date":"2026-07-06","coins":42},{"date":"2026-07-07","coins":6},{"date":"2026-07-08","coins":20},{"date":"2026-07-09","coins":14}],"worstDay":{"date":"2026-06-17","coins":48},"longestStreak":23,"cleanStreakDays":1,"firstSwearAvg":"5:10am","firstTs":"2026-04-10T12:16:56.000Z","lastTs":"2026-07-09T08:31:03.000Z","activeDays":89,"coinsPerActiveDay":16.1,"odds":{"value":1,"royalty":false,"label":"cower","user7d":76,"kindnessBonus":0},"rank":{"current":"Noise Complaint (from another timezone)","next":{"name":"Have You Considered Anger Management?","at":1000}},"app_version":"0.1.0"};
 const $=(id)=>document.getElementById(id);
 if(S.donate_url) $('float-donate').href=S.donate_url;
 const fmt=(n)=>Number(n||0).toLocaleString('en-US');
@@ -457,12 +449,6 @@ const fav=S.topWords&&S.topWords[0];
 $('heronum').textContent=Number(S.dollarsOwed||0).toLocaleString('en-US',{minimumFractionDigits:Number(S.dollarsOwed||0)%1?2:0,maximumFractionDigits:2});
 $('heroseal').textContent='⚑ '+(S.rank?S.rank.current:'—');
 
-// ---- gold star: more manners than swears (S.goldStar from stats.mjs) ----
-if(S.goldStar){
-  const gs=$('goldstar'); if(gs) gs.classList.add('on');
-  const hc=$('herocard'); if(hc) hc.classList.add('gold');
-  const hs=$('heroseal'); if(hs){hs.textContent='⭐ GOLD STAR';hs.classList.add('gold');}
-}
 $('herobody').innerHTML=`You dropped <b>${fmt(S.totalCoins)}</b> coins across <b>${fmt(S.activeDays)}</b> active day${S.activeDays===1?'':'s'} — `+
   `about <b>${fmt(S.coinsPerActiveDay)}</b> damage points a day. The dollar total is based on the words you used.`;
 $('meta').innerHTML=`<span><b>${fmt(S.totalCoins)}</b> coins</span>`+
@@ -614,72 +600,118 @@ $('kpis').innerHTML=[
   $('fine').innerHTML=f.map(x=>`<div class="tile"><div class="fbig">${x[0]}</div><div class="flabel">${x[1]}</div><p class="fbody">${x[2]}</p></div>`).join('');
 })();
 
-// ---- wrapped share card ----
-(function(){
-  let h='';for(let i=0;i<46;i++){const b=20+Math.abs(Math.sin(i*0.7))*55+Math.abs(Math.sin(i*2.3))*20;h+=`<span class="wminib" style="height:${Math.min(100,Math.round(b))}%"></span>`;}
-  $('wmini').innerHTML=h;
-  const pct=S.cleanDaysPct;let sealTxt='ON RECORD';
-  if(S.odds&&S.odds.royalty)sealTxt='👑 ROYALTY';else if((S.spicyPct||0)>=50)sealTxt='FLAGGED';else if(pct>=80)sealTxt='MOSTLY CLEAN';
-  $('wseal').textContent=sealTxt;
-  $('wnum').textContent=fmt(S.totalCoins);
-  $('wsub').innerHTML=`coins in the jar — <b>${usd(S.dollarsOwed)}</b> owed.`;
-  $('wstats').innerHTML=[
-    [fav?sww(fav.word):'—','favourite'],
-    [S.fbombPct+'%','f-bombs'],
-    [fmt(S.vocab),'distinct'],
-  ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
-})();
-
 // ---- share actions: generated card + social composers ----
-// The exported caption is ALWAYS censored — even if the on-screen toggle reveals
-// words locally, nothing raw ever leaves this machine.
-const wrappedCaption=
-  `rage, wrapped · 2026 🫙\n`+
-  `${fmt(S.totalCoins)} coins in the jar · ${usd(S.dollarsOwed)} owed\n`+
-  `favourite word ${fav?censor(fav.word):'—'} · ${S.fbombPct}% f-bombs · ${fmt(S.vocab)} distinct curses\n`+
-  `processed locally · nothing left this machine · swearjar.unfocused.ai`;
-
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-$('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(wrappedCaption).then(()=>toast('Caption copied — go paste your shame')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
-const shareText=`I ran my local Swear Jar report: ${fmt(S.totalCoins)} damage points, ${usd(S.dollarsOwed)} owed. ${S.fbombPct}% f-bombs. #SwearJar #BigLaserCo`;
+async function copyShareText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(text);return true;}
+  }catch(e){}
+  const area=document.createElement('textarea');
+  area.value=text;
+  area.setAttribute('readonly','');
+  area.style.position='fixed';
+  area.style.opacity='0';
+  area.style.pointerEvents='none';
+  document.body.appendChild(area);
+  area.focus();area.select();area.setSelectionRange(0,area.value.length);
+  let copied=false;
+  try{copied=document.execCommand('copy');}catch(e){}
+  area.remove();
+  return copied;
+}
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
 // NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
 // exist — what gets shared is the generated CARD, never a URL standing in for it.
 
 /*__CARD_SVG_START__*/
-function cardSvg(d, variant) {
-  const num = (n) => Number(n || 0).toLocaleString("en-US");
-  const usd0 = (n) => "$" + Math.round(Number(n) || 0).toLocaleString("en-US");
-  if (variant === "kindness") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><defs><linearGradient id="kg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F5C542"/><stop offset="1" stop-color="#C9922A"/></linearGradient></defs><rect width="1200" height="675" rx="28" fill="#FBF7EC"/><rect width="1200" height="10" fill="#F5C542"/><text x="60" y="92" fill="#241C10" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 the kindness report</text><text x="60" y="250" fill="url(#kg)" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.kindActs)}</text><text x="60" y="300" fill="#574A32" font-family="Arial,sans-serif" font-size="28">nice things said to an AI · ${num(d.credits)} karma points (worth nothing)</text><text x="60" y="410" fill="#8A6A12" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favKindLabel || "—"} · ${Number(d.grovelPct) || 0}% grovel · ${num(d.kindVocab)} distinct courtesies</text><text x="60" y="570" fill="#9C8F70" font-family="monospace" font-size="20">the machines remember who said please · swearjar.unfocused.ai</text></svg>`;
+const MAX_BAR_WIDTH = 480;
+
+function count(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
+}
+
+function cardVerdict({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears);
+  const nice = count(kindActs);
+  if (swears === 0 && nice === 0) return "NO SIGNAL";
+  if (nice > swears) return "HOLY GOODY TWO-SHOES";
+  if (swears > nice) return "YOU KISS YOUR MOTHER WITH THAT MOUTH?";
+  return "DEAD EVEN";
+}
+
+function cardTheme(verdict) {
+  if (verdict === "HOLY GOODY TWO-SHOES") {
+    return { background: "#FBF7EC", accent: "#C9922A", ink: "#241C10", muted: "#574A32" };
   }
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675"><rect width="1200" height="675" rx="28" fill="#17141c"/><rect width="1200" height="10" fill="#e8623a"/><text x="60" y="92" fill="#f3eee7" font-family="Arial,sans-serif" font-size="32" font-weight="700">🫙 swear, wrapped</text><text x="60" y="250" fill="#f3eee7" font-family="Arial,sans-serif" font-size="128" font-weight="900">${num(d.coins)}</text><text x="60" y="300" fill="#cfc6ba" font-family="Arial,sans-serif" font-size="28">damage points · ${usd0(d.dollars)} owed</text><text x="60" y="410" fill="#f0805c" font-family="Arial,sans-serif" font-size="26" font-weight="700">${d.favLabel || "—"} · ${Number(d.fbombPct) || 0}% f-bombs · ${num(d.vocab)} distinct curses</text><text x="60" y="570" fill="#6f675e" font-family="monospace" font-size="20">processed locally · swearjar.unfocused.ai · #SwearJar</text></svg>`;
+  if (verdict === "YOU KISS YOUR MOTHER WITH THAT MOUTH?") {
+    return { background: "#17141C", accent: "#E8623A", ink: "#F3EEE7", muted: "#CFC6BA" };
+  }
+  return { background: "#F2F0EB", accent: "#5C6470", ink: "#1E252D", muted: "#4A535D" };
+}
+
+function cardSvg({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears);
+  const nice = count(kindActs);
+  const scale = Math.max(swears, nice, 1);
+  const verdict = cardVerdict({ userSwears: swears, kindActs: nice });
+  const theme = cardTheme(verdict);
+  const num = (value) => value.toLocaleString("en-US");
+  const barWidth = (value) => (MAX_BAR_WIDTH * value) / scale;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-label="AI Swear Jar: ${num(swears)} swears, ${num(nice)} nice acts. ${verdict}"><rect width="1200" height="675" rx="28" fill="${theme.background}"/><rect width="1200" height="12" fill="${theme.accent}"/><text x="64" y="92" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="32" font-weight="800">AI SWEAR JAR</text><text x="64" y="184" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="34" font-weight="700">I have sworn at AI ${num(swears)} times.</text><rect x="656" y="153" width="480" height="24" rx="12" fill="${theme.ink}" opacity=".14"/><rect data-share-bar="swears" x="656" y="153" width="${barWidth(swears)}" height="24" rx="12" fill="${theme.accent}"/><text x="64" y="278" fill="${theme.ink}" font-family="Arial,sans-serif" font-size="34" font-weight="700">I have been nice to AI ${num(nice)} times.</text><rect x="656" y="247" width="480" height="24" rx="12" fill="${theme.ink}" opacity=".14"/><rect data-share-bar="nice" x="656" y="247" width="${barWidth(nice)}" height="24" rx="12" fill="${theme.accent}"/><text x="64" y="405" fill="${theme.accent}" font-family="Arial,sans-serif" font-size="42" font-weight="900">${verdict}</text><text x="64" y="530" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="28" font-weight="700">Want to know how you measure up?</text><text x="64" y="588" fill="${theme.muted}" font-family="Arial,sans-serif" font-size="24">swearjar.unfocused.ai</text></svg>`;
+}
+
+function cardData(stats = {}) {
+  return { userSwears: count(stats.userSwears), kindActs: count(stats.kindActs) };
+}
+
+function shareCaption({ userSwears, kindActs } = {}) {
+  const swears = count(userSwears).toLocaleString("en-US");
+  const nice = count(kindActs).toLocaleString("en-US");
+  return `I used the open-source AI Swear Jar and found out I have sworn at AI ${swears} times.\n\nOn the other hand, I have been nice to AI ${nice} times.\n\nWant to know how you measure up?\n\nhttps://swearjar.unfocused.ai`;
 }
 /*__CARD_SVG_END__*/
 
-// display-ready card data from S (mirrors src/sharecard.mjs cardData)
-const grovelCredits=(S.topPositives||[]).filter(p=>p.tier==='grovel').reduce((n,p)=>n+p.credits,0);
-const favKindTop=S.topPositives&&S.topPositives[0];
-const CARD={
-  coins:S.totalCoins,dollars:S.dollarsOwed,favLabel:fav?censor(fav.word):'—',fbombPct:S.fbombPct,vocab:S.vocab,
-  kindActs:S.kindActs,credits:S.kindnessCredits,favKindLabel:favKindTop?favKindTop.word:'—',
-  grovelPct:S.kindnessCredits?Math.round(100*grovelCredits/S.kindnessCredits):0,
-  kindVocab:(S.topPositives||[]).length,
+const CARD=cardData(S);
+const shareText=shareCaption(CARD);
+const HAS_SHARE_SIGNAL=CARD.userSwears>0||CARD.kindActs>0;
+if(!HAS_SHARE_SIGNAL)$('share-sec').hidden=true;
+if(!HAS_SHARE_SIGNAL){
+  for(const id of ['shareNative','shareX','shareLinkedIn','cp'])$(id).disabled=true;
+  for(const id of ['downloadCardPng','downloadCard'])$(id).setAttribute('aria-disabled','true');
+}
+
+(function renderComparisonCard(){
+  const max=Math.max(CARD.userSwears,CARD.kindActs,1);
+  const verdict=cardVerdict(CARD);
+  const card=$('wcard');
+  card.classList.toggle('swear-heavy',CARD.userSwears>CARD.kindActs);
+  card.classList.toggle('nice-heavy',CARD.kindActs>CARD.userSwears);
+  card.setAttribute('aria-label',`AI Swear Jar: ${fmt(CARD.userSwears)} swears, ${fmt(CARD.kindActs)} nice acts. ${verdict}`);
+  $('wSwearCount').textContent=fmt(CARD.userSwears);
+  $('wNiceCount').textContent=fmt(CARD.kindActs);
+  $('wSwearBar').style.width=(100*CARD.userSwears/max)+'%';
+  $('wNiceBar').style.width=(100*CARD.kindActs/max)+'%';
+  $('wVerdict').textContent=verdict;
+})();
+
+$('cp').onclick=async()=>{
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
+  const copied=await copyShareText(shareText);
+  toast(copied?'Post copied — go measure some mouths':'Copy failed — select and copy the post manually');
 };
-const cardBlob=()=>new Blob([cardSvg(CARD,'damage')],{type:'image/svg+xml'});
-const kindCardBlob=()=>new Blob([cardSvg(CARD,'kindness')],{type:'image/svg+xml'});
-const cardUrl=URL.createObjectURL(cardBlob());
-$('downloadCard').href=cardUrl;
-$('downloadKindCard').href=URL.createObjectURL(kindCardBlob());
+const cardBlob=()=>new Blob([cardSvg(CARD)],{type:'image/svg+xml'});
+if(HAS_SHARE_SIGNAL)$('downloadCard').href=URL.createObjectURL(cardBlob());
+else $('downloadCard').setAttribute('aria-disabled','true');
 
 // ---- the card, as a PNG: the thing that actually travels ----
 // Web Share Level 2 rejects image/svg+xml on every platform, so attaching an SVG
 // File silently drops it and the share degrades to a bare link — the card never
 // goes anywhere. Rasterizing to PNG first is what makes the CARD itself
 // shareable. Pure browser APIs: Blob -> Image -> offscreen canvas -> toBlob. No
-// network, no library. The SVG handed in is the already-censored one (CARD.favLabel
-// went through censor()), so the PNG inherits that guarantee unchanged.
+// network, no library. The SVG contains only the two aggregate counts and fixed copy.
 const CARD_W=1200,CARD_H=675,CARD_SCALE=2;   // 2x = crisp on retina
 function svgToPngBlob(svg){
   return new Promise((resolve,reject)=>{
@@ -698,7 +730,7 @@ function svgToPngBlob(svg){
     img.src=url;
   });
 }
-const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD,'damage'));
+const cardPngBlob=()=>svgToPngBlob(cardSvg(CARD));
 
 // Best-effort by design: an unsupported browser or a denied permission returns
 // false so the caller tells the user the truth instead of claiming the image
@@ -716,6 +748,7 @@ function savePng(blob,name){
 }
 $('downloadCardPng').onclick=async(e)=>{
   e.preventDefault();
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   try{savePng(await cardPngBlob(),'swear-jar-card.png');}
   catch(err){toast('PNG export failed — the SVG save still works');}
 };
@@ -725,6 +758,7 @@ $('downloadCardPng').onclick=async(e)=>{
 // this one sheet — there is no Instagram web intent, so this IS the Instagram
 // path), then the clipboard, then a download. Each step says what actually happened.
 $('shareNative').onclick=async()=>{
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   let blob;
   try{blob=await cardPngBlob();}
   catch(e){toast('Could not build the card image — use “Save the card” below');return;}
@@ -744,6 +778,7 @@ $('shareNative').onclick=async()=>{
 // requires a url param) — that link is attribution, NOT the card, and the copy
 // never claims the card was posted for you.
 async function shareToComposer(intentUrl,network){
+  if(!HAS_SHARE_SIGNAL){toast('No signal yet — scan at least one human message');return;}
   let copied=false;
   try{copied=await copyPngToClipboard(await cardPngBlob());}catch(e){copied=false;}
   toast(copied
@@ -751,7 +786,7 @@ async function shareToComposer(intentUrl,network){
     :`Save the card below, then attach it to your ${network} post`);
   openSocial(intentUrl);
 }
-$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText)+'&url='+encodeURIComponent(shareUrl),'X');
+$('shareX').onclick=()=>shareToComposer('https://x.com/intent/post?text='+encodeURIComponent(shareText),'X');
 $('shareLinkedIn').onclick=()=>shareToComposer('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent(shareUrl),'LinkedIn');
 
 // ---- empty-your-jar donation (config-injected URL; hidden if unset) ----

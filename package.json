@@ -38,6 +38,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "build:browser-app": "node scripts/site/buildBrowserApp.mjs",
     "test": "node --test",
     "verify": "node scripts/ci/verify.mjs"
   }

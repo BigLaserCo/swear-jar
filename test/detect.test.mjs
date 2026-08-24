@@ -18,7 +18,19 @@ test("counts basic swears with tiered coins", () => {
   assert.equal(r.words.shit, 1);
   assert.equal(r.words.fuck, 1);
   assert.equal(r.coins, 1 + 2 + 3);
-  assert.equal(r.dollars, 2.5);
+  assert.equal(r.dollars, 3);
+});
+
+test("every detected swear family costs one dollar per instance", () => {
+  const r = detect("damn shit fuck motherfucker blorbo", { customWords: ["blorbo"] });
+  assert.deepEqual(r.words, {
+    damn: 1,
+    shit: 1,
+    fuck: 1,
+    motherfucker: 1,
+    "user-specific": 1,
+  });
+  assert.equal(r.dollars, 5);
 });
 
 test("artisanal tier outranks its substring", () => {
@@ -229,7 +241,7 @@ test("launch pricing uses dollars and catches the requested words", () => {
   assert.equal(r.words.cunt, 1);
   assert.equal(r.words.darn, 1);
   assert.equal(r.words.heck, 1);
-  assert.equal(r.dollars, 12.5);
+  assert.equal(r.dollars, 6);
 });
 
 test("custom words are counted without exposing their spelling", () => {
