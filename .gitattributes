@@ -1,19 +1,5 @@
-# Deterministic hosted artifacts. Review canonical sources and builders under
-# assets/, src/, web/, and scripts/site/. Tests require byte-identical rebuilds.
+# Legacy generated outputs removed by this branch. Their replacement bytes are
+# rebuilt from reviewed sources during verification and deployment.
 docs/admin.html -diff
 docs/demo.html -diff
 docs/kindness.html -diff
-
-docs/app/index.html -diff
-docs/app/app.css -diff
-docs/app/app.mjs -diff
-docs/app/browser-scan.mjs -diff
-docs/app/folder-input.mjs -diff
-docs/app/result-share.mjs -diff
-
-docs/src/detect.mjs -diff
-docs/src/odds.mjs -diff
-docs/src/render.mjs -diff
-docs/src/sharecard.mjs -diff
-docs/src/stats.mjs -diff
-docs/src/version.mjs -diff
