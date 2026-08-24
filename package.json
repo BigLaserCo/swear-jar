@@ -39,7 +39,8 @@
   },
   "scripts": {
     "build:browser-app": "node scripts/site/buildBrowserApp.mjs",
-    "test": "node --test",
+    "build:site": "node scripts/site/buildPublicSite.mjs",
+    "test": "node scripts/site/buildPublicSite.mjs && node --test",
     "verify": "node scripts/ci/verify.mjs"
   }
 }

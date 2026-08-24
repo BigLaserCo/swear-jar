@@ -23,6 +23,8 @@
 //       cents in displayed dollar amounts in generated public artifacts).
 //   (i) license guard: package.json must declare MIT and the tracked LICENSE
 //       must carry the complete auditable MIT grant and warranty disclaimer.
+//   (j) public build: every deterministic hosted artifact is regenerated from
+//       its reviewed canonical source before the test and policy gates run.
 //
 // NB: every secret needle below is assembled from fragments (`frag(...)`) so this
 // scanner's own source never trips its own secret scan — no self-exclusion needed.
@@ -35,6 +37,7 @@ import { runGuard, formatHit } from "./leak-guard.mjs";
 import { checkLicense } from "./license-guard.mjs";
 
 const ROOT = path.resolve(new URL("../../", import.meta.url).pathname);
+const PUBLIC_SITE_BUILDER = path.join(ROOT, "scripts", "site", "buildPublicSite.mjs");
 const failures = [];
 const fail = (check, msg) => failures.push(`${check}: ${msg}`);
 const ok = (check, msg) => console.log(`  ok   ${check} — ${msg}`);
@@ -70,6 +73,11 @@ function checkTests() {
   } catch {
     fail("(a) tests", "node --test reported failures");
   }
+}
+
+function buildPublicSite() {
+  execFileSync(process.execPath, [PUBLIC_SITE_BUILDER], { cwd: ROOT, stdio: "inherit" });
+  ok("(j) public-build", "deterministic hosted artifacts regenerated from canonical sources");
 }
 
 // ── (b) no network / process-exec smells ─────────────────────────────────────
@@ -332,6 +340,7 @@ function readTextAbs(abs) {
 // ── run ──────────────────────────────────────────────────────────────────────
 async function main() {
   console.log("swear-jar verify — running CI gate\n");
+  buildPublicSite();
   const tracked = trackedFiles();
   checkTests();
   checkNoNetwork(tracked);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Deploy the static site (docs/) + its Caddy vhost to the host that serves
-# swearjar.unfocused.ai. No build step — docs/ is plain static files.
+# Build and deploy the static site (docs/) + its Caddy vhost to the host that
+# serves swearjar.unfocused.ai. Generated files never enter the release stack.
 #
 #   DEPLOY_HOST=<ssh-host> ./scripts/deploy-site.sh
 #
@@ -22,6 +22,8 @@ fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WEBROOT="/var/www/swearjar"
+
+node "${ROOT}/scripts/site/buildPublicSite.mjs"
 
 echo "🫙 deploying site to ${HOST}:${WEBROOT}"
 ssh "$HOST" "mkdir -p ${WEBROOT}"

@@ -44,7 +44,6 @@ test("generated public artifacts are ignored build outputs, not review-hidden co
 });
 
 test("one build creates every public artifact reproducibly", () => {
-  execFileSync(process.execPath, [BUILD], { cwd: ROOT });
   const first = new Map(outputs.map((target) => [target, read(target)]));
   execFileSync(process.execPath, [BUILD], { cwd: ROOT });
   for (const target of outputs) assert.equal(read(target), first.get(target), `${target} is reproducible`);
