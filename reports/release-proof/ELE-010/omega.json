@@ -44,5 +44,11 @@
     "publicRemoteGuard": "green under ELE-382",
     "independentReview": "Terra review found no actionable findings"
   },
+  "handoffContext": {
+    "what": "A browser-first AI Swear Jar result flow, unified comparison chart, canonical social card, exact platform-safe caption, deterministic browser staging, and a one-dollar-per-swear rule.",
+    "why": "The previous public experience led with technical installation details and shared damage metrics that did not answer the simple, postable question the product is built around.",
+    "proof": "Four real folder-picker states, exact clipboard readback, a downloaded 1200 by 675 PNG, desktop and mobile inspection, clean browser console, 450 tests, and every public repository gate green.",
+    "designConstraints": "Only aggregate human swear and kindness counts appear in the primary card and caption. Raw conversation text never leaves the browser. SetupYourAI and Big Laser promotion stays on the result page. Zero-signal results cannot be shared."
+  },
   "boundary": "Local rendered acceptance proof only. This does not claim that the release train has landed the branch or that production has been updated; those remain release-train and post-deploy verification steps."
 }
