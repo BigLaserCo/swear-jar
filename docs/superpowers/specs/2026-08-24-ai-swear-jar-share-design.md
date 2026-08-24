@@ -65,10 +65,12 @@ The existing Manners Ratio bars are the implementation model. No chart library i
 
 ### Verdict states
 
+Verdicts tease the user's language, not the user. They should feel funny and a little spicy enough to share, never mean or demeaning.
+
 | Condition | Verdict | Visual state |
 | --- | --- | --- |
 | `kindActs > userSwears` | `HOLY GOODY TWO-SHOES` | Light/gold kindness treatment; no swear-mode verdict or decoration |
-| `userSwears > kindActs` | `YOU SUCK` | Dark/ember swear treatment; no angel, gold star, or kindness-mode decoration |
+| `userSwears > kindActs` | `YOU KISS YOUR MOTHER WITH THAT MOUTH?` | Dark/ember swear treatment; no angel, gold star, or kindness-mode decoration |
 | Equal nonzero counts | `DEAD EVEN` | Neutral treatment; neither exclusive verdict or decoration |
 | Both counts are zero after eligible messages were scanned | `NO SIGNAL` | Neutral empty state; sharing is disabled |
 | No eligible human messages were found | No verdict | Folder-selection error; sharing is disabled |
