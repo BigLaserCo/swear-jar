@@ -1,0 +1,1089 @@
+{
+  "version": 2,
+  "ticket": "ELE-010",
+  "ticketProviderId": "907f6964-9ba0-437d-b88d-f22846ab44c2",
+  "repositoryId": "github.com/BigLaserCo/swear-jar",
+  "branch": "codex/ele-010-ai-swear-share-v3",
+  "remote": "origin",
+  "targetRef": "main",
+  "authoringBaseCommit": "32b3a8a05261a1fa7185816c1c72e5ed4504e945",
+  "contentCommit": "55b0e708f92d119f7282ff9b58fd8e0c7d9745fb",
+  "contentParentCommit": "8b9abe29cc49decdd05eac3720f6bf2b42ccbe66",
+  "contentTree": "c546c92f86a4049d94f6a16b3990b00c99b700cd",
+  "contentStack": [
+    {
+      "commit": "e9911f20dd5c5f5f321bcb1d25b1ec253c343a7b",
+      "parent": "32b3a8a05261a1fa7185816c1c72e5ed4504e945",
+      "tree": "20c6b060198cb71577051abc5e2432bde199b39b",
+      "touchedPaths": [
+        {
+          "path": ".gitattributes",
+          "state": "present",
+          "objectId": "6ec1fa178bd795a4da3678ebee86497b0760736f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "10c1aa4eb4fe4836ddca270c17e219c484a5407e",
+      "parent": "e9911f20dd5c5f5f321bcb1d25b1ec253c343a7b",
+      "tree": "2746335aa4651e154fbcc615a8b0d742b46559da",
+      "touchedPaths": [
+        {
+          "path": "scripts/ci/license-guard.mjs",
+          "state": "present",
+          "objectId": "6675fde723e4839238a88b48b1ff44de63f09fde",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/ci/verify.mjs",
+          "state": "present",
+          "objectId": "51b7919fce08480e3833c87ded6a847711937243",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/license-guard.test.mjs",
+          "state": "present",
+          "objectId": "73f543a7c97046f563f0248faa62d75c9c4b4de0",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "058119c33b9afa004d4b2ccba175ddfcdc3f2a8e",
+      "parent": "10c1aa4eb4fe4836ddca270c17e219c484a5407e",
+      "tree": "6f867c44bfe778f7b0b30fb9c74a9923fc1e3c53",
+      "touchedPaths": [
+        {
+          "path": "src/detect.mjs",
+          "state": "present",
+          "objectId": "e00b9d7fdb43721dd8e3b115bf693cfa657413d7",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/dashboard.test.mjs",
+          "state": "present",
+          "objectId": "1d5e8d5f54d1e3bb71ea06a1c1c5b2bc64f2ffb3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/detect.test.mjs",
+          "state": "present",
+          "objectId": "bc96a03b68f4d845b5504ae00bef5b7db087af73",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/stats.test.mjs",
+          "state": "present",
+          "objectId": "795fd6dcc42973d9ea3c9d1bbfef043d5a567c63",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/superwhisper.test.mjs",
+          "state": "present",
+          "objectId": "1586e883299b36c517545b1a8d8a89c13dc77703",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "6921bd200e8ff01f43e94cafce791fbe58f7f79f",
+      "parent": "058119c33b9afa004d4b2ccba175ddfcdc3f2a8e",
+      "tree": "e87e3fc3e3daf5b7428baff7c72f7b1d06c4beff",
+      "touchedPaths": [
+        {
+          "path": "test/browser-scan.test.mjs",
+          "state": "present",
+          "objectId": "5b1ad375d4cab305b5981b991f9b309b05cf79d9",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/fixtures/browser-scan-cases/kind/history.jsonl",
+          "state": "present",
+          "objectId": "69b172651a7430d69dd1df1712211ed617435356",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/fixtures/browser-scan-cases/swear/history.jsonl",
+          "state": "present",
+          "objectId": "389ced845fd86e9021a68523761b321bdc9d7513",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/fixtures/browser-scan-cases/tie/history.jsonl",
+          "state": "present",
+          "objectId": "0bb57fb566436f55773fda340a853c28e81a8deb",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/fixtures/browser-scan-cases/zero/history.jsonl",
+          "state": "present",
+          "objectId": "9b6b2468e21b94b2d93ccd9fe4a52160f7fc30ee",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "web/browser-scan.mjs",
+          "state": "present",
+          "objectId": "133f3fc7f108211626c58f78e50aeb01b3a59358",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "52988af6cbf7c328e3b01d92942c93bf34597367",
+      "parent": "6921bd200e8ff01f43e94cafce791fbe58f7f79f",
+      "tree": "d45b319232825493df34842a872016fabd9699bc",
+      "touchedPaths": [
+        {
+          "path": "test/sharecard.test.mjs",
+          "state": "present",
+          "objectId": "10d6d00a2bbda5a751edfce3d5c87d7154fbabef",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "aa5d1bddaf68ae09aa4c81140ee6eff1e4da3a0d",
+      "parent": "52988af6cbf7c328e3b01d92942c93bf34597367",
+      "tree": "7fe5160314bcf022c5020f7470540430499aa3d9",
+      "touchedPaths": [
+        {
+          "path": "src/sharecard.mjs",
+          "state": "present",
+          "objectId": "0c15eec4ad83f6761905e549a8653ace30b16c40",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "df096398e72a75ef75b7aa19e1eed99bb0da6840",
+      "parent": "aa5d1bddaf68ae09aa4c81140ee6eff1e4da3a0d",
+      "tree": "5f2c7b52b7436532668d6e86a147c1bd9c7fad74",
+      "touchedPaths": [
+        {
+          "path": "scripts/site/syncShareCore.mjs",
+          "state": "present",
+          "objectId": "edaa87215181f9024aa5e889bd2a2ab91a12081f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "ba7a3dfd1c428a10905fa2538e99566b10e3543d",
+      "parent": "df096398e72a75ef75b7aa19e1eed99bb0da6840",
+      "tree": "badb45de248a2036519d4e13031f206dc03227be",
+      "touchedPaths": [
+        {
+          "path": "assets/report_template.html",
+          "state": "present",
+          "objectId": "4c6f739989ba0159b9a1aa85ae712aef96ae7896",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "cbd82b59b3b5eb8bcf6a161d4fe7bbb591588b11",
+      "parent": "ba7a3dfd1c428a10905fa2538e99566b10e3543d",
+      "tree": "387c2a72c398c0da25144c19d6dade9f635acae2",
+      "touchedPaths": [
+        {
+          "path": "assets/report_template.html",
+          "state": "present",
+          "objectId": "3a46a48c16f25340fbca477ab5c869913dcb3771",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/dashboard.test.mjs",
+          "state": "present",
+          "objectId": "777a107f2528c63ef20ae3b737eb9a5da4addc11",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "5b76e14ddcf87e2d576de92001ad58a2cba5da8c",
+      "parent": "cbd82b59b3b5eb8bcf6a161d4fe7bbb591588b11",
+      "tree": "ead17241c6ca7a8ba2ff5bdc07c3fbc421175c2e",
+      "touchedPaths": [
+        {
+          "path": "assets/report_template.html",
+          "state": "present",
+          "objectId": "df26f158d2aaafeb47b3be485667068da83f55d7",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "9f203e493b052aaea634579bfda48a29d871e3aa",
+      "parent": "5b76e14ddcf87e2d576de92001ad58a2cba5da8c",
+      "tree": "2bff5ef25f01d35e17abdbe1f3405153ba503086",
+      "touchedPaths": [
+        {
+          "path": "assets/report_template.html",
+          "state": "present",
+          "objectId": "35a8a5c770f226b407bc1271a3220862a843408f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "d283048d8c5db5eb0fa3cc6f678cac48e733ed66",
+      "parent": "9f203e493b052aaea634579bfda48a29d871e3aa",
+      "tree": "239fef9efdbeb5bbba2b0a59c8d8366780e1312a",
+      "touchedPaths": [
+        {
+          "path": "assets/report_template.html",
+          "state": "present",
+          "objectId": "5ce37c3e9ba023ff3abd85ec522f583828d5d991",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "9828b962a572360b43992f69f1736bff7a54c8a2",
+      "parent": "d283048d8c5db5eb0fa3cc6f678cac48e733ed66",
+      "tree": "e8127a62ccc9f349bf0c3413aaf323fc03cfd185",
+      "touchedPaths": [
+        {
+          "path": "assets/kindness_template.html",
+          "state": "present",
+          "objectId": "9361a8565e2be35b9e0e48bf44e363b41810a103",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "d417e957b6f2709fa2b29eb55ec80238e5ad47fb",
+      "parent": "9828b962a572360b43992f69f1736bff7a54c8a2",
+      "tree": "753b781ac39a619f3ceaaaad52e8f01a2e448bc3",
+      "touchedPaths": [
+        {
+          "path": "assets/kindness_template.html",
+          "state": "present",
+          "objectId": "867f2d3dd770bb56066c9e63d2e636553057cd61",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "b957f0b8cdd96bf054669155d0cad65c712f14c3",
+      "parent": "d417e957b6f2709fa2b29eb55ec80238e5ad47fb",
+      "tree": "8c5d9c0c531101de94307cf7bcd59fe41248fc40",
+      "touchedPaths": [
+        {
+          "path": "assets/kindness_template.html",
+          "state": "present",
+          "objectId": "6b7da6f91317be60f2d4780b2ca1a3fb20afc752",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "51cf47876d4280c236662cbe5a336c640c40a5cd",
+      "parent": "b957f0b8cdd96bf054669155d0cad65c712f14c3",
+      "tree": "7b992a41e4c6ff1e6a8e49df90dba816883176ae",
+      "touchedPaths": [
+        {
+          "path": "assets/kindness_template.html",
+          "state": "present",
+          "objectId": "585c5641b059d0ea1133297e500bc799da8dc16c",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "f683fc4e92ae25d2ecaf1f98724ccdc9ca068d01",
+      "parent": "51cf47876d4280c236662cbe5a336c640c40a5cd",
+      "tree": "d6e702f181f2f653616fc71fa549e94cdfc40428",
+      "touchedPaths": [
+        {
+          "path": "assets/kindness_template.html",
+          "state": "present",
+          "objectId": "10246690663a8a1e1b46abb0e53a1926628ede83",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "7b13c77f82ea60d4a943d4e99d1aee1f404d58c0",
+      "parent": "f683fc4e92ae25d2ecaf1f98724ccdc9ca068d01",
+      "tree": "56e2d059b18d2637966c95201d7fe0b8747585dc",
+      "touchedPaths": [
+        {
+          "path": "test/censor-share.test.mjs",
+          "state": "present",
+          "objectId": "c25523928717e124190ac77570c801a42c7317da",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/kindness-report.test.mjs",
+          "state": "present",
+          "objectId": "11facec197304e21241624148b4f3d2b1ce344bd",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "95d7bbf5a1d7b8d6829bbd69e71cb7aacffcc97e",
+      "parent": "7b13c77f82ea60d4a943d4e99d1aee1f404d58c0",
+      "tree": "51848a3b8dc8b51fc67a9da02a9f8942aa7855bf",
+      "touchedPaths": [
+        {
+          "path": "test/share-safe.test.mjs",
+          "state": "present",
+          "objectId": "968ab8338b158905e43e3b2ad3fc8ddad6fcce77",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "60747f5dba6a7b44fc43db0e72910a3a53ea1161",
+      "parent": "95d7bbf5a1d7b8d6829bbd69e71cb7aacffcc97e",
+      "tree": "e19c5c806e8a94bc7b4e7032b9bf4c600bd077d0",
+      "touchedPaths": [
+        {
+          "path": "web/app-shell.html",
+          "state": "present",
+          "objectId": "b40702ab01bd414d0d257aff411e808b0bc6de39",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "web/app.css",
+          "state": "present",
+          "objectId": "613dcf0599d598584e94bc0de683df3c24dd0dd1",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "963f0b18aa00de7a6f72b6f8650c83f374c771ac",
+      "parent": "60747f5dba6a7b44fc43db0e72910a3a53ea1161",
+      "tree": "3649e5c887cef45d02a90f321ddb4e44b9aa605f",
+      "touchedPaths": [
+        {
+          "path": "web/app.mjs",
+          "state": "present",
+          "objectId": "96f1dd5064b6dcd9c11ca8a4cf91aced5eba4e90",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "web/folder-input.mjs",
+          "state": "present",
+          "objectId": "c80f277057ce387a6a8589451fa6c089d0fa2e1d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "e6558ca05f75b472641d361d5ffffb8deae4441d",
+      "parent": "963f0b18aa00de7a6f72b6f8650c83f374c771ac",
+      "tree": "01d15f1ec88127d1167234c807e521a9b8cae686",
+      "touchedPaths": [
+        {
+          "path": "web/result-share.mjs",
+          "state": "present",
+          "objectId": "2521ae37a9a2acd105622a6449e00b0551372f56",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "6a81648d38f7b8efb01e9d7f95b45175af2e2146",
+      "parent": "e6558ca05f75b472641d361d5ffffb8deae4441d",
+      "tree": "8b363f93c0962b00dcf7342c1121223e46e3caea",
+      "touchedPaths": [
+        {
+          "path": "test/browser-app.test.mjs",
+          "state": "present",
+          "objectId": "2f4574d0bf77396d9a4c6e37fe68919ce0bd3e5f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "08c4daa1b29076b80423297fb303baead8017570",
+      "parent": "6a81648d38f7b8efb01e9d7f95b45175af2e2146",
+      "tree": "0771aafffef44325e275b09ce149fd0f5deff8b0",
+      "touchedPaths": [
+        {
+          "path": "test/browser-app-build.test.mjs",
+          "state": "present",
+          "objectId": "22efc813257bc1894c3f6b52608f5c361a55739d",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "740466fa26eedb05bcab2bf171ecf8b1c4527d9b",
+      "parent": "08c4daa1b29076b80423297fb303baead8017570",
+      "tree": "37f30dad17aea35323ad34d9bafe2de497c1b058",
+      "touchedPaths": [
+        {
+          "path": "package.json",
+          "state": "present",
+          "objectId": "a61e0383c4201342d5ae302f3deb6efa34858607",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/site/buildBrowserApp.mjs",
+          "state": "present",
+          "objectId": "8e5232dcb7d2e45eadae9cd4f6963e707d75360e",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "57f60c79451c70f5b77f87fab5b6d8320a0a89dc",
+      "parent": "740466fa26eedb05bcab2bf171ecf8b1c4527d9b",
+      "tree": "d641924b928984affaa02a05060f3f7624ac5067",
+      "touchedPaths": [
+        {
+          "path": "test/site.test.mjs",
+          "state": "present",
+          "objectId": "68b9c24890af9fc4022f32aea3211d8f21067208",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "6c90715b2987367984ecce56759d34c2ab987482",
+      "parent": "57f60c79451c70f5b77f87fab5b6d8320a0a89dc",
+      "tree": "ba169869c33658ac7aaab61a2c73be495e8973ec",
+      "touchedPaths": [
+        {
+          "path": "docs/index.html",
+          "state": "present",
+          "objectId": "28486f3fdff5b773cc15a3cc73715d52a7c2c987",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "f1076c7f2e8b27eb643fccdd18accfd6f92a8668",
+      "parent": "6c90715b2987367984ecce56759d34c2ab987482",
+      "tree": "b3ef11cf3af7c43560268480c9b93eb3f4b24499",
+      "touchedPaths": [
+        {
+          "path": "test/public-site-build.test.mjs",
+          "state": "present",
+          "objectId": "66ba70b846a1f10ee2c71afb6d4d8def70e0c8f2",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "7d6fdf2cb1e36487c9d9cef7488e6ad7047e5b0b",
+      "parent": "f1076c7f2e8b27eb643fccdd18accfd6f92a8668",
+      "tree": "2e56190594c1e8775c45ca310e63c03da9459ca4",
+      "touchedPaths": [
+        {
+          "path": "package.json",
+          "state": "present",
+          "objectId": "5cc500dff99bf684972becf47909e2fa1ba75b55",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/ci/verify.mjs",
+          "state": "present",
+          "objectId": "8c52aeb57fcd8e26bee3032c5fb8f865e5c2d421",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/deploy-site.sh",
+          "state": "present",
+          "objectId": "5aae545c5c70d2c57a1e44b016161125e21ac943",
+          "mode": "100755",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/site/buildPublicSite.mjs",
+          "state": "present",
+          "objectId": "84cc63609bbe0ef602364f644c63d36c60b7b647",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/public-site-build.test.mjs",
+          "state": "present",
+          "objectId": "4c9d794eae033520705642ae91ee721c922d2a0b",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "72aa1aabdee8ecdc1d85f97472a040ae54ebacdc",
+      "parent": "7d6fdf2cb1e36487c9d9cef7488e6ad7047e5b0b",
+      "tree": "ba95186ac2c76a07a6d8c78031325d27d093f14a",
+      "touchedPaths": [
+        {
+          "path": ".gitattributes",
+          "state": "present",
+          "objectId": "5bac12ab91ec3251d210563f3bc794b1f217acb0",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": ".gitignore",
+          "state": "present",
+          "objectId": "e809b073a222206906205f10358a3c790a7a9188",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "docs/admin.html",
+          "state": "deleted",
+          "objectId": null,
+          "mode": null,
+          "type": null
+        },
+        {
+          "path": "docs/demo.html",
+          "state": "deleted",
+          "objectId": null,
+          "mode": null,
+          "type": null
+        },
+        {
+          "path": "docs/kindness.html",
+          "state": "deleted",
+          "objectId": null,
+          "mode": null,
+          "type": null
+        }
+      ]
+    },
+    {
+      "commit": "8b9abe29cc49decdd05eac3720f6bf2b42ccbe66",
+      "parent": "72aa1aabdee8ecdc1d85f97472a040ae54ebacdc",
+      "tree": "8299b9be002fa4e628bd5e63e7f52525a3efcee2",
+      "touchedPaths": [
+        {
+          "path": "package.json",
+          "state": "present",
+          "objectId": "2852c94fc6de101201bea4c7ca1a73f1ab5f6b0e",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "scripts/ci/verify.mjs",
+          "state": "present",
+          "objectId": "6a48e5a358ed3cf92af47d02584ae872e13d0be3",
+          "mode": "100644",
+          "type": "blob"
+        },
+        {
+          "path": "test/public-site-build.test.mjs",
+          "state": "present",
+          "objectId": "e1b041d42cd0a6ed66e5cb9db51def726f2bc0fb",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    },
+    {
+      "commit": "55b0e708f92d119f7282ff9b58fd8e0c7d9745fb",
+      "parent": "8b9abe29cc49decdd05eac3720f6bf2b42ccbe66",
+      "tree": "c546c92f86a4049d94f6a16b3990b00c99b700cd",
+      "touchedPaths": [
+        {
+          "path": "reports/release-proof/ELE-010/omega.json",
+          "state": "present",
+          "objectId": "cc43a26ca7fe2e77ce61c26805320ae97b59243f",
+          "mode": "100644",
+          "type": "blob"
+        }
+      ]
+    }
+  ],
+  "touchedPaths": [
+    {
+      "path": ".gitattributes",
+      "state": "present",
+      "objectId": "5bac12ab91ec3251d210563f3bc794b1f217acb0",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": ".gitignore",
+      "state": "present",
+      "objectId": "e809b073a222206906205f10358a3c790a7a9188",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "assets/kindness_template.html",
+      "state": "present",
+      "objectId": "10246690663a8a1e1b46abb0e53a1926628ede83",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "assets/report_template.html",
+      "state": "present",
+      "objectId": "5ce37c3e9ba023ff3abd85ec522f583828d5d991",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "docs/admin.html",
+      "state": "deleted",
+      "objectId": null,
+      "mode": null,
+      "type": null
+    },
+    {
+      "path": "docs/demo.html",
+      "state": "deleted",
+      "objectId": null,
+      "mode": null,
+      "type": null
+    },
+    {
+      "path": "docs/index.html",
+      "state": "present",
+      "objectId": "28486f3fdff5b773cc15a3cc73715d52a7c2c987",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "docs/kindness.html",
+      "state": "deleted",
+      "objectId": null,
+      "mode": null,
+      "type": null
+    },
+    {
+      "path": "package.json",
+      "state": "present",
+      "objectId": "2852c94fc6de101201bea4c7ca1a73f1ab5f6b0e",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "reports/release-proof/ELE-010/omega.json",
+      "state": "present",
+      "objectId": "cc43a26ca7fe2e77ce61c26805320ae97b59243f",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/ci/license-guard.mjs",
+      "state": "present",
+      "objectId": "6675fde723e4839238a88b48b1ff44de63f09fde",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/ci/verify.mjs",
+      "state": "present",
+      "objectId": "6a48e5a358ed3cf92af47d02584ae872e13d0be3",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/deploy-site.sh",
+      "state": "present",
+      "objectId": "5aae545c5c70d2c57a1e44b016161125e21ac943",
+      "mode": "100755",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/site/buildBrowserApp.mjs",
+      "state": "present",
+      "objectId": "8e5232dcb7d2e45eadae9cd4f6963e707d75360e",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/site/buildPublicSite.mjs",
+      "state": "present",
+      "objectId": "84cc63609bbe0ef602364f644c63d36c60b7b647",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "scripts/site/syncShareCore.mjs",
+      "state": "present",
+      "objectId": "edaa87215181f9024aa5e889bd2a2ab91a12081f",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "src/detect.mjs",
+      "state": "present",
+      "objectId": "e00b9d7fdb43721dd8e3b115bf693cfa657413d7",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "src/sharecard.mjs",
+      "state": "present",
+      "objectId": "0c15eec4ad83f6761905e549a8653ace30b16c40",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/browser-app-build.test.mjs",
+      "state": "present",
+      "objectId": "22efc813257bc1894c3f6b52608f5c361a55739d",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/browser-app.test.mjs",
+      "state": "present",
+      "objectId": "2f4574d0bf77396d9a4c6e37fe68919ce0bd3e5f",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/browser-scan.test.mjs",
+      "state": "present",
+      "objectId": "5b1ad375d4cab305b5981b991f9b309b05cf79d9",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/censor-share.test.mjs",
+      "state": "present",
+      "objectId": "c25523928717e124190ac77570c801a42c7317da",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/dashboard.test.mjs",
+      "state": "present",
+      "objectId": "777a107f2528c63ef20ae3b737eb9a5da4addc11",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/detect.test.mjs",
+      "state": "present",
+      "objectId": "bc96a03b68f4d845b5504ae00bef5b7db087af73",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/fixtures/browser-scan-cases/kind/history.jsonl",
+      "state": "present",
+      "objectId": "69b172651a7430d69dd1df1712211ed617435356",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/fixtures/browser-scan-cases/swear/history.jsonl",
+      "state": "present",
+      "objectId": "389ced845fd86e9021a68523761b321bdc9d7513",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/fixtures/browser-scan-cases/tie/history.jsonl",
+      "state": "present",
+      "objectId": "0bb57fb566436f55773fda340a853c28e81a8deb",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/fixtures/browser-scan-cases/zero/history.jsonl",
+      "state": "present",
+      "objectId": "9b6b2468e21b94b2d93ccd9fe4a52160f7fc30ee",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/kindness-report.test.mjs",
+      "state": "present",
+      "objectId": "11facec197304e21241624148b4f3d2b1ce344bd",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/license-guard.test.mjs",
+      "state": "present",
+      "objectId": "73f543a7c97046f563f0248faa62d75c9c4b4de0",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/public-site-build.test.mjs",
+      "state": "present",
+      "objectId": "e1b041d42cd0a6ed66e5cb9db51def726f2bc0fb",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/share-safe.test.mjs",
+      "state": "present",
+      "objectId": "968ab8338b158905e43e3b2ad3fc8ddad6fcce77",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/sharecard.test.mjs",
+      "state": "present",
+      "objectId": "10d6d00a2bbda5a751edfce3d5c87d7154fbabef",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/site.test.mjs",
+      "state": "present",
+      "objectId": "68b9c24890af9fc4022f32aea3211d8f21067208",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/stats.test.mjs",
+      "state": "present",
+      "objectId": "795fd6dcc42973d9ea3c9d1bbfef043d5a567c63",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "test/superwhisper.test.mjs",
+      "state": "present",
+      "objectId": "1586e883299b36c517545b1a8d8a89c13dc77703",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/app-shell.html",
+      "state": "present",
+      "objectId": "b40702ab01bd414d0d257aff411e808b0bc6de39",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/app.css",
+      "state": "present",
+      "objectId": "613dcf0599d598584e94bc0de683df3c24dd0dd1",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/app.mjs",
+      "state": "present",
+      "objectId": "96f1dd5064b6dcd9c11ca8a4cf91aced5eba4e90",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/browser-scan.mjs",
+      "state": "present",
+      "objectId": "133f3fc7f108211626c58f78e50aeb01b3a59358",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/folder-input.mjs",
+      "state": "present",
+      "objectId": "c80f277057ce387a6a8589451fa6c089d0fa2e1d",
+      "mode": "100644",
+      "type": "blob"
+    },
+    {
+      "path": "web/result-share.mjs",
+      "state": "present",
+      "objectId": "2521ae37a9a2acd105622a6449e00b0551372f56",
+      "mode": "100644",
+      "type": "blob"
+    }
+  ],
+  "focusedChecks": [
+    "scripts/ci/verify.sh"
+  ],
+  "omegaStatus": "passed",
+  "omegaArtifact": "reports/release-proof/ELE-010/omega.json",
+  "proofSummary": "Browser Omega passed for the rewritten landing and for swear, kindness, tie, and no-signal results; the exact clipboard post, canonical 1200x675 PNG, desktop and mobile layouts, all 456 tests, and every public privacy, security, claims, license, deterministic-build, and review-size gate are green.",
+  "createdAt": "2026-08-24T18:48:44.150Z",
+  "createdBy": "jim",
+  "commitsAhead": 32,
+  "note": null,
+  "ownerSessionId": null,
+  "diffIntent": {
+    "version": 1,
+    "goals": [
+      "regenerate public artifacts before release",
+      "embed the canonical card in kindness reports",
+      "embed the canonical card in damage reports"
+    ],
+    "context": "Work tracked by ELE-010; 35 feature area(s) touched.",
+    "surfaces": {
+      "files": [
+        ".gitattributes",
+        ".gitignore",
+        "assets/kindness_template.html",
+        "assets/report_template.html",
+        "docs/admin.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "docs/kindness.html",
+        "package.json",
+        "scripts/ci/license-guard.mjs",
+        "scripts/ci/verify.mjs",
+        "scripts/deploy-site.sh",
+        "scripts/site/buildBrowserApp.mjs",
+        "scripts/site/buildPublicSite.mjs",
+        "scripts/site/syncShareCore.mjs",
+        "src/detect.mjs",
+        "src/sharecard.mjs",
+        "test/browser-app-build.test.mjs",
+        "test/browser-app.test.mjs",
+        "test/browser-scan.test.mjs",
+        "test/censor-share.test.mjs",
+        "test/dashboard.test.mjs",
+        "test/detect.test.mjs",
+        "test/fixtures/browser-scan-cases/kind/history.jsonl",
+        "test/fixtures/browser-scan-cases/swear/history.jsonl",
+        "test/fixtures/browser-scan-cases/tie/history.jsonl",
+        "test/fixtures/browser-scan-cases/zero/history.jsonl",
+        "test/kindness-report.test.mjs",
+        "test/license-guard.test.mjs",
+        "test/public-site-build.test.mjs",
+        "test/share-safe.test.mjs",
+        "test/sharecard.test.mjs",
+        "test/site.test.mjs",
+        "test/stats.test.mjs",
+        "test/superwhisper.test.mjs",
+        "web/app-shell.html",
+        "web/app.css",
+        "web/app.mjs",
+        "web/browser-scan.mjs",
+        "web/folder-input.mjs",
+        "web/result-share.mjs"
+      ],
+      "areas": [
+        ".gitattributes",
+        ".gitignore",
+        "assets/kindness_template.html",
+        "assets/report_template.html",
+        "docs/admin.html",
+        "docs/demo.html",
+        "docs/index.html",
+        "docs/kindness.html",
+        "package.json",
+        "scripts/ci",
+        "scripts/deploy-site.sh",
+        "scripts/site",
+        "src/detect.mjs",
+        "src/sharecard.mjs",
+        "test/browser-app-build.test.mjs",
+        "test/browser-app.test.mjs",
+        "test/browser-scan.test.mjs",
+        "test/censor-share.test.mjs",
+        "test/dashboard.test.mjs",
+        "test/detect.test.mjs",
+        "test/fixtures",
+        "test/kindness-report.test.mjs",
+        "test/license-guard.test.mjs",
+        "test/public-site-build.test.mjs",
+        "test/share-safe.test.mjs",
+        "test/sharecard.test.mjs",
+        "test/site.test.mjs",
+        "test/stats.test.mjs",
+        "test/superwhisper.test.mjs",
+        "web/app-shell.html",
+        "web/app.css",
+        "web/app.mjs",
+        "web/browser-scan.mjs",
+        "web/folder-input.mjs",
+        "web/result-share.mjs"
+      ]
+    },
+    "tickets": [
+      "ELE-010"
+    ],
+    "generatedBy": "mechanical",
+    "generatedAt": "2026-08-24T18:48:44.091Z"
+  },
+  "chamberCheck": {
+    "verdict": "PARK-EXPECTED",
+    "attestedSkip": false,
+    "durationMs": 61,
+    "blockingCount": 0,
+    "findings": [
+      {
+        "check": "gate-park-prediction",
+        "code": "park-expected-touches-the-gate",
+        "message": "this unit WILL park touches-the-gate — expected exit: panel admission",
+        "blocking": false,
+        "detail": {
+          "gatePaths": [
+            "scripts/ci/license-guard.mjs",
+            "scripts/ci/verify.mjs"
+          ],
+          "gateOwnedPaths": [
+            "scripts/ci/",
+            "base/gates/",
+            ".githooks/",
+            "release-train-settings.json",
+            "base/orchestrator/"
+          ]
+        }
+      },
+      {
+        "check": "focused-check",
+        "code": "focused-check-not-runnable",
+        "message": "no base/orchestrator/gate-lease-run.mjs in this repository, so the focused check cannot be run under the cpu-heavy lease; an unadmitted run would produce exactly the untrustworthy verdict this check exists to refuse, so it was not run at all",
+        "blocking": false
+      }
+    ],
+    "parkExpectation": {
+      "reason": "touches-the-gate",
+      "gatePaths": [
+        "scripts/ci/license-guard.mjs",
+        "scripts/ci/verify.mjs"
+      ],
+      "ask": "unit modifies the train/gate itself — review before land"
+    }
+  }
+}
