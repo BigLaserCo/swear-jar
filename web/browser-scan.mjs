@@ -20,7 +20,7 @@
 // HARD RULE for this file: NO `node:` imports. It must run unchanged in a browser
 // with native ES modules. The only import is the browser-safe detector.
 
-import { detect } from "../src/detect.mjs";
+import { detect, detectPositive } from "../src/detect.mjs";
 
 // ── mirror of src/scan.mjs `extractText` ─────────────────────────────────────
 // Handles both content shapes a transcript line can carry: a plain string, or an
@@ -110,7 +110,15 @@ export function scanFileText(text, fileName = "", seen = new Set()) {
     if (!body || !body.trim()) continue;
     if (body.includes(CLINK_SENTINEL)) continue;
     const { words, coins } = detect(body);
-    if (!coins) continue;
+    const swearCount = Object.values(words).reduce((total, count) => total + (Number(count) || 0), 0);
+    // Match the canonical positive detector rather than maintaining another
+    // browser-only lexicon. A kindness-only human message is an eligible record:
+    // otherwise computeStats() never sees the acts it needs for the comparison.
+    const positive = entry.type === "user" ? detectPositive(body, { swearCount }) : null;
+    // Keep non-empty human messages as aggregate-only denominator records too.
+    // That lets the app distinguish a quiet, valid Claude history (NO SIGNAL)
+    // from a folder that had no eligible human messages at all.
+    if (!coins && !positive?.total && entry.type !== "user") continue;
     const cwd = entry.cwd || "";
     records.push({
       v: 1,
@@ -124,7 +132,9 @@ export function scanFileText(text, fileName = "", seen = new Set()) {
       cwd,
       transcript: fileName || "",
       words,
+      word_count: entry.type === "user" ? body.trim().split(/\s+/).length : 0,
       coins,
+      ...(positive?.total ? { polite: positive.words } : {}),
     });
     seen.add(entry.uuid);
   }
