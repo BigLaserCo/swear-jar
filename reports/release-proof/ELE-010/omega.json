@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "kind": "atomic-omega-proof",
+  "ticket": "ELE-010",
+  "status": "passed",
+  "summary": "Browser Omega passed for swear, kindness, tie, and no-signal; canonical 1200x675 PNG, exact clipboard copy, mobile and desktop, clean console; 450 tests and all public privacy, security, claims, and license gates green.",
+  "mergeVerdict": "VERDICT: LAND — the share flow is internally consistent, privacy-safe, postable, and verified through the affected browser paths.",
+  "userVisibleOutcome": "The public browser app compares literal human swear instances with human kindness acts on one shared-scale chart, selects one postable verdict, and produces one unified social card and one platform-safe caption. Optional SetupYourAI and Big Laser links stay on the result page rather than in the shared post.",
+  "browserOmega": {
+    "route": "/app/",
+    "folderPicker": "passed",
+    "states": {
+      "swearHeavy": "1 swear, 0 nice, mouth verdict, sharing visible",
+      "kindnessHeavy": "0 swears, 1 nice, goody-two-shoes verdict, sharing visible",
+      "tie": "1 swear, 1 nice, dead-even verdict, sharing visible",
+      "zeroSignal": "0 swears, 0 nice, no verdict card or share controls, retry visible"
+    },
+    "clipboardCaption": "passed",
+    "downloadedCard": {
+      "format": "PNG",
+      "width": 1200,
+      "height": 675,
+      "canonicalRenderer": true
+    },
+    "desktopViewport": "passed",
+    "mobileViewport": "passed",
+    "consoleErrors": 0,
+    "automaticTranscriptUploads": 0
+  },
+  "verification": {
+    "command": "env NODE_OPTIONS=--test-isolation=none scripts/ci/verify.sh",
+    "result": "passed",
+    "testsPassed": 450,
+    "testsFailed": 0,
+    "noUnauthorizedNetwork": "passed",
+    "zeroRuntimeDependencies": "passed",
+    "secretScan": "passed",
+    "leakGuard": "passed",
+    "internalDocsGuard": "passed",
+    "claimsGuard": "passed",
+    "licenseGuard": "passed",
+    "rawTextPrivacyInvariant": "passed",
+    "publicRepoGates": "green",
+    "publicRemoteGuard": "green under ELE-382",
+    "independentReview": "Terra review found no actionable findings"
+  },
+  "boundary": "Local rendered acceptance proof only. This does not claim that the release train has landed the branch or that production has been updated; those remain release-train and post-deploy verification steps."
+}
