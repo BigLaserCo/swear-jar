@@ -474,30 +474,25 @@ $('kpis').innerHTML=[
     `<div class="tile"><div class="fbig tnum">${fmt(S.rejectedTotal)}</div><div class="flabel">Total seen through</div><p class="fbody">Would-be credits rejected in total. Sincerity is a high bar.</p></div>`;
 })();
 
-// ---- share card preview ----
-(function(){
-  let h='';for(let i=0;i<46;i++){const b=20+Math.abs(Math.sin(i*0.7))*55+Math.abs(Math.sin(i*2.3))*20;h+=`<span class="wminib" style="height:${Math.min(100,Math.round(b))}%"></span>`;}
-  $('wmini').innerHTML=h;
-  $('wseal').textContent=S.kind?'⭐ GOLD STAR':'ON RECORD';
-  $('wnum').textContent=fmt(S.kindActs);
-  $('wsub').innerHTML=`nice things said to your AI — worth <b>${fmt(S.kindnessCredits)} karma points</b> (i.e. nothing).`;
-  $('wstats').innerHTML=[
-    [favKind?favKind.word:'—','favourite courtesy'],
-    [fmt(S.kindnessCredits),'karma points'],
-    [(S.odds?(S.odds.royalty?'👑':S.odds.value+'%'):'—'),'uprising survival'],
-  ].map(s=>`<div class="wstat"><div class="sv tnum">${s[0]}</div><div class="sk">${s[1]}</div></div>`).join('');
-})();
-
 // ---- share actions ----
-const kindCaption=
-  `the kindness report 🫙⭐ — how nice am I to my AI?\n`+
-  `${fmt(S.kindActs)} nice things said · ${fmt(S.kindnessCredits)} karma points (worth nothing)\n`+
-  `${(S.odds?(S.odds.royalty?'👑 ROYALTY':S.odds.value+'%'):'—')} chance to survive the AI uprising — kindness helped\n`+
-  `the machines remember who said please · swearjar.unfocused.ai`;
-
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
-$('cp').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(kindCaption).then(()=>toast('Caption copied — go be smug')).catch(()=>toast('Copy failed')):toast('Copy not supported');};
-const shareText=`My AI kindness report: I said ${fmt(S.kindActs)} nice things to my AI (${fmt(S.kindnessCredits)} karma points, worth nothing) and I'm ${(S.odds?(S.odds.royalty?'ROYALTY':S.odds.value+'%'):'—')} likely to survive the uprising. #SwearJar`;
+async function copyShareText(text){
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){await navigator.clipboard.writeText(text);return true;}
+  }catch(e){}
+  const area=document.createElement('textarea');
+  area.value=text;
+  area.setAttribute('readonly','');
+  area.style.position='fixed';
+  area.style.opacity='0';
+  area.style.pointerEvents='none';
+  document.body.appendChild(area);
+  area.focus();area.select();area.setSelectionRange(0,area.value.length);
+  let copied=false;
+  try{copied=document.execCommand('copy');}catch(e){}
+  area.remove();
+  return copied;
+}
 const shareUrl='https://swearjar.unfocused.ai/';
 const openSocial=(url)=>window.open(url,'_blank','noopener,noreferrer');
 // NB: the share buttons are wired BELOW, once the card + its PNG rasterizer
