@@ -26,7 +26,7 @@ const PAGES = fs
   .filter((f) => f.endsWith(".html") && !f.startsWith("_"))
   .sort();
 // Pages that must always exist (the site is broken without them).
-const REQUIRED = ["index.html", "demo.html", "tip.html", "wrapped.html", "admin.html"];
+const REQUIRED = ["index.html", "demo.html", "tip.html", "wrapped.html", "admin.html", "app/index.html"];
 
 // Permitted outbound links (click-throughs a human clicks, NOT page-load
 // subresources — those stay banned below). LINKS are allowed; a page-load REQUEST
@@ -59,6 +59,26 @@ test("the site pages exist and .nojekyll is present", () => {
     assert.ok(fs.existsSync(path.join(DOCS, p)), `${p} exists`);
   }
   assert.ok(fs.existsSync(path.join(DOCS, ".nojekyll")), "docs/.nojekyll exists (harmless static-serve marker)");
+});
+
+test("landing leads with the real browser scanner", () => {
+  const html = readPage("index.html");
+  assert.match(html, /AI Swear Jar/);
+  assert.match(html, /How much do you swear at AI\?/);
+  assert.match(html, /Find out how often you swear at AI—and how often you’re nice to it\. Open source\./);
+  assert.match(html, /href=["']app\/["'][^>]*>[^<]*Measure mine/i);
+  assert.match(html, /href=["']demo\.html["'][^>]*>[^<]*See an example/i);
+});
+
+test("landing metadata matches the AI Swear Jar product", () => {
+  const html = readPage("index.html");
+  assert.match(html, /<meta property="og:title" content="AI Swear Jar — how much do you swear at AI\?">/);
+  assert.match(html, /<meta name="twitter:title" content="AI Swear Jar — how much do you swear at AI\?">/);
+  const blocks = [...html.matchAll(/<script\s+type="application\/ld\+json">([\s\S]*?)<\/script>/gi)].map((match) => JSON.parse(match[1]));
+  const app = blocks.find((block) => block["@type"] === "SoftwareApplication");
+  assert.equal(app.name, "AI Swear Jar");
+  assert.match(app.description, /swear at AI.*nice to it/i);
+  assert.doesNotMatch(app.description, /damage report/i);
 });
 
 for (const name of PAGES) {
