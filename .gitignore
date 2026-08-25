@@ -12,6 +12,14 @@ __pycache__/
 *.pyc
 docs/_myreport.html
 
+# Deterministic public build outputs. Canonical sources live in assets/, web/,
+# src/, and scripts/site/; verification and deployment regenerate these.
+docs/admin.html
+docs/demo.html
+docs/kindness.html
+docs/app/
+docs/src/
+
 # machine-local release-queue state (operator tooling) — never tracked
 .elephant/
 

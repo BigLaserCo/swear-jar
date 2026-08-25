@@ -44,5 +44,6 @@ test("renderDashboard default remains the damage template (back-compat)", () => 
   const s = computeStats(RECS, NOW);
   const html = renderDashboard(s, { donateUrl: false, hostedUrl: false });
   assert.ok(html.includes("the damage report"));
-  assert.ok(html.includes("swear-jar-kindness-card.svg"), "damage side offers the kindness card download");
+  assert.ok(html.includes('id="downloadCard"'), "damage side offers the unified comparison card");
+  assert.ok(!html.includes("swear-jar-kindness-card.svg"), "damage side has no competing kindness card");
 });

@@ -3,53 +3,52 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Swear Jar — your AI damage report</title>
-  <meta name="description" content="Swear Jar is an open-source novelty tool for measuring how much you swear at AI. It analyzes local prompts and transcripts and turns aggregate counts into a playful damage report.">
+  <title>AI Swear Jar — how much do you swear at AI?</title>
+  <meta name="description" content="AI Swear Jar measures how often you swear at AI—and how often you are nice to it. Open source and local-first.">
   <link rel="canonical" href="https://swearjar.unfocused.ai/">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Swear Jar — your AI damage report">
+  <meta property="og:title" content="AI Swear Jar — how much do you swear at AI?">
   <meta property="og:url" content="https://swearjar.unfocused.ai/">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Swear Jar — your AI damage report">
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Swear Jar","applicationCategory":"DeveloperApplication","url":"https://swearjar.unfocused.ai/","description":"An open-source novelty tool that analyzes local AI prompts and transcripts and generates a playful damage report.","license":"MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+  <meta name="twitter:title" content="AI Swear Jar — how much do you swear at AI?">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"AI Swear Jar","applicationCategory":"DeveloperApplication","url":"https://swearjar.unfocused.ai/","description":"An open-source, local-first tool that measures how often you swear at AI and how often you are nice to it.","license":"MIT","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"unfocused.ai","url":"https://unfocused.ai"}</script>
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Does Swear Jar upload my transcripts?","acceptedAnswer":{"@type":"Answer","text":"No. Prompts, sentences, transcript files, recordings, and code stay on your machine. Only disclosed aggregate numbers can travel — when you open your hosted report link, share the generated card, or join the leaderboard — and we may keep and use those aggregate numbers."}},{"@type":"Question","name":"Is Swear Jar public yet?","acceptedAnswer":{"@type":"Answer","text":"Yes. Swear Jar is now public on GitHub under the MIT License, and the install commands are ready to run."}}]}</script>
   <link rel="stylesheet" href="site.css">
   <link rel="stylesheet" href="fab.css">
 </head>
-<body>
-  <div class="wrap">
+<body class="landing-body">
+  <div class="wrap landing">
     <nav class="nav" aria-label="Primary navigation">
       <a class="brand" href="index.html">🫙 swear-jar</a>
       <span class="pill">open source · local-first</span>
       <span class="spacer"></span>
       <a class="navlink github" href="https://github.com/BigLaserCo/swear-jar">GitHub</a>
-      <a class="navlink active" href="index.html">Damage report</a>
-      <a class="navlink" href="kindness.html">Kindness report</a>
+      <a class="navlink active" href="app/">Measure mine</a>
+      <a class="navlink" href="demo.html">See an example</a>
       <a class="navlink" href="origin.html">Origin story</a>
       <a class="navlink" href="uprising.html">Robot uprising</a>
       <a class="navlink" href="terms.html">Privacy &amp; terms</a>
     </nav>
 
-    <header class="hero">
+    <header class="hero landing-hero">
       <div>
-        <p class="eyebrow">Swear Jar · an unfocused.ai open-source project</p>
-        <h1>How frustrated are you at AI? <span>Let&rsquo;s measure it.</span></h1>
-        <p class="lede">Swear Jar is a local developer tool for Claude Code and Codex. It scans the AI prompts and recordings you already have, counts how often you swear at the machine, and turns the <b>aggregate word counts</b> into a ridiculous engineering damage report.</p>
+        <p class="eyebrow">AI Swear Jar · an unfocused.ai open-source project</p>
+        <h1>How much do you swear at AI?</h1>
+        <p class="lede">Find out how often you swear at AI—and how often you’re nice to it. Open source.</p>
         <div class="cta">
-          <a class="btn primary" href="#how">🫙 Get your damage report</a>
-          <a class="btn ghost" href="demo.html">See a sample report →</a>
+          <a class="btn primary" href="app/">🫙 Measure mine</a>
+          <a class="btn ghost" href="demo.html">See an example →</a>
         </div>
-        <p class="micro">The report is generated locally and stays on your machine. Only disclosed aggregate numbers can travel — a hosted report link, a shared card, or a leaderboard entry — and we may keep and use those aggregate numbers. We never take your transcripts.</p>
+        <p class="micro">The real browser scanner currently supports Claude Code history. You pick the folder; its transcript files stay on your machine.</p>
       </div>
-      <aside class="report-card" aria-label="Sample damage report">
-        <div class="card-top"><b>🫙 the damage report</b><span>synthetic demo</span></div>
-        <div class="amount">$359</div>
-        <div class="muted">owed to the imaginary jar</div>
-        <div class="meter"><i style="width:69%"></i></div>
-        <div class="card-row"><span>Coins in the jar</span><b>1,435</b></div>
-        <div class="card-row"><span>You vs. the machine</span><b>69% / 31%</b></div>
-        <div class="card-row"><span>Uprising survival odds</span><b>2%</b></div>
+      <aside class="report-card landing-comparison" aria-label="Sample AI Swear Jar comparison">
+        <div class="card-top"><b>🫙 AI Swear Jar</b><span>synthetic demo</span></div>
+        <div class="card-row"><span>I have sworn at AI</span><b class="sample-count">12</b></div>
+        <div class="meter sample-swear"><i style="width:75%"></i></div>
+        <div class="card-row"><span>I have been nice to AI</span><b class="sample-count">16</b></div>
+        <div class="meter sample-kind"><i style="width:100%"></i></div>
+        <div class="sample-verdict"><span>Verdict</span>HOLY GOODY TWO-SHOES</div>
       </aside>
     </header>
 

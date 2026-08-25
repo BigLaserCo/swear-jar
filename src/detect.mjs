@@ -22,10 +22,10 @@
 const CENSOR = "[*@#$%!]";
 
 export const TIER_COINS = { mild: 1, standard: 2, premium: 3, artisanal: 5 };
-// Money is deliberately simpler than damage points: mild words are 50 cents,
-// ordinary swears are a dollar, and the truly bad words/compounds are $5.
-export const TIER_DOLLARS = { mild: 0.50, standard: 1.00, premium: 1.00, artisanal: 5.00 };
-export const WORD_DOLLARS = { cunt: 5.00, "user-specific": 1.00 };
+// Damage points keep their tiered novelty values, but each literal swear costs
+// exactly one dollar regardless of its tier or attribution family.
+export const TIER_DOLLARS = { mild: 1.00, standard: 1.00, premium: 1.00, artisanal: 1.00 };
+export const WORD_DOLLARS = { "user-specific": 1.00 };
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

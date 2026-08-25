@@ -1,0 +1,5 @@
+# Legacy generated outputs removed by this branch. Their replacement bytes are
+# rebuilt from reviewed sources during verification and deployment.
+docs/admin.html -diff
+docs/demo.html -diff
+docs/kindness.html -diff

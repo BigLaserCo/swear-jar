@@ -22,6 +22,7 @@ import {
   projectFor,
 } from "../web/browser-scan.mjs";
 import { detect } from "../src/detect.mjs";
+import { computeStats } from "../src/stats.mjs";
 // The audited source of truth. Node-only (node:fs) — importable in a test, NOT in
 // a browser — which is exactly why browser-scan.mjs mirrors these three helpers.
 import {
@@ -132,15 +133,39 @@ test("scanFileText records user + assistant swears with correct coins, source, p
     line(assistantMsg("a1", "I regret to report the build is, technically, shit.")) +
     line(userMsg("u2", "thank you, a very polite message"));
   const recs = scanFileText(text, "session.jsonl");
-  assert.equal(recs.length, 2);
-  const bySource = Object.fromEntries(recs.map((r) => [r.source, r]));
-  assert.equal(bySource.user.words.fuck, 1);
-  assert.equal(bySource.user.coins, 3); // premium
-  assert.equal(bySource.assistant.words.shit, 1);
-  assert.equal(bySource.assistant.coins, 2); // standard
-  assert.equal(bySource.user.project, "example-app"); // basename of cwd
-  assert.equal(bySource.user.transcript, "session.jsonl");
-  assert.equal(bySource.user.agent, "claude");
+  assert.equal(recs.length, 3, "human messages survive even when they do not owe the jar");
+  const userSwear = recs.find((r) => r.uuid === "u1");
+  const assistantSwear = recs.find((r) => r.uuid === "a1");
+  assert.equal(userSwear.words.fuck, 1);
+  assert.equal(userSwear.coins, 3); // premium
+  assert.equal(assistantSwear.words.shit, 1);
+  assert.equal(assistantSwear.coins, 2); // standard
+  assert.equal(userSwear.project, "example-app"); // basename of cwd
+  assert.equal(userSwear.transcript, "session.jsonl");
+  assert.equal(userSwear.agent, "claude");
+});
+
+test("scanFileText preserves kindness-only human messages with canonical positive counts", () => {
+  const recs = scanFileText(
+    line(userMsg("kind-1", "thank you, this is perfect")),
+    "session.jsonl"
+  );
+  assert.equal(recs.length, 1, "a human kindness-only message is an eligible record");
+  assert.deepEqual(recs[0].words, {}, "it does not invent a swear");
+  assert.equal(recs[0].coins, 0, "kindness does not create damage coins");
+  assert.deepEqual(recs[0].polite, { thanks: 1 });
+  const stats = computeStats(recs);
+  assert.equal(stats.userSwears, 0);
+  assert.equal(stats.kindActs, 1, "the browser record feeds canonical stats");
+});
+
+test("scanFileText ignores assistant kindness for the human comparison", () => {
+  const recs = scanFileText(
+    line(assistantMsg("kind-assistant", "thank you, this is perfect")),
+    "session.jsonl"
+  );
+  assert.equal(recs.length, 0, "assistant-only kindness is not an eligible browser result record");
+  assert.equal(computeStats(recs).kindActs, 0, "only human kindness counts");
 });
 
 test("scanFileText never stores raw message text — only word-count keys", () => {
@@ -280,8 +305,8 @@ test("scanFiles fires onProgress once per file with running totals", async () =>
   await scanFiles(files, (p) => ticks.push({ files: p.files, records: p.records, coins: p.coins }));
   assert.equal(ticks.length, 3);
   assert.deepEqual(ticks[0], { files: 1, records: 1, coins: 3 });
-  assert.deepEqual(ticks[1], { files: 2, records: 1, coins: 3 }); // clean file adds nothing
-  assert.deepEqual(ticks[2], { files: 3, records: 2, coins: 3 + 4 }); // shit x2 = 4
+  assert.deepEqual(ticks[1], { files: 2, records: 2, coins: 3 }); // quiet human message proves a valid history
+  assert.deepEqual(ticks[2], { files: 3, records: 3, coins: 3 + 4 }); // shit x2 = 4
 });
 
 test("scanFiles accepts an async iterable of {name,text}", async () => {

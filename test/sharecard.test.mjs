@@ -1,108 +1,132 @@
-// Share-card generator + surface-parity tests.
-//
-// The self-contained HTML surfaces inline cardSvg VERBATIM (no build step).
-// The parity test here is what makes that duplication safe: it extracts the
-// block between the __CARD_SVG__ markers from every surface and asserts it
-// byte-matches the canonical src/sharecard.mjs block. Drift = red.
-
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { cardSvg, cardData } from "../src/sharecard.mjs";
+import { cardData, cardSvg, cardVerdict, shareCaption } from "../src/sharecard.mjs";
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const CARD_COPY = [
+  "AI SWEAR JAR",
+  "I have sworn at AI 1,435 times.",
+  "I have been nice to AI 190 times.",
+  "Want to know how you measure up?",
+  "swearjar.unfocused.ai",
+];
 
-const D = {
-  coins: 1435,
-  dollars: 789.5, // decimal in DATA — must render whole on the card
-  favLabel: "f***",
-  fbombPct: 41,
-  vocab: 16,
-  kindActs: 190,
-  credits: 252,
-  favKindLabel: "please",
-  grovelPct: 12,
-  kindVocab: 13,
-};
+test("canonical share card contains the exact two human counts and required copy", () => {
+  const svg = cardSvg({ userSwears: 1435, kindActs: 190 });
 
-test("damage card renders the aggregate numbers, whole dollars only", () => {
-  const svg = cardSvg(D, "damage");
-  assert.ok(svg.startsWith("<svg "), "svg root");
-  assert.ok(svg.includes("1,435"), "coins");
-  assert.ok(svg.includes("$790"), "dollars rounded to whole ($789.5 -> $790)");
-  assert.ok(!/\$\d+\.\d/.test(svg), "no decimal dollars anywhere");
-  assert.ok(svg.includes("f***"), "censored favourite only");
-  assert.ok(!svg.includes("fuck"), "no raw swear leaks");
+  assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675"'));
+  for (const copy of CARD_COPY) assert.ok(svg.includes(copy), `missing ${copy}`);
 });
 
-test("kindness card is karma-only: points, NEVER money (Jim red-alert 2026-07-16)", () => {
-  const svg = cardSvg(D, "kindness");
-  assert.ok(svg.includes("the kindness report"), "kindness heading");
-  assert.ok(svg.includes("190"), "nice things said — the headline number");
-  assert.ok(svg.includes("nice things said to an AI"), "plain-language framing");
-  assert.ok(svg.includes("252 karma points (worth nothing)"), "karma framing, explicitly worthless");
-  assert.ok(!svg.includes("$"), "NO dollar sign anywhere on the kindness card — karma is not money");
-  assert.ok(!/earned back|owed|off the jar/i.test(svg), "no money-back language");
-  assert.ok(svg.includes("please"), "favourite courtesy (lexicon constant)");
-  assert.ok(svg.includes("#FBF7EC"), "paper background");
-  assert.ok(svg.includes("#F5C542"), "gold top bar");
+test("canonical share card uses the supplied dark Claude-style visual language", () => {
+  const svg = cardSvg({ userSwears: 1435, kindActs: 190 });
+
+  for (const required of [
+    '<radialGradient id="card-depth"',
+    '<radialGradient id="card-spotlight"',
+    '#0f1216',
+    '#272d37',
+    '#e8e6e1',
+    '#e8853a',
+    '#5fb07a',
+    '#8a93a0',
+  ]) {
+    assert.ok(svg.includes(required), `missing visual token: ${required}`);
+  }
+
+  assert.match(svg, /data-share-count="swears"[^>]*font-size="1(?:0[0-9]|[1-9][0-9])"/);
+  assert.match(svg, /data-share-count="nice"[^>]*font-size="1(?:0[0-9]|[1-9][0-9])"/);
+  assert.match(svg, /data-share-verdict-stamp="true"[^>]*stroke="#(?:e8853a|5fb07a|e8e6e1)"/);
 });
 
-test("both variants are well-formed single-root SVGs", () => {
-  for (const v of ["damage", "kindness"]) {
-    const svg = cardSvg(D, v);
-    assert.equal((svg.match(/<svg /g) || []).length, 1);
-    assert.ok(svg.endsWith("</svg>"));
-    // every opened <text> closes
-    assert.equal((svg.match(/<text /g) || []).length, (svg.match(/<\/text>/g) || []).length);
+test("the longest approved verdict fits the stamp as two balanced lines", () => {
+  const svg = cardSvg({ userSwears: 3, kindActs: 2 });
+
+  assert.match(svg, /data-share-verdict="long"[^>]*aria-label="YOU KISS YOUR MOTHER WITH THAT MOUTH\?"/);
+  assert.match(svg, /<tspan[^>]*>YOU KISS YOUR MOTHER<\/tspan>/);
+  assert.match(svg, /<tspan[^>]*>WITH THAT MOUTH\?<\/tspan>/);
+});
+
+test("canonical share card uses two same-scale bars", () => {
+  const svg = cardSvg({ userSwears: 8, kindActs: 4 });
+  const bars = [...svg.matchAll(/data-share-bar="(swears|nice)"[^>]* width="([\d.]+)"/g)];
+
+  assert.equal(bars.length, 2, "one bar for each exact human count");
+  assert.deepEqual(
+    Object.fromEntries(bars.map(([, name, width]) => [name, Number(width)])),
+    { swears: 480, nice: 240 },
+    "both bar lengths use max(userSwears, kindActs, 1)"
+  );
+});
+
+test("canonical share card verdicts cover kindness, swears, ties, and no signal", () => {
+  assert.equal(cardVerdict({ userSwears: 2, kindActs: 3 }), "HOLY GOODY TWO-SHOES");
+  assert.equal(cardVerdict({ userSwears: 3, kindActs: 2 }), "YOU KISS YOUR MOTHER WITH THAT MOUTH?");
+  assert.equal(cardVerdict({ userSwears: 3, kindActs: 3 }), "DEAD EVEN");
+  assert.equal(cardVerdict({ userSwears: 0, kindActs: 0 }), "NO SIGNAL");
+});
+
+test("canonical share card renders exactly one applicable verdict", () => {
+  const verdicts = [
+    "HOLY GOODY TWO-SHOES",
+    "YOU KISS YOUR MOTHER WITH THAT MOUTH?",
+    "DEAD EVEN",
+    "NO SIGNAL",
+  ];
+  for (const input of [
+    { userSwears: 2, kindActs: 3 },
+    { userSwears: 3, kindActs: 2 },
+    { userSwears: 3, kindActs: 3 },
+    { userSwears: 0, kindActs: 0 },
+  ]) {
+    const svg = cardSvg(input);
+    assert.equal(verdicts.filter((verdict) => svg.includes(verdict)).length, 1);
   }
 });
 
-test("cardData maps stats to display fields with censoring + grovel share", () => {
-  const stats = {
-    totalCoins: 10,
-    dollarsOwed: 2.5,
-    fbombPct: 50,
-    vocab: 3,
-    topWords: [{ word: "fuck", count: 5 }],
-    kindnessCredits: 8,
-    kindnessDollars: 2,
-    topPositives: [
-      { word: "please", count: 3, tier: "courtesy", credits: 3 },
-      { word: "youre-a-genius", count: 1, tier: "grovel", credits: 4 },
-    ],
-  };
-  const d = cardData(stats);
-  assert.equal(d.favLabel, "f***");
-  assert.equal(d.favKindLabel, "please");
-  assert.equal(d.grovelPct, 50); // 4 of 8 credits
-  assert.equal(d.kindVocab, 2);
-  assert.ok(!("dollarsBack" in d), "karma only — no money field on the kindness side");
+test("canonical share card excludes legacy and privacy-leaking share content", () => {
+  const svg = cardSvg({
+    userSwears: 12,
+    kindActs: 9,
+    dollars: 999,
+    favLabel: "forbidden-source-text",
+    rawConversation: "a private sentence",
+  });
+  for (const forbidden of [
+    "$",
+    "debt",
+    "owed",
+    "coin",
+    "damage point",
+    "f***",
+    "%",
+    "ratio",
+    "uprising",
+    "upload",
+    "forbidden-source-text",
+    "a private sentence",
+    "<path",
+  ]) {
+    assert.ok(!svg.toLowerCase().includes(forbidden.toLowerCase()), `forbidden card content: ${forbidden}`);
+  }
+  assert.ok(!/>[^<]*#[A-Za-z]/.test(svg), "no hashtag text on the card");
 });
 
-// ── parity: every surface's inlined generator must byte-match the canonical ──
-const START = "/*__CARD_SVG_START__*/";
-const END = "/*__CARD_SVG_END__*/";
-function block(file) {
-  const s = fs.readFileSync(path.join(ROOT, file), "utf8");
-  const a = s.indexOf(START);
-  const b = s.indexOf(END);
-  assert.ok(a !== -1 && b !== -1, `${file} carries the cardSvg parity block`);
-  return s.slice(a + START.length, b).trim();
-}
-
-test("inlined cardSvg in every HTML surface byte-matches src/sharecard.mjs", () => {
-  const canonical = block("src/sharecard.mjs");
-  for (const surface of ["assets/report_template.html", "assets/kindness_template.html"]) {
-    assert.equal(block(surface), canonical, `${surface} drifted from src/sharecard.mjs`);
-  }
+test("cardData selects only raw human comparison counts from stats", () => {
+  assert.deepEqual(
+    cardData({
+      userSwears: 12,
+      kindActs: 9,
+      totalCoins: 500,
+      dollarsOwed: 500,
+      topWords: [{ word: "forbidden-source-text", count: 12 }],
+    }),
+    { userSwears: 12, kindActs: 9 }
+  );
 });
 
-test("generated docs samples carry the same parity block", () => {
-  const canonical = block("src/sharecard.mjs");
-  for (const surface of ["docs/demo.html", "docs/kindness.html"]) {
-    assert.equal(block(surface), canonical, `${surface} stale — re-run scripts/site/build*.mjs`);
-  }
+test("share caption is the exact approved four-paragraph post", () => {
+  assert.equal(
+    shareCaption({ userSwears: 1435, kindActs: 190 }),
+    "I used the open-source AI Swear Jar and found out I have sworn at AI 1,435 times.\n\nOn the other hand, I have been nice to AI 190 times.\n\nWant to know how you measure up?\n\nhttps://swearjar.unfocused.ai"
+  );
 });

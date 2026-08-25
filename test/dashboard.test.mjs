@@ -30,8 +30,8 @@ function render() {
 test("renders the expected dollar figure, project names and odds into the payload", () => {
   const html = render();
   const stats = computeStats(FIXTURE, NOW);
-  assert.equal(stats.dollarsOwed, 5.5); // $1 fuck + $1 shit + $.50 damn + $1 machine fuck
-  assert.ok(html.includes('"dollarsOwed":5.5'), "dollar figure present");
+  assert.equal(stats.dollarsOwed, 6); // six literal swears at $1 each
+  assert.ok(html.includes('"dollarsOwed":6'), "dollar figure present");
   assert.ok(html.includes('"alpha"') && html.includes('"beta"'), "project names present");
   assert.ok(html.includes(`"value":${survivalOdds(FIXTURE, NOW).odds}`), "odds value present");
   assert.ok(html.includes('"word":"fuck"'), "top word family present");
@@ -57,7 +57,7 @@ test("HTML auto-requests nothing — external URLs are human-clicked share and f
   // Every http(s) reference is a human-clicked link: tip jar, optional report
   // share, social composers, source, and maker credits. Nothing is fetched on load.
   const urls = [...html.matchAll(/https?:\/\/[^\s"'`<>()]+/gi)].map((m) => m[0]);
-  const allowed = [DONATE_URL, HOSTED, "https://github.com/BigLaserCo/swear-jar", "https://swearjar.unfocused.ai/", "https://x.com/intent/post?", "https://www.linkedin.com/sharing/share-offsite/?", "https://youtube.com/@BigLaserCo", "https://tiktok.com/@biglaserco", "https://setupyour.ai", "https://biglaser.co", "http://www.w3.org/2000/svg"];
+  const allowed = [DONATE_URL, HOSTED, "https://github.com/BigLaserCo/swear-jar", "https://swearjar.unfocused.ai", "https://x.com/intent/post?", "https://www.linkedin.com/sharing/share-offsite/?", "https://youtube.com/@BigLaserCo", "https://tiktok.com/@biglaserco", "https://setupyour.ai", "https://biglaser.co", "http://www.w3.org/2000/svg"];
   const foreign = urls.filter((u) => !allowed.some((prefix) => u === prefix || u.startsWith(prefix)));
   assert.deepEqual(foreign, [], `found unexpected external URL: ${foreign.join(", ")}`);
   // With donation and optional report share hidden, static source/social links remain.
@@ -119,7 +119,7 @@ test("writeDashboard injects the hosted 'in lights' button by default, omits it 
   }
 });
 
-test("gold-star state is driven by the goldStar flag in the payload, and the banner element ships", () => {
+test("damage mode keeps the legacy goldStar data but does not render an angel banner", () => {
   // swear-heavy fixture → not a gold star
   const off = render();
   assert.ok(off.includes('"goldStar":false'), "goldStar:false for a swearing ledger");
@@ -129,8 +129,10 @@ test("gold-star state is driven by the goldStar flag in the payload, and the ban
   ];
   const on = renderDashboard(computeStats(mannered, NOW), {});
   assert.ok(on.includes('"goldStar":true'), "goldStar:true when manners beat swears");
-  // the banner element is present in the template either way (JS toggles .on)
-  assert.ok(on.includes('id="goldstar"'), "gold-star banner element ships in the template");
+  // The kindness report can explain the result, but damage mode must not mix in
+  // a competing angel personality or card.
+  assert.ok(!on.includes('id="goldstar"'), "damage report has no gold-star banner");
+  assert.ok(!on.includes('id="downloadKindCard"'), "damage report has no cross-mode card download");
 });
 
 // ── the version stamp: what makes a stale report identifiable ────────────────

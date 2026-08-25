@@ -21,6 +21,10 @@
 //       audited FALSE or banned by editorial decision (stale hosting claims,
 //       operator email, placeholder org, disrespectful third-party framing,
 //       cents in displayed dollar amounts in generated public artifacts).
+//   (i) license guard: package.json must declare MIT and the tracked LICENSE
+//       must carry the complete auditable MIT grant and warranty disclaimer.
+//   (j) public build: every deterministic hosted artifact is regenerated from
+//       its reviewed canonical source before the test and policy gates run.
 //
 // NB: every secret needle below is assembled from fragments (`frag(...)`) so this
 // scanner's own source never trips its own secret scan — no self-exclusion needed.
@@ -30,8 +34,11 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { runGuard, formatHit } from "./leak-guard.mjs";
+import { checkLicense } from "./license-guard.mjs";
 
 const ROOT = path.resolve(new URL("../../", import.meta.url).pathname);
+const PUBLIC_SITE_BUILDER = path.join(ROOT, "scripts", "site", "buildPublicSite.mjs");
+const TEST_RUNNER = path.join(ROOT, "scripts", "ci", "run-tests.mjs");
 const failures = [];
 const fail = (check, msg) => failures.push(`${check}: ${msg}`);
 const ok = (check, msg) => console.log(`  ok   ${check} — ${msg}`);
@@ -62,11 +69,16 @@ function readText(rel) {
 // ── (a) tests ───────────────────────────────────────────────────────────────
 function checkTests() {
   try {
-    execFileSync(process.execPath, ["--test"], { cwd: ROOT, stdio: "inherit" });
-    ok("(a) tests", "node --test passed");
+    execFileSync(process.execPath, [TEST_RUNNER], { cwd: ROOT, stdio: "inherit" });
+    ok("(a) tests", "version-aware Node test runner passed");
   } catch {
     fail("(a) tests", "node --test reported failures");
   }
+}
+
+function buildPublicSite() {
+  execFileSync(process.execPath, [PUBLIC_SITE_BUILDER], { cwd: ROOT, stdio: "inherit" });
+  ok("(j) public-build", "deterministic hosted artifacts regenerated from canonical sources");
 }
 
 // ── (b) no network / process-exec smells ─────────────────────────────────────
@@ -242,6 +254,16 @@ function checkClaims(tracked) {
   if (!hits) ok("(h) claims", `${tracked.length} tracked file(s) free of banned/false claims`);
 }
 
+// ── (i) license guard: public license declaration matches the grant ──────────
+function checkLicenseAudit() {
+  const result = checkLicense(ROOT);
+  if (!result.ok) {
+    for (const error of result.errors) fail("(i) license-guard", error);
+    return;
+  }
+  ok("(i) license-guard", "package.json and LICENSE carry the MIT public license");
+}
+
 // ── (e) privacy invariant ────────────────────────────────────────────────────
 async function checkPrivacy() {
   // Fake key assembled from fragments; the full value only exists at runtime.
@@ -319,6 +341,7 @@ function readTextAbs(abs) {
 // ── run ──────────────────────────────────────────────────────────────────────
 async function main() {
   console.log("swear-jar verify — running CI gate\n");
+  buildPublicSite();
   const tracked = trackedFiles();
   checkTests();
   checkNoNetwork(tracked);
@@ -327,6 +350,7 @@ async function main() {
   checkLeakGuard();
   checkInternalDocs(tracked);
   checkClaims(tracked);
+  checkLicenseAudit();
   await checkPrivacy();
 
   if (failures.length) {
