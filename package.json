@@ -38,7 +38,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test",
+    "build:browser-app": "node scripts/site/buildBrowserApp.mjs",
+    "build:site": "node scripts/site/buildPublicSite.mjs",
+    "test": "node scripts/site/buildPublicSite.mjs && node scripts/ci/run-tests.mjs",
     "verify": "node scripts/ci/verify.mjs"
   }
 }

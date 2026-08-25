@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Swear Jar — measure your Claude Code history</title>
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="top"><p class="eyebrow">AI Swear Jar</p><h1>How much do you swear at AI?</h1><p>Measure your Claude Code history in your browser. Nothing is uploaded.</p></header>
+  <section id="pickView" class="panel hero"><h2>Find out how often you swear at AI—and how often you’re nice to it.</h2><p>This first browser scanner supports Claude Code history. Pick only the folder you want to measure; its transcript files are read in this tab and never leave your machine.</p><p class="local">100% client-side · no account · no upload</p><div class="drop" id="drop"><div aria-hidden="true">📂</div><h3>Pick your Claude Code transcripts folder</h3><p>Choose <code>~/.claude/projects</code>, or drop a folder containing its <code>.jsonl</code> files.</p><div class="buttons"><button class="btn primary" id="pickBtn">Measure mine</button><button class="btn" id="fallbackBtn">Choose folder</button></div><input id="dirInput" type="file" webkitdirectory multiple hidden><p class="hint">On macOS, press <code>Cmd+Shift+.</code> in the picker to reveal <code>~/.claude</code>.</p></div></section>
+  <section id="scanView" class="panel scan-panel" hidden aria-live="polite"><h2>Measuring your history…</h2><div class="progress"><div class="metric"><b id="files">0</b><span>files scanned</span></div><div class="metric"><b id="messages">0</b><span>eligible messages</span></div><div class="metric"><b id="coins">0</b><span>swears found</span></div></div><p class="file" id="currentFile"></p></section>
+  <section id="resultView" hidden><div id="comparison" class="comparison" role="img" aria-live="polite"></div><div id="emptyState" class="panel empty" hidden></div><div id="retryArea" class="actions" hidden><button class="btn" id="retryBtn">Measure another folder</button></div><div id="shareArea" class="panel share-panel" hidden><h2>Share your result</h2><p>Only the two aggregate counts appear in the post and card. Nothing posts unless you choose to share it.</p><div class="actions"><button class="btn primary" id="shareBtn">Share my result</button><button class="btn" id="copyBtn">Copy post</button><button class="btn" id="downloadBtn">Download card</button><button class="btn" id="againBtn">Measure another folder</button></div><div class="bridge" aria-label="About this scanner"><p>Want AI to work better for your business? <a href="https://setupyour.ai">Visit SetupYourAI.</a></p><p>Built in the <a href="https://biglaser.co">Big Laser workshop.</a></p></div></div></section>
+  <footer>This open-source browser scanner uses the same canonical detector and stats modules as the CLI. <a href="https://github.com/BigLaserCo/swear-jar">Read the code on GitHub.</a></footer>
+</main>
+<div id="toast" class="toast" hidden></div>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

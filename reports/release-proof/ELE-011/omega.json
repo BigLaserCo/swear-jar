@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "kind": "atomic-omega-proof",
+  "ticket": "ELE-011",
+  "ticketUuid": "0fc00850-67fe-4c1e-8c16-cc4e8d9dbdce",
+  "status": "passed",
+  "summary": "The Claude-designed AI Swear Jar landing, local browser scan, two-count result, and canonical social card passed the real browser hero path plus an exhaustive 63-case render matrix at desktop and phone widths. Every comparison verdict, all 30 existing damage-rank thresholds and their predecessors, the 1,000,000-count public boundary, and all legacy swear and kindness tier styles rendered without clipping or horizontal overflow. The downloaded 1200x675 PNG, exact four-paragraph caption, 461 tests, deterministic public build, privacy gate, claims gate, license gate, and leak guard are green.",
+  "mergeVerdict": "VERDICT: LAND — the exact staged content is visually coherent across every defined result boundary, retains the locked aggregate-only share contract, and is ready for the normal release train.",
+  "userVisibleOutcome": "Visitors now land on the plain question 'How much do you swear at AI?', choose local Claude Code transcripts, see literal swear and kindness counts on one shared-scale chart, receive exactly one playful verdict, and can copy the approved platform-safe post or download a polished 1200x675 card. SetupYourAI and Big Laser appear only as compact onsite follow-ons after the result.",
+  "browserOmega": {
+    "landingRoute": "/",
+    "appRoute": "/app/",
+    "folderPicker": "passed with synthetic local-only Claude Code fixtures",
+    "states": {
+      "swearHeavy": "1 swear, 0 nice, mother-mouth verdict, sharing visible",
+      "kindnessHeavy": "0 swears, 1 nice, goody-two-shoes verdict, sharing visible",
+      "tie": "1 swear, 1 nice, dead-even verdict, sharing visible",
+      "zeroSignal": "0 swears, 0 nice, no-signal comparison, sharing hidden, retry visible"
+    },
+    "caption": "exact approved four-paragraph copy matched",
+    "downloadedCard": {
+      "format": "PNG",
+      "width": 1200,
+      "height": 675,
+      "sha256": "691fdc417aad4f16ff5a6570f62af9207d953b565edef162e23c96e07ac54754",
+      "path": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/swear-jar-share-card.png",
+      "visuallyInspected": true
+    },
+    "renderLevelMatrix": {
+      "cases": 63,
+      "verdicts": [
+        "NO SIGNAL",
+        "HOLY GOODY TWO-SHOES",
+        "YOU KISS YOUR MOTHER WITH THAT MOUTH?",
+        "DEAD EVEN"
+      ],
+      "rankThresholds": [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200, 225, 250, 300, 400, 500, 600, 700, 800, 900, 1000, 1500, 2000, 4000, 9000, 10000],
+      "eachThresholdPredecessorChecked": true,
+      "maxPublicCountChecked": 1000000,
+      "desktopViewport": "1280x900",
+      "mobileViewport": "390x844",
+      "desktopFailures": 0,
+      "mobileFailures": 0,
+      "legacySwearTiers": "strong, medium, and mild present and fit",
+      "legacyKindnessTiers": "strong, medium, and mild present and fit",
+      "receiptPath": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/swear-jar-level-matrix.json",
+      "receiptSha256": "ffc481a09705b5bd54f83e50ab70e3ff1dfd385425375b0bf79fd50edff0f067",
+      "visualPath": "/Users/jim/.codex/visualizations/2026/08/24/01a03265-b42e-7802-9332-37252915981d/swear-jar-level-boundaries.jpg",
+      "visualSha256": "d470bb911bdb5df511e1c86451deb3b5d3e35ee80e7359254b522dd62aef6f12"
+    },
+    "desktopResultSha256": "b15fa9fd167b2ba75590bcade41de907273aa4524a6cc8c641490fb088e7785a",
+    "mobileResultSha256": "d2097fa2e50e196b86660a7df417fee9b29d290ec2b41cfe40029fd28082bfaf",
+    "automaticTranscriptUploads": 0
+  },
+  "verification": {
+    "canonicalCommand": "npm run verify",
+    "result": "passed",
+    "testsPassed": 461,
+    "testsFailed": 0,
+    "deterministicPublicBuild": "passed",
+    "noUnauthorizedNetwork": "passed",
+    "zeroRuntimeDependencies": "passed",
+    "secretScan": "passed",
+    "leakGuard": "passed",
+    "internalDocsGuard": "passed",
+    "claimsGuard": "passed",
+    "licenseGuard": "passed",
+    "rawTextPrivacyInvariant": "passed",
+    "independentReview": "Terra final diff review reported no blocking findings"
+  },
+  "boundary": "Local rendered acceptance proof only. This does not claim queue admission, release-train landing, deployment, runtime activation, or production Omega."
+}
